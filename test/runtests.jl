@@ -1,7 +1,7 @@
-using FilePaths
+using FilePathsBase
 using Base.Test
 
-@testset "FilePaths" begin
+@testset "FilePathsBase" begin
 
 include("mode.jl")
 include("path.jl")

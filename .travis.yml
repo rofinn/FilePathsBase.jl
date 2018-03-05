@@ -14,6 +14,6 @@ matrix:
     - julia: nightly
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.test("FilePaths"; coverage=true)'
+  - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.test("FilePathsBase"; coverage=true)'
 after_success:
-  - julia -e 'cd(Pkg.dir("FilePaths")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
+  - julia -e 'cd(Pkg.dir("FilePathsBase")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'

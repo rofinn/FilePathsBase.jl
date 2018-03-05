@@ -26,10 +26,10 @@ install:
 build_script:
 # Need to convert from shallow to complete for Pkg.clone to work
   - IF EXIST .git\shallow (git fetch --unshallow)
-  - C:\projects\julia\bin\julia -e "Pkg.clone(pwd(), \"FilePaths\"); versioninfo(); Pkg.build(\"FilePaths\")"
+  - C:\projects\julia\bin\julia -e "Pkg.clone(pwd(), \"FilePathsBase\"); versioninfo(); Pkg.build(\"FilePathsBase\")"
 
 test_script:
-  - C:\projects\julia\bin\julia --check-bounds=yes -e "Pkg.test(\"FilePaths\", coverage=true)"
+  - C:\projects\julia\bin\julia --check-bounds=yes -e "Pkg.test(\"FilePathsBase\", coverage=true)"
 
 after_test:
-  - C:\projects\julia\bin\julia -e "cd(Pkg.dir(\"FilePaths\")); Pkg.add(\"Coverage\"); using Coverage; Codecov.submit(Codecov.process_folder())"
+  - C:\projects\julia\bin\julia -e "cd(Pkg.dir(\"FilePathsBase\")); Pkg.add(\"Coverage\"); using Coverage; Codecov.submit(Codecov.process_folder())"

@@ -62,7 +62,7 @@ Base.parent(path::AbstractPath) = parents(path)[end]
 # Example
 ```
 julia> parents(p"~/.julia/v0.6/REQUIRE")
-3-element Array{FilePaths.PosixPath,1}:
+3-element Array{FilePathsBase.PosixPath,1}:
  p"~"
  p"~/.julia"
  p"~/.julia/v0.6"
@@ -112,8 +112,8 @@ Extracts the `basename` without any extensions.
 
 # Example
 ```
-julia> filename(p"~/repos/FilePaths.jl/src/FilePaths.jl")
-"FilePaths"
+julia> filename(p"~/repos/FilePathsBase.jl/src/FilePathsBase.jl")
+"FilePathsBase"
 ```
 """
 function filename(path::AbstractPath)
@@ -128,7 +128,7 @@ Extracts the last extension from a filename if there any, otherwise it returns a
 
 # Example
 ```
-julia> extension(p"~/repos/FilePaths.jl/src/FilePaths.jl")
+julia> extension(p"~/repos/FilePathsBase.jl/src/FilePathsBase.jl")
 "jl"
 ```
 """
@@ -150,7 +150,7 @@ Extracts all extensions from a filename if there any, otherwise it returns an em
 
 # Example
 ```
-julia> extensions(p"~/repos/FilePaths.jl/src/FilePaths.jl.bak")
+julia> extensions(p"~/repos/FilePathsBase.jl/src/FilePathsBase.jl.bak")
 2-element Array{SubString{String},1}:
  "jl"
  "bak"
@@ -294,7 +294,7 @@ Returns the `Mode` for the specified path.
 
 # Example
 ```
-julia> mode(p"src/FilePaths.jl")
+julia> mode(p"src/FilePathsBase.jl")
 -rw-r--r--
 ```
 """
@@ -308,7 +308,7 @@ Returns the last modified date for the `path`.
 
 # Example
 ```
-julia> modified(p"src/FilePaths.jl")
+julia> modified(p"src/FilePathsBase.jl")
 2017-06-20T04:01:09
 ```
 """
@@ -321,7 +321,7 @@ Returns the creation date for the `path`.
 
 # Example
 ```
-julia> created(p"src/FilePaths.jl")
+julia> created(p"src/FilePathsBase.jl")
 2017-06-20T04:01:09
 ```
 """
@@ -576,7 +576,7 @@ julia> chmod(p"newfile", user=(READ+WRITE+EXEC), group=(READ+EXEC), other=READ)
 julia> mode(p"newfile")
 -rwxr-xr--
 
-julia> chmod(p"newfile", mode(p"src/FilePaths.jl"))
+julia> chmod(p"newfile", mode(p"src/FilePathsBase.jl"))
 
 julia> mode(p"newfile")
 -rw-r--r--

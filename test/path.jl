@@ -1,25 +1,25 @@
 
 cd(abs(parent(Path(@__FILE__)))) do
     @testset "Simple Path Usage" begin
-        reg = is_windows() ? "..\\src\\FilePaths.jl" : "../src/FilePaths.jl"
+        reg = is_windows() ? "..\\src\\FilePathsBase.jl" : "../src/FilePathsBase.jl"
         @test ispath(reg)
 
         p = Path(reg)
 
-        @test p == p"../src/FilePaths.jl"
+        @test p == p"../src/FilePathsBase.jl"
         @test String(p) == reg
         @test String(cwd()) == pwd()
         @test String(home()) == homedir()
 
-        @test parts(p) == ("..", "src", "FilePaths.jl")
+        @test parts(p) == ("..", "src", "FilePathsBase.jl")
         @test hasparent(p)
         @test parent(p) == p"../src"
         @test parents(p) == [p"..", p"../src"]
         @test_throws ErrorException parents(p".")
 
-        @test basename(p) == "FilePaths.jl"
+        @test basename(p) == "FilePathsBase.jl"
         @test join(parent(p), Path(basename(p))) == p
-        @test filename(p) == "FilePaths"
+        @test filename(p) == "FilePathsBase"
 
         @test extension(p) == "jl"
         @test extension(p"../REQUIRE") == ""
@@ -28,7 +28,7 @@ cd(abs(parent(Path(@__FILE__)))) do
 
         @test exists(p)
         @test !isabs(p)
-        @test String(norm(p"../src/../src/FilePaths.jl")) == normpath("../src/../src/FilePaths.jl")
+        @test String(norm(p"../src/../src/FilePathsBase.jl")) == normpath("../src/../src/FilePathsBase.jl")
         @test String(abs(p)) == abspath(String(p))
         # This works around an issue with Base.relpath: that function does not take
         # into account the paths on Windows should be compared case insensitive.
