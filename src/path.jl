@@ -27,6 +27,38 @@ home() = Path(homedir())
 
 anchor(path::AbstractPath) = drive(path) * root(path)
 
+"""
+    @__DIR_P__ -> AbstractPath
+
+@__DIR_P__ expands to a path with the directory part of the absolute path
+of the file containing the macro. Returns an empty Path if run from a REPL or
+if evaluated by julia -e <expr>.
+"""
+macro __DIR_P__()
+    :(Path(@__DIR__()===nothing?Path():@__DIR__))
+end
+
+"""
+    @__FILE_P__ -> AbstractPath
+
+@__FILE_P__ expands to a path with the absolute file path of the file
+containing the macro. Returns an empty Path if run from a REPL or if
+evaluated by julia -e <expr>.
+"""
+macro __FILE_P__()
+    :(Path(@__FILE__()===nothing?Path():@__FILE__))
+end
+
+"""
+    @LOCAL(filespec)
+
+Construct an absolute path to `filespec` relative to the source file
+containing the macro call.
+"""
+macro LOCAL(filespec)
+    :(join(@__DIR_P__, Path($(esc(filespec)))))
+end
+
 #=
 Path Modifiers
 ===============================================

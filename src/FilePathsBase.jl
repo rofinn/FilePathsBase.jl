@@ -46,6 +46,9 @@ export
 
     # Macros
     @p_str,
+    @__DIR_P__,
+    @__FILE_P__,
+    @LOCAL,
 
     # Constants
     READ,
