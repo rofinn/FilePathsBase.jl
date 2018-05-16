@@ -138,8 +138,8 @@ chmod | chmod (recursive unix-only)
 chown (unix only) | chown (unix only)
 N/A | read
 N/A | write
-@__DIR__ | @__DIR_P__
-@__FILE__ | @__FILE_P__
+@__DIR__ | @__PATH__
+@__FILE__ | @__FILEPATH__
 N/A | @LOCAL
 
 ## TODO:
