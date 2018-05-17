@@ -48,7 +48,6 @@ export
     @p_str,
     @__PATH__,
     @__FILEPATH__,
-    @LOCAL,
 
     # Constants
     READ,
