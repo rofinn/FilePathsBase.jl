@@ -138,6 +138,8 @@ chmod | chmod (recursive unix-only)
 chown (unix only) | chown (unix only)
 N/A | read
 N/A | write
+@__DIR__ | @__PATH__
+@__FILE__ | @__FILEPATH__
 
 ## TODO:
 * cross platform chmod and chown

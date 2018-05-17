@@ -81,6 +81,9 @@ cd(abs(parent(Path(@__FILE__)))) do
         @test p4.drive == ""
         @test p4.root == ""
 
+        @test @__PATH__() == Path(@__DIR__)
+        @test @__FILEPATH__() == Path(@__FILE__)
+        @test FilePathsBase.@LOCAL("foo.txt") == join(@__PATH__, "foo.txt")
     end
 end
 
