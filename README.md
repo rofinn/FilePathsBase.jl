@@ -140,7 +140,6 @@ N/A | read
 N/A | write
 @__DIR__ | @__PATH__
 @__FILE__ | @__FILEPATH__
-N/A | @LOCAL
 
 ## TODO:
 * cross platform chmod and chown
