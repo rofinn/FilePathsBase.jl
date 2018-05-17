@@ -35,7 +35,7 @@ of the file containing the macro. Returns an empty Path if run from a REPL or
 if evaluated by julia -e <expr>.
 """
 macro __PATH__()
-    :(Path(@__DIR__()===nothing?Path():@__DIR__))
+    :(Path(@__DIR__()===nothing ? Path() : @__DIR__))
 end
 
 """
@@ -46,7 +46,7 @@ containing the macro. Returns an empty Path if run from a REPL or if
 evaluated by julia -e <expr>.
 """
 macro __FILEPATH__()
-    :(Path(@__FILE__()===nothing?Path():@__FILE__))
+    :(Path(@__FILE__()===nothing ? Path() : @__FILE__))
 end
 
 """
