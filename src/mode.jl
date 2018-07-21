@@ -9,7 +9,7 @@ constants have been translated from cpython's Lib/stat.py file.
 
 https://github.com/python/cpython/blob/master/Lib/stat.py
 """
-immutable Mode
+struct Mode
     m::UInt64
 end
 

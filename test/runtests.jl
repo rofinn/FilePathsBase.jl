@@ -1,5 +1,6 @@
 using FilePathsBase
-using Base.Test
+using LinearAlgebra
+using Test
 
 @testset "FilePathsBase" begin
 

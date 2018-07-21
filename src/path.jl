@@ -7,10 +7,10 @@
 Responsible for creating the appropriate platform specific path
 (e.g., `PosixPath` and `WindowsPath` for Unix and Windows systems respectively)
 """
-Path() = @static is_unix() ? PosixPath() : WindowsPath()
+Path() = @static Sys.isunix() ? PosixPath() : WindowsPath()
 Path(path::AbstractPath) = path
-Path(pieces::Tuple) = @static is_unix() ? PosixPath(pieces) : WindowsPath(pieces)
-Path(str::AbstractString) = @static is_unix() ? PosixPath(str) : WindowsPath(str)
+Path(pieces::Tuple) = @static Sys.isunix() ? PosixPath(pieces) : WindowsPath(pieces)
+Path(str::AbstractString) = @static Sys.isunix() ? PosixPath(str) : WindowsPath(str)
 
 """
     @p_str -> Path
@@ -35,7 +35,8 @@ of the file containing the macro. Returns an empty Path if run from a REPL or
 if evaluated by julia -e <expr>.
 """
 macro __PATH__()
-    :(Path(@__DIR__()===nothing ? Path() : @__DIR__))
+    p = Path(dirname(string(__source__.file)))
+    p===nothing ? :(Path()) : :($p)
 end
 
 """
@@ -46,7 +47,8 @@ containing the macro. Returns an empty Path if run from a REPL or if
 evaluated by julia -e <expr>.
 """
 macro __FILEPATH__()
-    :(Path(@__FILE__()===nothing ? Path() : @__FILE__))
+    p = Path(string(__source__.file))
+    p===nothing ? :(Path()) : :($p)
 end
 
 """
@@ -56,7 +58,8 @@ Construct an absolute path to `filespec` relative to the source file
 containing the macro call.
 """
 macro LOCAL(filespec)
-    :(join(@__PATH__, Path($(esc(filespec)))))
+    p = join(Path(dirname(string(__source__.file))), Path(filespec))
+    :($p)
 end
 
 #=
@@ -103,7 +106,7 @@ julia> parents(p"~/.julia/v0.6/REQUIRE")
 # Throws
 * `ErrorException`: if `path` doesn't have a parent
 """
-function parents{T<:AbstractPath}(path::T)
+function parents(path::T) where {T <: AbstractPath}
     if hasparent(path)
         return map(1:length(parts(path))-1) do i
             T(parts(path)[1:i])
@@ -228,7 +231,7 @@ Base.real(path::AbstractPath) = Path(realpath(String(path)))
 
 Normalizes a path by removing "." and ".." entries.
 """
-function Base.norm{T<:AbstractPath}(path::T)
+function LinearAlgebra.norm(path::T) where {T <: AbstractPath}
     p = parts(path)
     result = String[]
     rem = length(p)
@@ -275,7 +278,7 @@ end
 
 Creates a relative path from either the current directory or an arbitrary start directory.
 """
-function relative{T<:AbstractPath}(path::T, start::T=T("."))
+function relative(path::T, start::T=T(".")) where {T <: AbstractPath}
     curdir = "."
     pardir = ".."
 
@@ -287,7 +290,7 @@ function relative{T<:AbstractPath}(path::T, start::T=T("."))
     i = 0
     while i < min(length(p), length(s))
         i += 1
-        @static if is_windows()
+        @static if Sys.iswindows()
             if lowercase(p[i]) != lowercase(s[i])
                 i -= 1
                 break
@@ -450,7 +453,7 @@ function Base.mkdir(path::AbstractPath; mode=0o777, recursive=false, exist_ok=fa
         !exist_ok && error("$path already exists.")
     else
         if !hasparent(path) || exists(parent(path))
-            mkdir(String(path), mode)
+            mkdir(String(path), mode=mode)
         elseif hasparent(path) && !exists(parent(path)) && recursive
             mkdir(parent(path); mode=mode, recursive=recursive, exist_ok=exist_ok)
         else
@@ -522,8 +525,8 @@ function move(src::AbstractPath, dest::AbstractPath; recursive=false, exist_ok=f
     end
 end
 
-function Base.cp(src::AbstractPath, dest::AbstractPath; remove_destination::Bool=false, follow_symlinks::Bool=false)
-    cp(String(src), String(dest); remove_destination=remove_destination, follow_symlinks=follow_symlinks)
+function Base.cp(src::AbstractPath, dest::AbstractPath; force::Bool=false, follow_symlinks::Bool=false)
+    cp(String(src), String(dest); force=force, follow_symlinks=follow_symlinks)
 end
 
 remove(path::AbstractPath; recursive=false) = rm(String(path); recursive=recursive)
@@ -564,7 +567,7 @@ end
 Change the `user` and `group` of the `path`.
 """
 function Base.chown(path::AbstractPath, user::AbstractString, group::AbstractString; recursive=false)
-    @static if is_unix()
+    @static if Sys.isunix()
         chown_cmd = String["chown"]
         if recursive
             push!(chown_cmd, "-R")

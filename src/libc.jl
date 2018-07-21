@@ -1,5 +1,5 @@
-@static if is_apple()
-    immutable Cpasswd
+@static if Sys.isapple()
+    struct Cpasswd
         pw_name::Cstring
         pw_passwd::Cstring
         pw_uid::Cint
@@ -12,8 +12,8 @@
         pw_expire::Cint
         pw_fields::Cint
     end
-elseif is_linux()
-    immutable Cpasswd
+elseif Sys.islinux()
+    struct Cpasswd
        pw_name::Cstring
        pw_passwd::Cstring
        pw_uid::Cint
@@ -23,7 +23,7 @@ elseif is_linux()
        pw_shell::Cstring
     end
 else
-    immutable Cpasswd
+    struct Cpasswd
         pw_name::Cstring
         pw_uid::Cint
         pw_gid::Cint
@@ -34,7 +34,7 @@ else
     Cpasswd() = Cpasswd(pointer("NA"), 0, 0, pointer("NA"), pointer("NA"))
 end
 
-immutable Cgroup
+struct Cgroup
     gr_name::Cstring
     gr_passwd::Cstring
     gr_gid::Cint
@@ -42,7 +42,7 @@ end
 
 Cgroup() = Cgroup(pointer("NA"), pointer("NA"), 0)
 
-immutable User
+struct User
     name::String
     uid::UInt64
     gid::UInt64
@@ -67,7 +67,7 @@ function Base.show(io::IO, user::User)
 end
 
 function User(name::String)
-    ps = @static if is_unix()
+    ps = @static if Sys.isunix()
         ccall((:getpwnam, "libc"), Ptr{Cpasswd}, (Ptr{UInt8},), name)
     else
         Cpasswd()
@@ -77,7 +77,7 @@ function User(name::String)
 end
 
 function User(uid::UInt)
-    ps = @static if is_unix()
+    ps = @static if Sys.isunix()
         ccall((:getpwuid, "libc"), Ptr{Cpasswd}, (UInt64,), uid)
     else
         Cpasswd()
@@ -87,11 +87,11 @@ function User(uid::UInt)
 end
 
 function User()
-    uid = @static is_unix() ? ccall((:geteuid, "libc"), Cint, ()) : 0
+    uid = @static Sys.isunix() ? ccall((:geteuid, "libc"), Cint, ()) : 0
     User(UInt64(uid))
 end
 
-immutable Group
+struct Group
     name::String
     gid::UInt64
 
@@ -105,7 +105,7 @@ function Base.show(io::IO, group::Group)
 end
 
 function Group(name::String)
-    ps = @static if is_unix()
+    ps = @static if Sys.isunix()
         ccall((:getgrnam, "libc"), Ptr{Cgroup}, (Ptr{UInt8},), name)
     else
         Cgroup()
@@ -115,7 +115,7 @@ function Group(name::String)
 end
 
 function Group(gid::UInt)
-    gr = @static if is_unix()
+    gr = @static if Sys.isunix()
         ccall((:getgrgid, "libc"), Ptr{Cgroup}, (UInt64,), gid)
     else
         Cgroup()
@@ -125,6 +125,6 @@ function Group(gid::UInt)
 end
 
 function Group()
-    gid = @static is_unix() ? ccall((:getegid, "libc"), Cint, ()) : 0
+    gid = @static Sys.isunix() ? ccall((:getegid, "libc"), Cint, ()) : 0
     Group(UInt64(gid))
 end
