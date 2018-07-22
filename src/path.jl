@@ -231,7 +231,7 @@ Base.real(path::AbstractPath) = Path(realpath(String(path)))
 
 Normalizes a path by removing "." and ".." entries.
 """
-function LinearAlgebra.norm(path::T) where {T <: AbstractPath}
+function norm(path::T) where {T <: AbstractPath}
     p = parts(path)
     result = String[]
     rem = length(p)

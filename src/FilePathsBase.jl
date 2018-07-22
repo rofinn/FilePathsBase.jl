@@ -2,7 +2,7 @@ __precompile__()
 
 module FilePathsBase
 
-using Printf, LinearAlgebra, Dates
+using Compat: occursin, Sys, Printf, Dates
 
 import Base: ==
 export

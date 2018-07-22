@@ -1,5 +1,4 @@
 using FilePathsBase
-using LinearAlgebra
 using Test
 
 @testset "FilePathsBase" begin

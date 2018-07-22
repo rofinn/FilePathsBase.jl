@@ -4,8 +4,9 @@ os:
   - linux
   - osx
 julia:
+  - 0.6
   - 0.7
-  - nightly
+  # - nightly
 notifications:
   email: false
 matrix:
