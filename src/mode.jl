@@ -108,7 +108,7 @@ Base.isfile(mode::Mode) = _meta(mode.m) == S_IFREG
 Base.islink(mode::Mode) = _meta(mode.m) == S_IFLNK
 
 """Return True if mode is from a socket."""
-Base.issocket(mode) = _meta(mode.m) == S_IFSOCK
+Base.issocket(mode::Mode) = _meta(mode.m) == S_IFSOCK
 
 """Return True if mode is from a FIFO (named pipe)."""
 Base.isfifo(mode::Mode) = _meta(mode.m) == S_IFIFO
