@@ -1,4 +1,4 @@
-@static if Sys.isapple()
+@static if Compat.Sys.isapple()
     struct Cpasswd
         pw_name::Cstring
         pw_passwd::Cstring
@@ -12,7 +12,7 @@
         pw_expire::Cint
         pw_fields::Cint
     end
-elseif Sys.islinux()
+elseif Compat.Sys.islinux()
     struct Cpasswd
        pw_name::Cstring
        pw_passwd::Cstring
@@ -67,7 +67,7 @@ function Base.show(io::IO, user::User)
 end
 
 function User(name::String)
-    ps = @static if Sys.isunix()
+    ps = @static if Compat.Sys.isunix()
         ccall((:getpwnam, "libc"), Ptr{Cpasswd}, (Ptr{UInt8},), name)
     else
         Cpasswd()
@@ -77,7 +77,7 @@ function User(name::String)
 end
 
 function User(uid::UInt)
-    ps = @static if Sys.isunix()
+    ps = @static if Compat.Sys.isunix()
         ccall((:getpwuid, "libc"), Ptr{Cpasswd}, (UInt64,), uid)
     else
         Cpasswd()
@@ -87,7 +87,7 @@ function User(uid::UInt)
 end
 
 function User()
-    uid = @static Sys.isunix() ? ccall((:geteuid, "libc"), Cint, ()) : 0
+    uid = @static Compat.Sys.isunix() ? ccall((:geteuid, "libc"), Cint, ()) : 0
     User(UInt64(uid))
 end
 
@@ -105,7 +105,7 @@ function Base.show(io::IO, group::Group)
 end
 
 function Group(name::String)
-    ps = @static if Sys.isunix()
+    ps = @static if Compat.Sys.isunix()
         ccall((:getgrnam, "libc"), Ptr{Cgroup}, (Ptr{UInt8},), name)
     else
         Cgroup()
@@ -115,7 +115,7 @@ function Group(name::String)
 end
 
 function Group(gid::UInt)
-    gr = @static if Sys.isunix()
+    gr = @static if Compat.Sys.isunix()
         ccall((:getgrgid, "libc"), Ptr{Cgroup}, (UInt64,), gid)
     else
         Cgroup()
@@ -125,6 +125,6 @@ function Group(gid::UInt)
 end
 
 function Group()
-    gid = @static Sys.isunix() ? ccall((:getegid, "libc"), Cint, ()) : 0
+    gid = @static Compat.Sys.isunix() ? ccall((:getegid, "libc"), Cint, ()) : 0
     Group(UInt64(gid))
 end

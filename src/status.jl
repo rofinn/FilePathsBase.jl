@@ -1,4 +1,4 @@
-using Dates
+using Compat.Dates
 
 import Base.Filesystem: StatStruct
 

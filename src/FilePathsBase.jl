@@ -2,7 +2,9 @@ __precompile__()
 
 module FilePathsBase
 
-using Printf, LinearAlgebra, Dates
+using Compat
+
+using Compat.Printf, Compat.LinearAlgebra, Compat.Dates
 
 import Base: ==
 export
@@ -63,9 +65,8 @@ end
 abstract type AbstractPath <: AbstractString end
 
 # Required methods for subtype of AbstractString
-Base.lastindex(p::AbstractPath) = lastindex(String(p))
-Base.iterate(p::AbstractPath) = iterate(String(p))
-Base.iterate(p::AbstractPath, state::Int) = iterate(String(p), state)
+Compat.lastindex(p::AbstractPath) = lastindex(String(p))
+Base.next(p::AbstractPath, i::Int) = next(String(p), i)
 
 # The following should be implemented in the concrete types
 Base.String(path::AbstractPath) = error("`String not implemented")
