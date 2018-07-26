@@ -66,7 +66,12 @@ abstract type AbstractPath <: AbstractString end
 
 # Required methods for subtype of AbstractString
 Compat.lastindex(p::AbstractPath) = lastindex(String(p))
-Base.next(p::AbstractPath, i::Int) = next(String(p), i)
+if VERSION >= v"0.7-"
+    Base.iterate(p::AbstractPath) = iterate(String(p))
+    Base.iterate(p::AbstractPath, state::Int) = iterate(String(p), state)
+else
+    Base.next(p::AbstractPath, i::Int) = next(String(p), i)
+end
 
 # The following should be implemented in the concrete types
 Base.String(path::AbstractPath) = error("`String not implemented")
