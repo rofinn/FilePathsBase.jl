@@ -68,7 +68,7 @@ end
 
 function User(name::String)
     ps = @static if Compat.Sys.isunix()
-        ccall((:getpwnam, "libc"), Ptr{Cpasswd}, (Ptr{UInt8},), name)
+        ccall(:getpwnam, Ptr{Cpasswd}, (Ptr{UInt8},), name)
     else
         Cpasswd()
     end
@@ -78,7 +78,7 @@ end
 
 function User(uid::UInt)
     ps = @static if Compat.Sys.isunix()
-        ccall((:getpwuid, "libc"), Ptr{Cpasswd}, (UInt64,), uid)
+        ccall(:getpwuid, Ptr{Cpasswd}, (UInt64,), uid)
     else
         Cpasswd()
     end
@@ -87,7 +87,7 @@ function User(uid::UInt)
 end
 
 function User()
-    uid = @static Compat.Sys.isunix() ? ccall((:geteuid, "libc"), Cint, ()) : 0
+    uid = @static Compat.Sys.isunix() ? ccall(:geteuid, Cint, ()) : 0
     User(UInt64(uid))
 end
 
@@ -106,7 +106,7 @@ end
 
 function Group(name::String)
     ps = @static if Compat.Sys.isunix()
-        ccall((:getgrnam, "libc"), Ptr{Cgroup}, (Ptr{UInt8},), name)
+        ccall(:getgrnam, Ptr{Cgroup}, (Ptr{UInt8},), name)
     else
         Cgroup()
     end
@@ -116,7 +116,7 @@ end
 
 function Group(gid::UInt)
     gr = @static if Compat.Sys.isunix()
-        ccall((:getgrgid, "libc"), Ptr{Cgroup}, (UInt64,), gid)
+        ccall(:getgrgid, Ptr{Cgroup}, (UInt64,), gid)
     else
         Cgroup()
     end
@@ -125,6 +125,6 @@ function Group(gid::UInt)
 end
 
 function Group()
-    gid = @static Compat.Sys.isunix() ? ccall((:getegid, "libc"), Cint, ()) : 0
+    gid = @static Compat.Sys.isunix() ? ccall(:getegid, Cint, ()) : 0
     Group(UInt64(gid))
 end
