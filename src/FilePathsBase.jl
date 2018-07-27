@@ -4,6 +4,8 @@ module FilePathsBase
 
 using Compat
 
+using Compat.Printf, Compat.LinearAlgebra, Compat.Dates
+
 import Base: ==
 export
     # Types
@@ -60,11 +62,16 @@ else
     export isexecutable
 end
 
-@compat abstract type AbstractPath <: AbstractString end
+abstract type AbstractPath <: AbstractString end
 
 # Required methods for subtype of AbstractString
-Base.endof(p::AbstractPath) = endof(String(p))
-Base.next(p::AbstractPath, i::Int) = next(String(p), i)
+Compat.lastindex(p::AbstractPath) = lastindex(String(p))
+if VERSION >= v"0.7-"
+    Base.iterate(p::AbstractPath) = iterate(String(p))
+    Base.iterate(p::AbstractPath, state::Int) = iterate(String(p), state)
+else
+    Base.next(p::AbstractPath, i::Int) = next(String(p), i)
+end
 
 # The following should be implemented in the concrete types
 Base.String(path::AbstractPath) = error("`String not implemented")

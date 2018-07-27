@@ -1,5 +1,7 @@
+using Compat
 using FilePathsBase
-using Base.Test
+using Compat.LinearAlgebra
+using Compat.Test
 
 @testset "FilePathsBase" begin
 

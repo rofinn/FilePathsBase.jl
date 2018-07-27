@@ -1,4 +1,4 @@
-immutable PosixPath <: AbstractPath
+struct PosixPath <: AbstractPath
     parts::Tuple
 end
 

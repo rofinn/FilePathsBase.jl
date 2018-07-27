@@ -1,8 +1,8 @@
-using Base.Dates
+using Compat.Dates
 
 import Base.Filesystem: StatStruct
 
-immutable Status
+struct Status
     device::UInt64
     inode::UInt64
     mode::Mode

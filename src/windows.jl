@@ -1,4 +1,4 @@
-immutable WindowsPath <: AbstractPath
+struct WindowsPath <: AbstractPath
     parts::Tuple{Vararg{String}}
     drive::String
     root::String
@@ -14,7 +14,7 @@ WindowsPath() = WindowsPath(tuple(), "", "")
 function WindowsPath(parts::Tuple)
     if parts[1]==WIN_PATH_SEPARATOR
         return WindowsPath(parts, "", WIN_PATH_SEPARATOR)
-    elseif contains(parts[1], ":")
+    elseif occursin(":", parts[1])
         l_drive, l_path = _win_splitdrive(parts[1])
         return WindowsPath(parts, l_drive, l_path)
     else
@@ -31,7 +31,7 @@ function WindowsPath(str::AbstractString)
         error("The \\\\?\\ prefix is currently not supported.")
     end
 
-    str = replace(str, POSIX_PATH_SEPARATOR, WIN_PATH_SEPARATOR)
+    str = replace(str, POSIX_PATH_SEPARATOR => WIN_PATH_SEPARATOR)
 
     if startswith(str, "\\\\")
         error("UNC paths are currently not supported.")
@@ -39,7 +39,7 @@ function WindowsPath(str::AbstractString)
         tokenized = split(str, WIN_PATH_SEPARATOR)
 
         return WindowsPath(tuple(WIN_PATH_SEPARATOR, String.(tokenized[2:end])...), "", WIN_PATH_SEPARATOR)
-    elseif contains(str, ":")
+    elseif occursin(":", str)
         l_drive, l_path = _win_splitdrive(str)
 
         tokenized = split(l_path, WIN_PATH_SEPARATOR)
@@ -75,7 +75,7 @@ root(path::WindowsPath) = path.root
 function Base.show(io::IO, path::WindowsPath)
     print(io, "p\"")
     if isabs(path)
-        print(io, replace(anchor(path), "\\", "/"))
+        print(io, replace(anchor(path), "\\" => "/"))
         print(io, join(parts(path)[2:end], "/"))
     else
         print(io, join(parts(path), "/"))
