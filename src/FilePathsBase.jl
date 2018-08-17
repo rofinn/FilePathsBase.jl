@@ -66,6 +66,7 @@ abstract type AbstractPath <: AbstractString end
 
 # Required methods for subtype of AbstractString
 Compat.lastindex(p::AbstractPath) = lastindex(String(p))
+Compat.ncodeunits(p::AbstractPath) = ncodeunits(String(p))
 if VERSION >= v"0.7-"
     Base.iterate(p::AbstractPath) = iterate(String(p))
     Base.iterate(p::AbstractPath, state::Int) = iterate(String(p), state)
