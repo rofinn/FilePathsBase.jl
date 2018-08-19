@@ -22,6 +22,7 @@ end
 ==(a::PosixPath, b::PosixPath) = parts(a) == parts(b)
 Base.String(path::PosixPath) = joinpath(parts(path)...)
 parts(path::PosixPath) = path.parts
+ispathtype(::Type{PosixPath}, str::AbstractString) = Compat.Sys.isunix()
 
 Base.show(io::IO, path::PosixPath) = print(io, "p\"$(join(parts(path), '/'))\"")
 
