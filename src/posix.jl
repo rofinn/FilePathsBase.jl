@@ -1,5 +1,5 @@
 struct PosixPath <: AbstractPath
-    parts::Tuple
+    parts::Tuple{Vararg{String}}
 end
 
 PosixPath() = PosixPath(tuple())
