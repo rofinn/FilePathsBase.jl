@@ -13,6 +13,7 @@ export
     Path,
     PosixPath,
     WindowsPath,
+    UNCPath,
     Mode,
     Status,
 
@@ -89,6 +90,7 @@ include("mode.jl")
 include("status.jl")
 include("posix.jl")
 include("windows.jl")
+include("uncpath.jl")
 include("path.jl")
 include("deprecates.jl")
 
