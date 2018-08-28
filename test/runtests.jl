@@ -7,5 +7,6 @@ using Compat.Test
 
 include("mode.jl")
 include("path.jl")
+include("unc.jl")
 
 end
