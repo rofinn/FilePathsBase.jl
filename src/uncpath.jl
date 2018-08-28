@@ -26,9 +26,8 @@ function Base.String(path::UNCPath)
     if parts(path)[1] == UNC_PATH_START
         return UNC_PATH_START * joinpath(parts(path)[2:end]...)
     else
-        return joinpath(parts(path)[2:end]...)
+        return joinpath(parts(path)...)
     end
-
 end
 
 parts(path::UNCPath) = path.parts
