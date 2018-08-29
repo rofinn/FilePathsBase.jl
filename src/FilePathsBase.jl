@@ -74,6 +74,8 @@ else
     Base.next(p::AbstractPath, i::Int) = next(String(p), i)
 end
 
+Base.isvalid(path::AbstractPath, i::Integer) = isvalid(String(path), i)
+
 # The following should be implemented in the concrete types
 Base.String(path::AbstractPath) = error("`String not implemented")
 parts(path::AbstractPath) = error("`parts` not implemented.")
