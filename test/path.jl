@@ -42,6 +42,8 @@ cd(abs(parent(Path(@__FILE__)))) do
         @test isa(relative(Path(".")), AbstractPath)
         @test relative(Path(".")) == Path(".")
 
+        @test endswith(p, ".jl")
+
         s = stat(p)
         lstat(p)
 

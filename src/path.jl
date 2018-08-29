@@ -10,7 +10,7 @@ Responsible for creating the appropriate platform specific path
 Path() = @static Compat.Sys.isunix() ? PosixPath() : WindowsPath()
 Path(path::AbstractPath) = path
 Path(str::AbstractString) = @static Compat.Sys.isunix() ? PosixPath(str) : WindowsPath(str)
-Path(pieces::Tuple{Vararg{String}}) = 
+Path(pieces::Tuple{Vararg{String}}) =
     @static Compat.Sys.isunix() ? PosixPath(pieces) : WindowsPath(pieces)
 
 """
