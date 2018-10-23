@@ -9,9 +9,24 @@ Responsible for creating the appropriate platform specific path
 """
 Path() = @static Compat.Sys.isunix() ? PosixPath() : WindowsPath()
 Path(path::AbstractPath) = path
-Path(str::AbstractString) = @static Compat.Sys.isunix() ? PosixPath(str) : WindowsPath(str)
-Path(pieces::Tuple{Vararg{String}}) = 
+Path(pieces::Tuple{Vararg{String}}) =
     @static Compat.Sys.isunix() ? PosixPath(pieces) : WindowsPath(pieces)
+
+# May want to support using the registry for other constructors as well
+function Path(str::AbstractString; debug=false)
+    types = filter(t -> ispathtype(t, str), PATH_TYPES)
+
+    if length(types) > 1
+        Compat.@debug(
+            string(
+                "Found multiple path types that match the string specified ($types). ",
+                "Please use a specific constructor if $(first(types)) is not the correct type."
+            )
+        )
+    end
+
+    return first(types)(str)
+end
 
 """
     @p_str -> Path

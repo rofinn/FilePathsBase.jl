@@ -62,7 +62,21 @@ else
     export isexecutable
 end
 
+const PATH_TYPES = DataType[]
+
+function __init__()
+    register(PosixPath)
+    register(WindowsPath)
+end
+
 abstract type AbstractPath <: AbstractString end
+
+function register(T::Type{<:AbstractPath})
+    # We add the type to the beginning of our PATH_TYPES, 
+    # so that they can take precedence over the Posix and 
+    # Windows paths.
+    Compat.pushfirst!(PATH_TYPES, T)
+end
 
 # Required methods for subtype of AbstractString
 Compat.lastindex(p::AbstractPath) = lastindex(String(p))
@@ -81,6 +95,7 @@ root(path::AbstractPath) = error("`root` not implemented.")
 drive(path::AbstractPath) = error("`drive` not implemented.")
 
 Base.convert(::Type{AbstractPath}, x::AbstractString) = Path(x)
+ispathtype(::Type{T}, x::AbstractString) where {T<:AbstractPath} = false
 
 include("constants.jl")
 include("utils.jl")
