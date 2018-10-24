@@ -166,6 +166,10 @@ function Base.join(root::AbstractPath, pieces::Union{AbstractPath, AbstractStrin
     return Path(tuple(all_parts...))
 end
 
+function Base.joinpath(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
+    return join(root, pieces...)
+end
+
 Base.basename(path::AbstractPath) = parts(path)[end]
 
 """
