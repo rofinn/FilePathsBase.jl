@@ -480,16 +480,20 @@ function Base.mkdir(path::AbstractPath; mode=0o777, recursive=false, exist_ok=fa
     if exists(path)
         !exist_ok && error("$path already exists.")
     else
-        if !hasparent(path) || exists(parent(path))
-            VERSION >= v"0.7-" ? mkdir(String(path), mode=mode) : mkdir(String(path), mode)
-        elseif hasparent(path) && !exists(parent(path)) && recursive
-            mkdir(parent(path); mode=mode, recursive=recursive, exist_ok=exist_ok)
-        else
-            error(
-                "The parent of $path does not exist. " *
-                "Pass recursive=true to create it."
-            )
+        if hasparent(path) && !exists(parent(path))
+			if recursive
+				mkdir(parent(path); mode=mode, recursive=recursive, exist_ok=exist_ok)
+			else
+				error(
+					"The parent of $path does not exist. " *
+					"Pass recursive=true to create it."
+				)
+			end
         end
+
+		
+		VERSION >= v"0.7-" ? mkdir(String(path), mode=mode) : mkdir(String(path), mode)
+
     end
 end
 
