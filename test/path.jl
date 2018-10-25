@@ -101,6 +101,7 @@ mktmpdir() do d
             new_path = p"foo/bar"
             @test_throws ErrorException mkdir(new_path)
             mkdir(new_path; recursive=true)
+			@test exists(new_path)
             mkdir(new_path; recursive=true, exist_ok=true)
 
             other_path = p"car/bar"
