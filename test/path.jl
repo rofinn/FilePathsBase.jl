@@ -19,6 +19,7 @@ cd(abs(parent(Path(@__FILE__)))) do
 
         @test basename(p) == "FilePathsBase.jl"
         @test join(parent(p), Path(basename(p))) == p
+        @test joinpath(parent(p), Path(basename(p))) == p
         @test filename(p) == "FilePathsBase"
 
         @test extension(p) == "jl"
@@ -84,6 +85,7 @@ cd(abs(parent(Path(@__FILE__)))) do
         @test @__PATH__() == Path(@__DIR__)
         @test @__FILEPATH__() == Path(@__FILE__)
         @test FilePathsBase.@LOCAL("foo.txt") == join(@__PATH__, "foo.txt")
+        @test FilePathsBase.@LOCAL("foo.txt") == joinpath(@__PATH__, "foo.txt")
     end
 end
 
