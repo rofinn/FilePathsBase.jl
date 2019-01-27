@@ -67,7 +67,7 @@ function ==(a::WindowsPath, b::WindowsPath)
         lowercase(drive(a)) == lowercase(drive(b)) &&
         lowercase(root(a)) == lowercase(root(b))
 end
-Base.string(path::WindowsPath) = joinpath(parts(path)...)
+Base.String(path::WindowsPath) = joinpath(parts(path)...)
 parts(path::WindowsPath) = path.parts
 drive(path::WindowsPath) = path.drive
 root(path::WindowsPath) = path.root
