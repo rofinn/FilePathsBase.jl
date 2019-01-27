@@ -69,6 +69,18 @@ function __init__()
     register(WindowsPath)
 end
 
+"""
+    AbstractPath
+
+Defines an abstract filesystem path. Subtypes of `AbstractPath` should implement the
+following methods:
+
+- `Base.String(p)`
+- `FilePathsBase.parts(p)`
+- `FilePathsBase.root(p)`
+- `FilePathsBase.drive(p)`
+- `FilePathsBase.ispathtype(::Type{MyPath}, x::AbstractString) = true`
+"""
 abstract type AbstractPath end
 
 function register(T::Type{<:AbstractPath})
@@ -78,22 +90,14 @@ function register(T::Type{<:AbstractPath})
     Compat.pushfirst!(PATH_TYPES, T)
 end
 
-# Required methods for subtype of AbstractString
-Compat.lastindex(p::AbstractPath) = lastindex(string(p))
-Compat.ncodeunits(p::AbstractPath) = ncodeunits(string(p))
-if VERSION >= v"0.7-"
-    Base.iterate(p::AbstractPath) = iterate(string(p))
-    Base.iterate(p::AbstractPath, state::Int) = iterate(string(p), state)
-else
-    Base.next(p::AbstractPath, i::Int) = next(string(p), i)
+#=
+We only want to print the macro string syntax when compact is true and
+we want print to just return the string (this allows `string` to work normally)
+=#
+Base.print(io::IO, path::AbstractPath) = print(io, String(path))
+function Base.show(io::IO, path::AbstractPath)
+    get(io, :compact, false) ? print(io, path) : print(io, "p\"$(String(path))\"")
 end
-
-# The following should be implemented in the concrete types
-Base.String(path::AbstractPath) = error("`String not implemented")
-Base.string(path::AbstractPath) = String(path)
-parts(path::AbstractPath) = error("`parts` not implemented.")
-root(path::AbstractPath) = error("`root` not implemented.")
-drive(path::AbstractPath) = error("`drive` not implemented.")
 
 Base.convert(::Type{AbstractPath}, x::AbstractString) = Path(x)
 Base.convert(::Type{String}, x::AbstractPath) = string(x)

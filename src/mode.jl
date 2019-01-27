@@ -44,7 +44,7 @@ function Mode(mode::UInt8, usr_grps::Symbol...)
 end
 
 Base.show(io::IO, mode::Mode) = print(io, string(mode))
-Base.String(mode::Mode) = string(mode)
+Base.string(mode::Mode) = String(mode)
 
 Base.:-(a::Mode, b::Mode) = Mode(a.m & ~b.m)
 Base.:+(a::Mode, b::Mode) = Mode(a.m | b.m)
@@ -121,7 +121,7 @@ Base.isblockdev(mode::Mode) = _meta(mode.m) == S_IFBLK
 
 
 """Convert a file's mode to a string of the form '-rwxrwxrwx'."""
-function Base.string(mode::Mode)
+function Base.String(mode::Mode)
     perm = []
     for table in FILEMODE_TABLE
         found = false

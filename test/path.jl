@@ -31,6 +31,8 @@ cd(abs(parent(Path(@__FILE__)))) do
         @test !isabs(p)
         @test string(norm(p"../src/../src/FilePathsBase.jl")) == normpath("../src/../src/FilePathsBase.jl")
         @test string(abs(p)) == abspath(string(p))
+        @test sprint(show, p"../README.md") == "p\"../README.md\""
+
         # This works around an issue with Base.relpath: that function does not take
         # into account the paths on Windows should be compared case insensitive.
         homedir_patched = homedir()
@@ -42,6 +44,8 @@ cd(abs(parent(Path(@__FILE__)))) do
 
         @test isa(relative(Path(".")), AbstractPath)
         @test relative(Path(".")) == Path(".")
+
+        @test real(p"../test/mode.jl") == Path(realpath("../test/mode.jl"))
 
         s = stat(p)
         lstat(p)
@@ -161,6 +165,13 @@ mktmpdir() do d
 
                 chmod(new_path, mode(p"newfile"); recursive=true)
             end
+
+            download(
+                "https://github.com/rofinn/FilePathsBase.jl/blob/master/README.md",
+                p"./README.md"
+            )
+
+            @test exists(p"./README.md")
         end
     end
 end

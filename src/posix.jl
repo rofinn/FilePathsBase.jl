@@ -20,7 +20,7 @@ end
 
 # The following should be implemented in the concrete types
 ==(a::PosixPath, b::PosixPath) = parts(a) == parts(b)
-Base.string(path::PosixPath) = joinpath(parts(path)...)
+Base.String(path::PosixPath) = joinpath(parts(path)...)
 parts(path::PosixPath) = path.parts
 ispathtype(::Type{PosixPath}, str::AbstractString) = Compat.Sys.isunix()
 
