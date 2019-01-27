@@ -9,10 +9,10 @@
     r = readable(:USER, :GROUP)
     w = writable(:USER)
 
-    @test String(m) == "-rwxr-x--x"
-    @test String(x) == "---x--x--x"
-    @test String(r) == "-r--r-----"
-    @test String(w) == "--w-------"
+    @test string(m) == "-rwxr-x--x"
+    @test string(x) == "---x--x--x"
+    @test string(r) == "-r--r-----"
+    @test string(w) == "--w-------"
 
     @test isexecutable(x, :USER)
     @test isexecutable(x, :GROUP)
@@ -31,9 +31,9 @@
 
     @test x + r + w == m
 
-    @test String(m - x) == "-rw-r-----"
-    @test String(m - r) == "--wx--x--x"
-    @test String(m - w) == "-r-xr-x--x"
+    @test string(m - x) == "-rw-r-----"
+    @test string(m - r) == "--wx--x--x"
+    @test string(m - w) == "-r-xr-x--x"
 
     # Since our arbitrary mode
     # only has the permission bits set

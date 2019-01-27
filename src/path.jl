@@ -249,14 +249,14 @@ Base.isempty(path::AbstractPath) = isempty(parts(path))
 
 Returns whether the path actually exists on the system.
 """
-exists(path::AbstractPath) = ispath(String(path))
+exists(path::AbstractPath) = ispath(string(path))
 
 """
     real(path::AbstractPath) -> AbstractPath
 
 Canonicalizes a path by expanding symlinks and removing "." and ".." entries.
 """
-Base.real(path::AbstractPath) = Path(realpath(String(path)))
+Base.real(path::AbstractPath) = Path(realpath(string(path)))
 
 """
     norm(path::AbstractPath) -> AbstractPath
@@ -351,8 +351,8 @@ end
 The following a descriptive methods for paths
 built around stat
 =#
-Base.stat(path::AbstractPath) = Status(stat(String(path)))
-Base.lstat(path::AbstractPath) = Status(lstat(String(path)))
+Base.stat(path::AbstractPath) = Status(stat(string(path)))
+Base.lstat(path::AbstractPath) = Status(lstat(string(path)))
 
 """
     mode(path::AbstractPath) -> Mode
@@ -469,7 +469,7 @@ code in the implementation instances.
 TODO: Document these once we're comfortable with them.
 =#
 
-Base.cd(path::AbstractPath) = cd(String(path))
+Base.cd(path::AbstractPath) = cd(string(path))
 function Base.cd(fn::Function, dir::AbstractPath)
     old = cwd()
     try
@@ -495,8 +495,8 @@ function Base.mkdir(path::AbstractPath; mode=0o777, recursive=false, exist_ok=fa
 			end
         end
 
-		
-		VERSION >= v"0.7-" ? mkdir(String(path), mode=mode) : mkdir(String(path), mode)
+
+		VERSION >= v"0.7-" ? mkdir(string(path), mode=mode) : mkdir(string(path), mode)
 
     end
 end
@@ -508,7 +508,7 @@ function Base.symlink(src::AbstractPath, dest::AbstractPath; exist_ok=false, ove
         end
 
         if !exists(dest)
-            symlink(String(src), String(dest))
+            symlink(string(src), string(dest))
         elseif !exist_ok
             error("$dest already exists.")
         end
@@ -552,7 +552,7 @@ function move(src::AbstractPath, dest::AbstractPath; recursive=false, exist_ok=f
                 mkdir(parent(dest); recursive=recursive, exist_ok=true)
             end
 
-            mv(String(src), String(dest))
+            mv(string(src), string(dest))
         elseif !exist_ok
             error("$dest already exists.")
         end
@@ -562,21 +562,21 @@ function move(src::AbstractPath, dest::AbstractPath; recursive=false, exist_ok=f
 end
 
 function Base.cp(src::AbstractPath, dest::AbstractPath; force::Bool=false, follow_symlinks::Bool=false)
-    Compat.cp(String(src), String(dest); force=force, follow_symlinks=follow_symlinks)
+    Compat.cp(string(src), string(dest); force=force, follow_symlinks=follow_symlinks)
 end
 
-remove(path::AbstractPath; recursive=false) = rm(String(path); recursive=recursive)
-Base.touch(path::AbstractPath) = touch(String(path))
+remove(path::AbstractPath; recursive=false) = rm(string(path); recursive=recursive)
+Base.touch(path::AbstractPath) = touch(string(path))
 
 tmpname() = Path(tempname())
 tmpdir() = Path(tempdir())
 
 function mktmp(parent::AbstractPath=Path(tempdir()))
-    path, io = mktemp(String(parent))
+    path, io = mktemp(string(parent))
     return Path(path), io
 end
 
-mktmpdir(parent::AbstractPath=tmpdir()) = Path(mktempdir(String(parent)))
+mktmpdir(parent::AbstractPath=tmpdir()) = Path(mktempdir(string(parent)))
 
 function mktmp(fn::Function, parent=tmpdir())
     (tmp_path, tmp_io) = mktmp(parent)
@@ -608,7 +608,7 @@ function Base.chown(path::AbstractPath, user::AbstractString, group::AbstractStr
         if recursive
             push!(chown_cmd, "-R")
         end
-        append!(chown_cmd, String["$(user):$(group)", String(path)])
+        append!(chown_cmd, String["$(user):$(group)", string(path)])
 
         run(Cmd(chown_cmd))
     else
@@ -654,7 +654,7 @@ julia> mode(p"newfile")
 ```
 """
 function Base.chmod(path::AbstractPath, mode::Mode; recursive=false)
-    chmod_path = String(path)
+    chmod_path = string(path)
     chmod_mode = raw(mode)
 
     if isdir(path) && recursive
@@ -725,20 +725,20 @@ function Base.chmod(path::AbstractPath, symbolic_mode::AbstractString; recursive
     end
 end
 
-Base.read(path::AbstractPath) = read(String(path), String)
+Base.read(path::AbstractPath) = read(string(path), String)
 
 function Base.write(path::AbstractPath, content::AbstractString, mode="w")
-    open(String(path), mode) do f
+    open(string(path), mode) do f
         write(f, content)
     end
 end
 
-Base.readlink(path::AbstractPath) = Path(readlink(String(path)))
-Base.readdir(path::AbstractPath) = map(Path, readdir(String(path)))
+Base.readlink(path::AbstractPath) = Path(readlink(string(path)))
+Base.readdir(path::AbstractPath) = map(Path, readdir(string(path)))
 
 function Base.download(src::AbstractString, dest::AbstractPath, overwrite::Bool=false)
     if !exists(dest) || overwrite
-        download(src, String(dest))
+        download(src, string(dest))
     end
     return dest
 end

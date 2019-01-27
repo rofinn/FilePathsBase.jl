@@ -69,33 +69,36 @@ function __init__()
     register(WindowsPath)
 end
 
-abstract type AbstractPath <: AbstractString end
+abstract type AbstractPath end
 
 function register(T::Type{<:AbstractPath})
-    # We add the type to the beginning of our PATH_TYPES, 
-    # so that they can take precedence over the Posix and 
+    # We add the type to the beginning of our PATH_TYPES,
+    # so that they can take precedence over the Posix and
     # Windows paths.
     Compat.pushfirst!(PATH_TYPES, T)
 end
 
 # Required methods for subtype of AbstractString
-Compat.lastindex(p::AbstractPath) = lastindex(String(p))
-Compat.ncodeunits(p::AbstractPath) = ncodeunits(String(p))
+Compat.lastindex(p::AbstractPath) = lastindex(string(p))
+Compat.ncodeunits(p::AbstractPath) = ncodeunits(string(p))
 if VERSION >= v"0.7-"
-    Base.iterate(p::AbstractPath) = iterate(String(p))
-    Base.iterate(p::AbstractPath, state::Int) = iterate(String(p), state)
+    Base.iterate(p::AbstractPath) = iterate(string(p))
+    Base.iterate(p::AbstractPath, state::Int) = iterate(string(p), state)
 else
-    Base.next(p::AbstractPath, i::Int) = next(String(p), i)
+    Base.next(p::AbstractPath, i::Int) = next(string(p), i)
 end
 
 # The following should be implemented in the concrete types
 Base.String(path::AbstractPath) = error("`String not implemented")
+Base.string(path::AbstractPath) = String(path)
 parts(path::AbstractPath) = error("`parts` not implemented.")
 root(path::AbstractPath) = error("`root` not implemented.")
 drive(path::AbstractPath) = error("`drive` not implemented.")
 
 Base.convert(::Type{AbstractPath}, x::AbstractString) = Path(x)
-ispathtype(::Type{T}, x::AbstractString) where {T<:AbstractPath} = false
+Base.convert(::Type{String}, x::AbstractPath) = string(x)
+Base.promote_rule(::Type{String}, ::Type{T}) where {T <: AbstractPath} = String
+ispathtype(::Type{T}, x::AbstractString) where {T <: AbstractPath} = false
 
 include("constants.jl")
 include("utils.jl")
