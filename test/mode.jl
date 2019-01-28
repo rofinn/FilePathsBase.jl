@@ -14,6 +14,14 @@
     @test string(r) == "-r--r-----"
     @test string(w) == "--w-------"
 
+    @test Mode("-rwxr-x--x") == m
+    @test Mode("---x--x--x") == x
+    @test Mode("-r--r-----") == r
+    @test Mode("--w-------") == w
+    @test Mode("-rw-r-----") == m - x
+    @test Mode("--wx--x--x") == m - r
+    @test Mode("-r-xr-x--x") == m - w
+
     @test isexecutable(x, :USER)
     @test isexecutable(x, :GROUP)
     @test isexecutable(x, :OTHER)

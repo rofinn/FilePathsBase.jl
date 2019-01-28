@@ -99,10 +99,11 @@ function Base.show(io::IO, path::AbstractPath)
     get(io, :compact, false) ? print(io, path) : print(io, "p\"$(String(path))\"")
 end
 
+Base.parse(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
 Base.convert(::Type{AbstractPath}, x::AbstractString) = Path(x)
 Base.convert(::Type{String}, x::AbstractPath) = string(x)
-Base.promote_rule(::Type{String}, ::Type{T}) where {T <: AbstractPath} = String
-ispathtype(::Type{T}, x::AbstractString) where {T <: AbstractPath} = false
+Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String
+ispathtype(::Type{<:AbstractPath}, x::AbstractString) = false
 
 include("constants.jl")
 include("utils.jl")

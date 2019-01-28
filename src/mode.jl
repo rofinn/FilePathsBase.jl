@@ -43,8 +43,69 @@ function Mode(mode::UInt8, usr_grps::Symbol...)
     return Mode(user=user, group=group, other=other)
 end
 
-Base.show(io::IO, mode::Mode) = print(io, string(mode))
-Base.string(mode::Mode) = String(mode)
+Mode(s::AbstractString) = parse(Mode, s)
+
+function Base.parse(::Type{Mode}, x::AbstractString)
+    n = length(FILEMODE_TABLE)
+
+    if length(x) != n
+        throw(ArgumentError(
+            "Expected a mode permission string with $n characters (e.g., '-rwxrwxrwx')"
+        ))
+    end
+
+    m = zero(UInt64)
+    for i in 1:n
+        table = FILEMODE_TABLE[i]
+        found = false
+        c = x[i]
+        c == '-' && continue
+
+        for (bit, char) in table
+            if c == char
+                m = m | bit
+                found = true
+                break
+            end
+        end
+        if !found
+            options = last.(table)
+            throw(ArgumentError(
+                "Unknown character '$c' at position $i, expected one of $options."
+            ))
+        end
+    end
+
+    return Mode(m)
+end
+
+"""Convert a file's mode to a string of the form '-rwxrwxrwx'."""
+function Base.String(mode::Mode)
+    n = length(FILEMODE_TABLE)
+    perm = Vector{Char}(undef, n)
+
+    for i in 1:n
+        table = FILEMODE_TABLE[i]
+        found = false
+        for (bit, char) in table
+            if mode.m & bit == bit
+                perm[i] = char
+                found = true
+                break
+            end
+        end
+        if !found
+            perm[i] = '-'
+        end
+    end
+
+    return String(perm)
+end
+
+Base.print(io::IO, mode::Mode) = print(io, String(mode))
+function Base.show(io::IO, mode::Mode)
+    get(io, :compact, false) ? print(io, mode) : print(io, "Mode(\"$(String(mode))\")")
+end
 
 Base.:-(a::Mode, b::Mode) = Mode(a.m & ~b.m)
 Base.:+(a::Mode, b::Mode) = Mode(a.m | b.m)
@@ -118,27 +179,6 @@ Base.ischardev(mode::Mode) = _meta(mode.m) == S_IFCHR
 
 """Return True if mode is from a block special device file."""
 Base.isblockdev(mode::Mode) = _meta(mode.m) == S_IFBLK
-
-
-"""Convert a file's mode to a string of the form '-rwxrwxrwx'."""
-function Base.String(mode::Mode)
-    perm = []
-    for table in FILEMODE_TABLE
-        found = false
-        for (bit, char) in table
-            if mode.m & bit == bit
-                push!(perm, char)
-                found = true
-                break
-            end
-        end
-        if !found
-            push!(perm, '-')
-        end
-    end
-
-    return join(perm)
-end
 
 """
 Return the portion of the file's mode that can be set by
