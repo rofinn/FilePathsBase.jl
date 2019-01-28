@@ -104,7 +104,7 @@ end
 
 Base.print(io::IO, mode::Mode) = print(io, String(mode))
 function Base.show(io::IO, mode::Mode)
-    get(io, :compact, false) ? print(io, mode) : print(io, "Mode(\"$(String(mode))\")")
+    get(io, :compact, false) ? print(io, mode) : print(io, "Mode(\"$mode\")")
 end
 
 Base.:-(a::Mode, b::Mode) = Mode(a.m & ~b.m)
