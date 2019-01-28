@@ -63,7 +63,7 @@ function Base.parse(::Type{Mode}, x::AbstractString)
 
         for (bit, char) in table
             if c == char
-                m = m | bit
+                m |= bit
                 found = true
                 break
             end
