@@ -725,10 +725,15 @@ function Base.chmod(path::AbstractPath, symbolic_mode::AbstractString; recursive
     end
 end
 
+Base.open(path::AbstractPath, args...) = open(String(path), args...)
+function Base.open(f::Function, path::AbstractPath, args...; kwargs...)
+    open(f, String(path), args...; kwargs...)
+end
+
 Base.read(path::AbstractPath) = read(string(path), String)
 
 function Base.write(path::AbstractPath, content::AbstractString, mode="w")
-    open(string(path), mode) do f
+    open(path, mode) do f
         write(f, content)
     end
 end

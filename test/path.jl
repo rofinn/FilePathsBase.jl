@@ -163,6 +163,10 @@ mktmpdir() do d
                 @test read(p"newfile") == "foobar"
                 chmod(p"newfile", "u=rwx")
 
+                open(p"newfile") do io
+                    @test read(io, String) == "foobar"
+                end
+
                 chmod(new_path, mode(p"newfile"); recursive=true)
             end
 
