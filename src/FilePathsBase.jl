@@ -75,7 +75,7 @@ end
 Defines an abstract filesystem path. Subtypes of `AbstractPath` should implement the
 following methods:
 
-- `Base.String(p)`
+- `Base.print(io, p)` (default: call base julia's joinpath with drive and path parts)
 - `FilePathsBase.parts(p)`
 - `FilePathsBase.root(p)`
 - `FilePathsBase.drive(p)`
@@ -94,9 +94,10 @@ end
 We only want to print the macro string syntax when compact is true and
 we want print to just return the string (this allows `string` to work normally)
 =#
-Base.print(io::IO, path::AbstractPath) = print(io, String(path))
+Base.print(io::IO, path::AbstractPath) = print(io, joinpath(drive(path), parts(path)...))
+
 function Base.show(io::IO, path::AbstractPath)
-    get(io, :compact, false) ? print(io, path) : print(io, "p\"$(String(path))\"")
+    get(io, :compact, false) ? print(io, path) : print(io, "p\"$path\"")
 end
 
 Base.parse(::Type{<:AbstractPath}, x::AbstractString) = Path(x)

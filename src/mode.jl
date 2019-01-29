@@ -80,7 +80,7 @@ function Base.parse(::Type{Mode}, x::AbstractString)
 end
 
 """Convert a file's mode to a string of the form '-rwxrwxrwx'."""
-function Base.String(mode::Mode)
+function Base.print(io::IO, mode::Mode)
     n = length(FILEMODE_TABLE)
     perm = Vector{Char}(undef, n)
 
@@ -99,10 +99,9 @@ function Base.String(mode::Mode)
         end
     end
 
-    return String(perm)
+    print(io, String(perm))
 end
 
-Base.print(io::IO, mode::Mode) = print(io, String(mode))
 function Base.show(io::IO, mode::Mode)
     get(io, :compact, false) ? print(io, mode) : print(io, "Mode(\"$mode\")")
 end
