@@ -145,6 +145,39 @@ function parents(path::T) where {T <: AbstractPath}
 end
 
 """
+  *(a::T, b::Union{T, AbstractString, AbstractChar}...) where {T <: AbstractPath} -> T
+
+Concatenate paths, strings and/or characters, producing a new path.
+This is equivalent to concatenating the string representations of paths and other strings
+and then constructing a new path.
+
+# Example
+
+julia> p"foo" * "bar"
+p"foobar"
+"""
+function Base.:(*)(a::T, b::Union{T, AbstractString, AbstractChar}...) where T <: AbstractPath
+    T(*(string(a), string.(b)...))
+end
+
+"""
+  /(a::AbstractPath, b::Union{AbstractPath, AbstractString}...) -> AbstractPath
+
+Join the path components into a new fulll path, equivalent to calling `joinpath`
+
+# Example
+
+julia> p"foo" / "bar"
+p"foo/bar"
+
+julia> p"foo" / "bar" / "baz"
+p"foo/bar/baz"
+"""
+function Base.:(/)(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
+    join(root, pieces...)
+end
+
+"""
     join(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...) -> AbstractPath
 
 Joins path components into a full path.

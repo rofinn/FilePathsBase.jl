@@ -20,6 +20,9 @@ cd(abs(parent(Path(@__FILE__)))) do
         @test basename(p) == "FilePathsBase.jl"
         @test join(parent(p), Path(basename(p))) == p
         @test joinpath(parent(p), Path(basename(p))) == p
+        @test parent(p) / basename(p) == p
+        @test parent(p) * "/" * basename(p) == p
+        @test p"foo" / "bar" * ".txt" == p"foo/bar.txt"
         @test filename(p) == "FilePathsBase"
 
         @test extension(p) == "jl"
