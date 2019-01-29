@@ -69,33 +69,42 @@ function __init__()
     register(WindowsPath)
 end
 
-abstract type AbstractPath <: AbstractString end
+"""
+    AbstractPath
+
+Defines an abstract filesystem path. Subtypes of `AbstractPath` should implement the
+following methods:
+
+- `Base.print(io, p)` (default: call base julia's joinpath with drive and path parts)
+- `FilePathsBase.parts(p)`
+- `FilePathsBase.root(p)`
+- `FilePathsBase.drive(p)`
+- `FilePathsBase.ispathtype(::Type{MyPath}, x::AbstractString) = true`
+"""
+abstract type AbstractPath end
 
 function register(T::Type{<:AbstractPath})
-    # We add the type to the beginning of our PATH_TYPES, 
-    # so that they can take precedence over the Posix and 
+    # We add the type to the beginning of our PATH_TYPES,
+    # so that they can take precedence over the Posix and
     # Windows paths.
     Compat.pushfirst!(PATH_TYPES, T)
 end
 
-# Required methods for subtype of AbstractString
-Compat.lastindex(p::AbstractPath) = lastindex(String(p))
-Compat.ncodeunits(p::AbstractPath) = ncodeunits(String(p))
-if VERSION >= v"0.7-"
-    Base.iterate(p::AbstractPath) = iterate(String(p))
-    Base.iterate(p::AbstractPath, state::Int) = iterate(String(p), state)
-else
-    Base.next(p::AbstractPath, i::Int) = next(String(p), i)
+#=
+We only want to print the macro string syntax when compact is true and
+we want print to just return the string (this allows `string` to work normally)
+=#
+Base.print(io::IO, path::AbstractPath) = print(io, joinpath(drive(path), parts(path)...))
+
+function Base.show(io::IO, path::AbstractPath)
+    get(io, :compact, false) ? print(io, path) : print(io, "p\"$path\"")
 end
 
-# The following should be implemented in the concrete types
-Base.String(path::AbstractPath) = error("`String not implemented")
-parts(path::AbstractPath) = error("`parts` not implemented.")
-root(path::AbstractPath) = error("`root` not implemented.")
-drive(path::AbstractPath) = error("`drive` not implemented.")
-
+Base.parse(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
 Base.convert(::Type{AbstractPath}, x::AbstractString) = Path(x)
-ispathtype(::Type{T}, x::AbstractString) where {T<:AbstractPath} = false
+Base.convert(::Type{String}, x::AbstractPath) = string(x)
+Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String
+ispathtype(::Type{<:AbstractPath}, x::AbstractString) = false
 
 include("constants.jl")
 include("utils.jl")

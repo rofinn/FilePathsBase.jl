@@ -56,30 +56,30 @@ const S_IWOTH = 0o0002        # write by others
 const S_IXOTH = 0o0001        # execute by others
 
 const FILEMODE_TABLE = (
-    ((S_IFLNK,         "l"),
-     (S_IFREG,         "-"),
-     (S_IFBLK,         "b"),
-     (S_IFDIR,         "d"),
-     (S_IFCHR,         "c"),
-     (S_IFIFO,         "p")),
+    ((S_IFLNK,         'l'),
+     (S_IFREG,         '-'),
+     (S_IFBLK,         'b'),
+     (S_IFDIR,         'd'),
+     (S_IFCHR,         'c'),
+     (S_IFIFO,         'p')),
 
-    ((S_IRUSR,         "r"),),
-    ((S_IWUSR,         "w"),),
-    ((S_IXUSR|S_ISUID, "s"),
-     (S_ISUID,         "S"),
-     (S_IXUSR,         "x")),
+    ((S_IRUSR,         'r'),),
+    ((S_IWUSR,         'w'),),
+    ((S_IXUSR|S_ISUID, 's'),
+     (S_ISUID,         'S'),
+     (S_IXUSR,         'x')),
 
-    ((S_IRGRP,         "r"),),
-    ((S_IWGRP,         "w"),),
-    ((S_IXGRP|S_ISGID, "s"),
-     (S_ISGID,         "S"),
-     (S_IXGRP,         "x")),
+    ((S_IRGRP,         'r'),),
+    ((S_IWGRP,         'w'),),
+    ((S_IXGRP|S_ISGID, 's'),
+     (S_ISGID,         'S'),
+     (S_IXGRP,         'x')),
 
-    ((S_IROTH,         "r"),),
-    ((S_IWOTH,         "w"),),
-    ((S_IXOTH|S_ISVTX, "t"),
-     (S_ISVTX,         "T"),
-     (S_IXOTH,         "x"))
+    ((S_IROTH,         'r'),),
+    ((S_IWOTH,         'w'),),
+    ((S_IXOTH|S_ISVTX, 't'),
+     (S_ISVTX,         'T'),
+     (S_IXOTH,         'x'))
 )
 
 const DATA_SUFFIX = ["", "K", "M", "G", "T", "P", "E", "Z", "Y"]

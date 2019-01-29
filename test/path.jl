@@ -7,9 +7,9 @@ cd(abs(parent(Path(@__FILE__)))) do
         p = Path(reg)
 
         @test p == p"../src/FilePathsBase.jl"
-        @test String(p) == reg
-        @test String(cwd()) == pwd()
-        @test String(home()) == homedir()
+        @test string(p) == reg
+        @test string(cwd()) == pwd()
+        @test string(home()) == homedir()
 
         @test parts(p) == ("..", "src", "FilePathsBase.jl")
         @test hasparent(p)
@@ -29,19 +29,23 @@ cd(abs(parent(Path(@__FILE__)))) do
 
         @test exists(p)
         @test !isabs(p)
-        @test String(norm(p"../src/../src/FilePathsBase.jl")) == normpath("../src/../src/FilePathsBase.jl")
-        @test String(abs(p)) == abspath(String(p))
+        @test string(norm(p"../src/../src/FilePathsBase.jl")) == normpath("../src/../src/FilePathsBase.jl")
+        @test string(abs(p)) == abspath(string(p))
+        @test sprint(show, p"../README.md") == "p\"../README.md\""
+
         # This works around an issue with Base.relpath: that function does not take
         # into account the paths on Windows should be compared case insensitive.
         homedir_patched = homedir()
         if Compat.Sys.iswindows()
-            conv_f = isuppercase(abspath(String(p))[1]) ? uppercase : lowercase
+            conv_f = isuppercase(abspath(string(p))[1]) ? uppercase : lowercase
             homedir_patched = conv_f(homedir_patched[1]) * homedir_patched[2:end]
         end
-        @test String(relative(p, home())) == relpath(String(p), homedir_patched)
+        @test string(relative(p, home())) == relpath(string(p), homedir_patched)
 
         @test isa(relative(Path(".")), AbstractPath)
         @test relative(Path(".")) == Path(".")
+
+        @test real(p"../test/mode.jl") == Path(realpath("../test/mode.jl"))
 
         s = stat(p)
         lstat(p)
@@ -145,7 +149,7 @@ mktmpdir() do d
 
             @static if Compat.Sys.isunix()
                 chmod(p"newfile", user=(READ+WRITE+EXEC), group=(READ+EXEC), other=READ)
-                @test String(mode(p"newfile")) == "-rwxr-xr--"
+                @test string(mode(p"newfile")) == "-rwxr-xr--"
                 @test isexecutable(p"newfile")
                 @test iswritable(p"newfile")
                 @test isreadable(p"newfile")
@@ -153,14 +157,25 @@ mktmpdir() do d
                 chmod(p"newfile", "-x")
                 @test !isexecutable(p"newfile")
 
-                @test String(mode(p"newfile")) == "-rw-r--r--"
+                @test string(mode(p"newfile")) == "-rw-r--r--"
                 chmod(p"newfile", "+x")
                 write(p"newfile", "foobar")
                 @test read(p"newfile") == "foobar"
                 chmod(p"newfile", "u=rwx")
 
+                open(p"newfile") do io
+                    @test read(io, String) == "foobar"
+                end
+
                 chmod(new_path, mode(p"newfile"); recursive=true)
             end
+
+            download(
+                "https://github.com/rofinn/FilePathsBase.jl/blob/master/README.md",
+                p"./README.md"
+            )
+
+            @test exists(p"./README.md")
         end
     end
 end

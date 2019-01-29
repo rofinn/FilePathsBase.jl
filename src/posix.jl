@@ -5,7 +5,7 @@ end
 PosixPath() = PosixPath(tuple())
 
 function PosixPath(str::AbstractString)
-    str = String(str)
+    str = string(str)
 
     if isempty(str)
         return PosixPath(tuple("."))
@@ -20,11 +20,8 @@ end
 
 # The following should be implemented in the concrete types
 ==(a::PosixPath, b::PosixPath) = parts(a) == parts(b)
-Base.String(path::PosixPath) = joinpath(parts(path)...)
 parts(path::PosixPath) = path.parts
 ispathtype(::Type{PosixPath}, str::AbstractString) = Compat.Sys.isunix()
-
-Base.show(io::IO, path::PosixPath) = print(io, "p\"$(join(parts(path), '/'))\"")
 
 function isabs(path::PosixPath)
     if parts(path)[1] == POSIX_PATH_SEPARATOR

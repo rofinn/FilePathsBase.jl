@@ -14,7 +14,7 @@ end
 TestPath() = TestPath(tuple())
 
 function TestPath(str::AbstractString)
-    str = String(str)
+    str = string(str)
 
     if isempty(str)
         return TestPath(tuple("."))
@@ -28,7 +28,7 @@ function TestPath(str::AbstractString)
 end
 
 ==(a::TestPath, b::TestPath) = a.parts == b.parts
-Base.String(path::TestPath) = join([path.parts...], ";")
+Base.string(path::TestPath) = join([path.parts...], ";")
 FilePathsBase.ispathtype(::Type{TestPath}, str::AbstractString) = startswith(str, "test|;;")
 Base.show(io::IO, path::TestPath) = print(io, "p\"$path\"")
 
