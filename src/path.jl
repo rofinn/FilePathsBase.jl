@@ -52,7 +52,7 @@ if evaluated by julia -e <expr>.
 """
 macro __PATH__()
     p = Path(dirname(string(__source__.file)))
-    return p===nothing ? :(Path()) : :($p)
+    return p === nothing ? :(Path()) : :($p)
 end
 
 """
@@ -64,7 +64,7 @@ evaluated by julia -e <expr>.
 """
 macro __FILEPATH__()
     p = Path(string(__source__.file))
-    return p===nothing ? :(Path()) : :($p)
+    return p === nothing ? :(Path()) : :($p)
 end
 
 """
