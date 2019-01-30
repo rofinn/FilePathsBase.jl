@@ -1,7 +1,6 @@
-using Compat
 using FilePathsBase
-using Compat.LinearAlgebra
-using Compat.Test
+using LinearAlgebra
+using Test
 
 include("testpaths.jl")
 

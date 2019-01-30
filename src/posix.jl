@@ -21,7 +21,7 @@ end
 # The following should be implemented in the concrete types
 ==(a::PosixPath, b::PosixPath) = parts(a) == parts(b)
 parts(path::PosixPath) = path.parts
-ispathtype(::Type{PosixPath}, str::AbstractString) = Compat.Sys.isunix()
+ispathtype(::Type{PosixPath}, str::AbstractString) = Sys.isunix()
 
 function isabs(path::PosixPath)
     if parts(path)[1] == POSIX_PATH_SEPARATOR

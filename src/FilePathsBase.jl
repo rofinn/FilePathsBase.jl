@@ -2,9 +2,9 @@ __precompile__()
 
 module FilePathsBase
 
-using Compat
-
-using Compat.Printf, Compat.LinearAlgebra, Compat.Dates
+using Dates
+using LinearAlgebra
+using Printf
 
 import Base: ==
 export
@@ -56,11 +56,8 @@ export
     WRITE,
     EXEC
 
-@static if VERSION < v"0.6.0-dev.2514"
-    import Base: isexecutable
-else
-    export isexecutable
-end
+
+export isexecutable
 
 const PATH_TYPES = DataType[]
 
@@ -87,7 +84,7 @@ function register(T::Type{<:AbstractPath})
     # We add the type to the beginning of our PATH_TYPES,
     # so that they can take precedence over the Posix and
     # Windows paths.
-    Compat.pushfirst!(PATH_TYPES, T)
+    pushfirst!(PATH_TYPES, T)
 end
 
 #=
