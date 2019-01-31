@@ -70,7 +70,7 @@ end
 parts(path::WindowsPath) = path.parts
 drive(path::WindowsPath) = path.drive
 root(path::WindowsPath) = path.root
-ispathtype(::Type{WindowsPath}, str::AbstractString) = Compat.Sys.iswindows()
+ispathtype(::Type{WindowsPath}, str::AbstractString) = Sys.iswindows()
 
 function Base.show(io::IO, path::WindowsPath)
     print(io, "p\"")

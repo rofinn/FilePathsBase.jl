@@ -7,17 +7,17 @@
 Responsible for creating the appropriate platform specific path
 (e.g., `PosixPath` and `WindowsPath` for Unix and Windows systems respectively)
 """
-Path() = @static Compat.Sys.isunix() ? PosixPath() : WindowsPath()
+Path() = @static Sys.isunix() ? PosixPath() : WindowsPath()
 Path(path::AbstractPath) = path
 Path(pieces::Tuple{Vararg{String}}) =
-    @static Compat.Sys.isunix() ? PosixPath(pieces) : WindowsPath(pieces)
+    @static Sys.isunix() ? PosixPath(pieces) : WindowsPath(pieces)
 
 # May want to support using the registry for other constructors as well
 function Path(str::AbstractString; debug=false)
     types = filter(t -> ispathtype(t, str), PATH_TYPES)
 
     if length(types) > 1
-        Compat.@debug(
+        @debug(
             string(
                 "Found multiple path types that match the string specified ($types). ",
                 "Please use a specific constructor if $(first(types)) is not the correct type."
@@ -51,12 +51,8 @@ of the file containing the macro. Returns an empty Path if run from a REPL or
 if evaluated by julia -e <expr>.
 """
 macro __PATH__()
-    if VERSION >= v"0.7-"
-        p = Path(dirname(string(__source__.file)))
-        return p===nothing ? :(Path()) : :($p)
-    else
-        return :(Path(@__DIR__()===nothing ? Path() : @__DIR__))
-    end
+    p = Path(dirname(string(__source__.file)))
+    return p === nothing ? :(Path()) : :($p)
 end
 
 """
@@ -67,12 +63,8 @@ containing the macro. Returns an empty Path if run from a REPL or if
 evaluated by julia -e <expr>.
 """
 macro __FILEPATH__()
-    if VERSION >= v"0.7-"
-        p = Path(string(__source__.file))
-        return p===nothing ? :(Path()) : :($p)
-    else
-        return :(Path(@__FILE__()===nothing ? Path() : @__FILE__))
-    end
+    p = Path(string(__source__.file))
+    return p === nothing ? :(Path()) : :($p)
 end
 
 """
@@ -82,12 +74,8 @@ Construct an absolute path to `filespec` relative to the source file
 containing the macro call.
 """
 macro LOCAL(filespec)
-    if VERSION >= v"0.7-"
-        p = join(Path(dirname(string(__source__.file))), Path(filespec))
-        return :($p)
-    else
-        return :(join(@__PATH__, Path($(esc(filespec)))))
-    end
+    p = join(Path(dirname(string(__source__.file))), Path(filespec))
+    return :($p)
 end
 
 #=
@@ -142,6 +130,39 @@ function parents(path::T) where {T <: AbstractPath}
     else
         error("$path has no parents")
     end
+end
+
+"""
+  *(a::T, b::Union{T, AbstractString, AbstractChar}...) where {T <: AbstractPath} -> T
+
+Concatenate paths, strings and/or characters, producing a new path.
+This is equivalent to concatenating the string representations of paths and other strings
+and then constructing a new path.
+
+# Example
+
+julia> p"foo" * "bar"
+p"foobar"
+"""
+function Base.:(*)(a::T, b::Union{T, AbstractString, AbstractChar}...) where T <: AbstractPath
+    T(*(string(a), string.(b)...))
+end
+
+"""
+  /(a::AbstractPath, b::Union{AbstractPath, AbstractString}...) -> AbstractPath
+
+Join the path components into a new fulll path, equivalent to calling `joinpath`
+
+# Example
+
+julia> p"foo" / "bar"
+p"foo/bar"
+
+julia> p"foo" / "bar" / "baz"
+p"foo/bar/baz"
+"""
+function Base.:(/)(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
+    join(root, pieces...)
 end
 
 """
@@ -263,7 +284,7 @@ Base.real(path::AbstractPath) = Path(realpath(string(path)))
 
 Normalizes a path by removing "." and ".." entries.
 """
-function Compat.LinearAlgebra.norm(path::T) where {T <: AbstractPath}
+function LinearAlgebra.norm(path::T) where {T <: AbstractPath}
     p = parts(path)
     result = String[]
     rem = length(p)
@@ -322,7 +343,7 @@ function relative(path::T, start::T=T(".")) where {T <: AbstractPath}
     i = 0
     while i < min(length(p), length(s))
         i += 1
-        @static if Compat.Sys.iswindows()
+        @static if Sys.iswindows()
             if lowercase(p[i]) != lowercase(s[i])
                 i -= 1
                 break
@@ -495,9 +516,7 @@ function Base.mkdir(path::AbstractPath; mode=0o777, recursive=false, exist_ok=fa
 			end
         end
 
-
-		VERSION >= v"0.7-" ? mkdir(string(path), mode=mode) : mkdir(string(path), mode)
-
+		mkdir(string(path), mode=mode)
     end
 end
 
@@ -562,7 +581,7 @@ function move(src::AbstractPath, dest::AbstractPath; recursive=false, exist_ok=f
 end
 
 function Base.cp(src::AbstractPath, dest::AbstractPath; force::Bool=false, follow_symlinks::Bool=false)
-    Compat.cp(string(src), string(dest); force=force, follow_symlinks=follow_symlinks)
+    cp(string(src), string(dest); force=force, follow_symlinks=follow_symlinks)
 end
 
 remove(path::AbstractPath; recursive=false) = rm(string(path); recursive=recursive)
@@ -603,7 +622,7 @@ end
 Change the `user` and `group` of the `path`.
 """
 function Base.chown(path::AbstractPath, user::AbstractString, group::AbstractString; recursive=false)
-    @static if Compat.Sys.isunix()
+    @static if Sys.isunix()
         chown_cmd = String["chown"]
         if recursive
             push!(chown_cmd, "-R")

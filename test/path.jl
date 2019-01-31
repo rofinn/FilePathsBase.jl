@@ -1,7 +1,7 @@
 
 cd(abs(parent(Path(@__FILE__)))) do
     @testset "Simple Path Usage" begin
-        reg = Compat.Sys.iswindows() ? "..\\src\\FilePathsBase.jl" : "../src/FilePathsBase.jl"
+        reg = Sys.iswindows() ? "..\\src\\FilePathsBase.jl" : "../src/FilePathsBase.jl"
         @test ispath(reg)
 
         p = Path(reg)
@@ -20,6 +20,9 @@ cd(abs(parent(Path(@__FILE__)))) do
         @test basename(p) == "FilePathsBase.jl"
         @test join(parent(p), Path(basename(p))) == p
         @test joinpath(parent(p), Path(basename(p))) == p
+        @test parent(p) / basename(p) == p
+        @test parent(p) * "/" * basename(p) == p
+        @test p"foo" / "bar" * ".txt" == p"foo/bar.txt"
         @test filename(p) == "FilePathsBase"
 
         @test extension(p) == "jl"
@@ -36,7 +39,7 @@ cd(abs(parent(Path(@__FILE__)))) do
         # This works around an issue with Base.relpath: that function does not take
         # into account the paths on Windows should be compared case insensitive.
         homedir_patched = homedir()
-        if Compat.Sys.iswindows()
+        if Sys.iswindows()
             conv_f = isuppercase(abspath(string(p))[1]) ? uppercase : lowercase
             homedir_patched = conv_f(homedir_patched[1]) * homedir_patched[2:end]
         end
@@ -135,7 +138,7 @@ mktmpdir() do d
                 println(io)
             end
 
-            @static if Compat.Sys.isunix()
+            @static if Sys.isunix()
                 if haskey(ENV, "USER")
                     if ENV["USER"] == "root"
                         chown(p"newfile", "nobody", "nogroup"; recursive=true)
@@ -147,7 +150,7 @@ mktmpdir() do d
                 @test_throws ErrorException chown(p"newfile", "nobody", "nogroup"; recursive=true)
             end
 
-            @static if Compat.Sys.isunix()
+            @static if Sys.isunix()
                 chmod(p"newfile", user=(READ+WRITE+EXEC), group=(READ+EXEC), other=READ)
                 @test string(mode(p"newfile")) == "-rwxr-xr--"
                 @test isexecutable(p"newfile")
