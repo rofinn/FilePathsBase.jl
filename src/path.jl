@@ -749,11 +749,10 @@ function Base.open(f::Function, path::AbstractPath, args...; kwargs...)
     open(f, string(path), args...; kwargs...)
 end
 
-Base.read(path::AbstractPath) = read(string(path), String)
-
-function Base.write(path::AbstractPath, content::AbstractString, mode="w")
+Base.read(path::AbstractPath, args...) = read(string(path), args...)
+function Base.write(path::AbstractPath, x::Union{String, Vector{UInt8}}, mode="w")
     open(path, mode) do f
-        write(f, content)
+        write(f, x)
     end
 end
 

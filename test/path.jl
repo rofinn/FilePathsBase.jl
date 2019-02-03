@@ -163,7 +163,7 @@ mktmpdir() do d
                 @test string(mode(p"newfile")) == "-rw-r--r--"
                 chmod(p"newfile", "+x")
                 write(p"newfile", "foobar")
-                @test read(p"newfile") == "foobar"
+                @test read(p"newfile", String) == "foobar"
                 chmod(p"newfile", "u=rwx")
 
                 open(p"newfile") do io

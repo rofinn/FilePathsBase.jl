@@ -6,6 +6,7 @@ include("testpaths.jl")
 
 @testset "FilePathsBase" begin
     include("mode.jl")
+    include("buffer.jl")
     include("path.jl")
 
     # Test that our weird registered path works
