@@ -78,8 +78,14 @@ following methods:
 - `FilePathsBase.drive(p)`
 - `FilePathsBase.ispathtype(::Type{MyPath}, x::AbstractString) = true`
 """
-abstract type AbstractPath end
+abstract type AbstractPath end  # Define the AbstractPath here to avoid circular include dependencies
 
+"""
+    register(::Type{<:AbstractPath})
+
+Registers a new path type to support using `Path("...")` constructor and p"..." string
+macro.
+"""
 function register(T::Type{<:AbstractPath})
     # We add the type to the beginning of our PATH_TYPES,
     # so that they can take precedence over the Posix and
@@ -87,31 +93,15 @@ function register(T::Type{<:AbstractPath})
     pushfirst!(PATH_TYPES, T)
 end
 
-#=
-We only want to print the macro string syntax when compact is true and
-we want print to just return the string (this allows `string` to work normally)
-=#
-Base.print(io::IO, path::AbstractPath) = print(io, joinpath(drive(path), parts(path)...))
-
-function Base.show(io::IO, path::AbstractPath)
-    get(io, :compact, false) ? print(io, path) : print(io, "p\"$path\"")
-end
-
-Base.parse(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
-Base.convert(::Type{AbstractPath}, x::AbstractString) = Path(x)
-Base.convert(::Type{String}, x::AbstractPath) = string(x)
-Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String
-ispathtype(::Type{<:AbstractPath}, x::AbstractString) = false
-
 include("constants.jl")
 include("utils.jl")
 include("libc.jl")
 include("mode.jl")
 include("status.jl")
 include("buffer.jl")
+include("path.jl")
 include("posix.jl")
 include("windows.jl")
-include("path.jl")
-include("deprecates.jl")
+include("ospath.jl")
 
 end # end of module
