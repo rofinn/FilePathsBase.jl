@@ -21,6 +21,6 @@ import Base:
 @deprecate relpath(path::AbstractPath) relative(path)
 @deprecate filemode(path::AbstractPath) mode(path)
 @deprecate isabspath(path::AbstractPath) isabs(path)
-@deprecate mkpath(path::AbstractPath) mkdir(path; recursive=true)
+@deprecate mkpath(path::AbstractPath) mkdir(path; recursive=true, exist_ok=true)
 @deprecate mv(src::AbstractPath, dest::AbstractPath; kwargs...) move(src, dest; kwargs...)
 @deprecate rm(path::AbstractPath; kwargs...) remove(path; kwargs...)
