@@ -3,6 +3,45 @@ module TestPaths
     using FilePathsBase
     using LinearAlgebra: norm
 
+    export PathSet,
+        TESTALL,
+        test,
+        test_constructor,
+        test_registration,
+        test_show,
+        test_parse,
+        test_convert,
+        test_components,
+        test_parents,
+        test_join,
+        test_basename,
+        test_filename,
+        test_extensions,
+        test_isempty,
+        test_norm,
+        test_real,
+        test_relative,
+        test_abs,
+        test_isdir,
+        test_isfile,
+        test_stat,
+        test_size,
+        test_isexecutable,
+        test_isreadable,
+        test_iswritable,
+        test_cd,
+        test_readpath,
+        test_walkpath,
+        test_read,
+        test_write,
+        test_mkdir,
+        test_cp,
+        test_mv,
+        test_symlink,
+        test_chown,
+        test_chmod,
+        test_download
+
     # foo, bar, baz, qux, quux, quuz, corge, grault, garply, waldo, fred, plugh, xyzzy, and thud
     #=
     To Test:
@@ -38,11 +77,13 @@ module TestPaths
     - [X] write
     - [X] cp
     - [X] mv
+    - [X] symlink
     - [X] readpath
     - [X] walkpath
     - [X] open
-    - [ ] chmod
-    - [ ] chown
+    - [X] chmod
+    - [X] chown
+    - [X] download
     =#
     """
 
@@ -202,11 +243,13 @@ module TestPaths
 
     function test_real(ps::PathSet)
         @testset "real" begin
-            @test_broken real(ps.bar / ".." / "foo") == norm(ps.bar / ".." / "foo")
-            @test_broken real(ps.bar / ".") == norm(ps.bar / ".")
+            # NOTE: We call `real` on ps.bar in the `norm` case because on
+            # macOS the temp directory may include a symlink.
+            @test real(ps.bar / ".." / "foo") == norm(real(ps.bar) / ".." / "foo")
+            @test real(ps.bar / ".") == norm(real(ps.bar) / ".")
 
             if ps.plugh !== nothing
-                @test_broken real(ps.plugh) == ps.foo
+                @test real(ps.plugh) == real(ps.foo)
             end
         end
     end
@@ -405,8 +448,11 @@ module TestPaths
     function test_mkdir(ps::PathSet)
         @testset "mkdir" begin
             garply = ps.root / "corge" / "grault" / "garply"
-            mkdir(garply; recursive=true, exist_ok=true)
+            @test_throws ErrorException mkdir(garply)
+            mkdir(garply; recursive=true)
             @test exists(garply)
+            @test_throws ErrorException mkdir(garply; recursive=true)
+            mkdir(garply; recursive=true, exist_ok=true)
             rm(ps.root / "corge"; recursive=true)
             @test !exists(garply)
         end
@@ -414,9 +460,12 @@ module TestPaths
 
     function test_cp(ps::PathSet)
         @testset "cp" begin
-            cp(ps.foo, ps.qux / "foo"; force=true)
+            cp(ps.foo, ps.qux / "foo")
             @test exists(ps.qux / "foo" / "baz.txt")
+            @test_throws ArgumentError cp(ps.foo, ps.qux / "foo")
+            cp(ps.foo, ps.qux / "foo"; force=true)
             rm(ps.qux / "foo"; recursive=true)
+            @test !exists(ps.qux / "foo")
         end
     end
 
@@ -429,6 +478,80 @@ module TestPaths
             @test !exists(garply)
             @test exists(ps.foo / "corge" / "grault" / "garply")
             rm(ps.foo / "corge"; recursive=true)
+        end
+    end
+
+    function test_symlink(ps::PathSet)
+        if ps.plugh !== nothing
+            @testset "symlink" begin
+                @test_throws ErrorException symlink(ps.foo, ps.plugh)
+                symlink(ps.foo, ps.plugh; exist_ok=true, overwrite=true)
+                symlink(ps.foo, ps.plugh; exist_ok=true)
+                @test_throws ErrorException symlink(ps.foo / "thud", ps.plugh; exist_ok=true, overwite=true)
+            end
+        end
+    end
+
+    function test_chown(ps::PathSet)
+        @testset "chown" begin
+            newfile = ps.root / "newfile"
+            touch(newfile)
+
+            if haskey(ENV, "USER")
+                if ENV["USER"] == "root"
+                    chown(newfile, "nobody", "nogroup"; recursive=true)
+                else
+                    @test_throws ErrorException chown(newfile, "nobody", "nogroup"; recursive=true)
+                end
+            end
+
+            rm(newfile)
+        end
+    end
+
+    function test_chmod(ps::PathSet)
+        @testset "chmod" begin
+            newfile = ps.root / "newfile"
+            newpath = ps.root / "thud"
+
+            touch(newfile)
+            mkdir(newpath)
+            chmod(newfile, user=(READ+WRITE+EXEC), group=(READ+EXEC), other=READ)
+            @test string(mode(newfile)) == "-rwxr-xr--"
+            @test isexecutable(newfile)
+            @test iswritable(newfile)
+            @test isreadable(newfile)
+
+            chmod(newfile, "-x")
+            @test !isexecutable(newfile)
+
+            @test string(mode(newfile)) == "-rw-r--r--"
+            chmod(newfile, "+x")
+            write(newfile, "foobar")
+            @test read(newfile, String) == "foobar"
+            chmod(newfile, "u=rwx")
+
+            open(newfile, "r") do io
+                @test read(io, String) == "foobar"
+            end
+
+            chmod(newpath, mode(newfile); recursive=true)
+        end
+    end
+
+    function test_download(ps::PathSet)
+        @testset "download" begin
+            download(
+                "https://github.com/rofinn/FilePathsBase.jl/blob/master/README.md",
+                ps.foo / "README.md"
+            )
+            @test exists(ps.foo / "README.md")
+
+            # Test downloading from another path
+            download(ps.foo / "README.md", ps.qux / "README.md")
+            @test exists(ps.qux / "README.md")
+
+            rm.([ps.foo / "README.md", ps.qux / "README.md"])
         end
     end
 
@@ -464,6 +587,10 @@ module TestPaths
         test_mkdir,
         test_cp,
         test_mv,
+        test_symlink,
+        test_chown,
+        test_chmod,
+        test_download,
     ]
 
     function test(ps::PathSet, test_sets=TESTALL)

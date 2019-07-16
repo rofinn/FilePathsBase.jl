@@ -383,6 +383,20 @@ function Base.mv(src::AbstractPath, dst::AbstractPath; force=false)
 end
 
 """
+    download(url::Union{AbstractString, AbstractPath}, localfile::AbstractPath)
+
+Download a file from the remote url and save it to the localfile path.
+"""
+function Base.download(url::AbstractString, localfile::AbstractPath)
+    mktmp() do path, io
+        download(url, path)
+        cp(path, localfile)
+    end
+end
+
+Base.download(url::AbstractPath, localfile::AbstractPath) = cp(url, localfile)
+
+"""
     readpath(path::P) where {P <: AbstractPath} -> Vector{P}
 """
 function readpath(p::P)::Vector{P} where P <: AbstractPath

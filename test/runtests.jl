@@ -2,7 +2,7 @@ using FilePathsBase
 using LinearAlgebra
 using Test
 
-using FilePathsBase: TestPaths
+using FilePathsBase.TestPaths
 
 include("testpkg.jl")
 

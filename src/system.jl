@@ -447,10 +447,4 @@ end
 
 Base.readlink(path::SystemPath) = Path(readlink(string(path)))
 Base.readdir(path::SystemPath) = readdir(string(path))
-
-function Base.download(src::AbstractString, dest::SystemPath, overwrite::Bool=false)
-    if !exists(dest) || overwrite
-        download(src, string(dest))
-    end
-    return dest
-end
+Base.download(url::AbstractString, dest::SystemPath) = download(url, string(dest))
