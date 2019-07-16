@@ -27,7 +27,7 @@ using FilePathsBase: FileBuffer
                 p2 = p"README.md"
                 copy(p1, p2)
 
-                io = FileBuffer(p2; writable=true)
+                io = FileBuffer(p2; read=true, write=true)
                 try
                     @test isreadable(io)
                     @test iswritable(io)

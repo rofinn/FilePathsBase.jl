@@ -1,17 +1,17 @@
 """
-    OSPath
+    SystemPath
 
 A union of `PosixPath` and `WindowsPath` which is used for writing
 methods that wrap base functionality.
 """
-const OSPath = Union{PosixPath, WindowsPath}
+const SystemPath = Union{PosixPath, WindowsPath}
 
 Path() = @static Sys.isunix() ? PosixPath() : WindowsPath()
 Path(pieces::Tuple{Vararg{String}}) =
     @static Sys.isunix() ? PosixPath(pieces) : WindowsPath(pieces)
 
 """
-    @__PATH__ -> OSPath
+    @__PATH__ -> SystemPath
 
 @__PATH__ expands to a path with the directory part of the absolute path
 of the file containing the macro. Returns an empty Path if run from a REPL or
@@ -23,7 +23,7 @@ macro __PATH__()
 end
 
 """
-    @__FILEPATH__ -> OSPath
+    @__FILEPATH__ -> SystemPath
 
 @__FILEPATH__ expands to a path with the absolute file path of the file
 containing the macro. Returns an empty Path if run from a REPL or if
@@ -45,18 +45,18 @@ macro LOCAL(filespec)
     return :($p)
 end
 
-exists(path::OSPath) = ispath(string(path))
-Base.real(path::P) where {P <: OSPath} = P(realpath(string(path)))
+exists(path::SystemPath) = ispath(string(path))
+Base.real(path::P) where {P <: SystemPath} = P(realpath(string(path)))
 
 #=
 The following a descriptive methods for paths
 built around stat
 =#
-Base.stat(path::OSPath) = Status(stat(string(path)))
-Base.lstat(path::OSPath) = Status(lstat(string(path)))
+Base.stat(path::SystemPath) = Status(stat(string(path)))
+Base.lstat(path::SystemPath) = Status(lstat(string(path)))
 
 """
-    mode(path::OSPath) -> Mode
+    mode(path::SystemPath) -> Mode
 
 Returns the `Mode` for the specified path.
 
@@ -66,11 +66,11 @@ julia> mode(p"src/FilePathsBase.jl")
 -rw-r--r--
 ```
 """
-mode(path::OSPath) = stat(path).mode
-Base.size(path::OSPath) = stat(path).size
+mode(path::SystemPath) = stat(path).mode
+Base.size(path::SystemPath) = stat(path).size
 
 """
-    modified(path::OSPath) -> DateTime
+    modified(path::SystemPath) -> DateTime
 
 Returns the last modified date for the `path`.
 
@@ -80,10 +80,10 @@ julia> modified(p"src/FilePathsBase.jl")
 2017-06-20T04:01:09
 ```
 """
-modified(path::OSPath) = stat(path).mtime
+modified(path::SystemPath) = stat(path).mtime
 
 """
-    created(path::OSPath) -> DateTime
+    created(path::SystemPath) -> DateTime
 
 Returns the creation date for the `path`.
 
@@ -93,21 +93,21 @@ julia> created(p"src/FilePathsBase.jl")
 2017-06-20T04:01:09
 ```
 """
-created(path::OSPath) = stat(path).ctime
-Base.isdir(path::OSPath) = isdir(mode(path))
-Base.isfile(path::OSPath) = isfile(mode(path))
-Base.islink(path::OSPath) = islink(lstat(path).mode)
-Base.issocket(path::OSPath) = issocket(mode(path))
-Base.isfifo(path::OSPath) = issocket(mode(path))
-Base.ischardev(path::OSPath) = ischardev(mode(path))
-Base.isblockdev(path::OSPath) = isblockdev(mode(path))
+created(path::SystemPath) = stat(path).ctime
+Base.isdir(path::SystemPath) = isdir(mode(path))
+Base.isfile(path::SystemPath) = isfile(mode(path))
+Base.islink(path::SystemPath) = islink(lstat(path).mode)
+Base.issocket(path::SystemPath) = issocket(mode(path))
+Base.isfifo(path::SystemPath) = issocket(mode(path))
+Base.ischardev(path::SystemPath) = ischardev(mode(path))
+Base.isblockdev(path::SystemPath) = isblockdev(mode(path))
 
 """
-    isexecutable(path::OSPath) -> Bool
+    isexecutable(path::SystemPath) -> Bool
 
 Returns whether the `path` is executable for the current user.
 """
-function isexecutable(path::OSPath)
+function isexecutable(path::SystemPath)
     s = stat(path)
     usr = User()
 
@@ -124,7 +124,7 @@ end
 
 Returns whether the `path` is writable for the current user.
 """
-function Base.iswritable(path::OSPath)
+function Base.iswritable(path::SystemPath)
     s = stat(path)
     usr = User()
 
@@ -137,11 +137,11 @@ function Base.iswritable(path::OSPath)
 end
 
 """
-    isreadable(path::OSPath) -> Bool
+    isreadable(path::SystemPath) -> Bool
 
 Returns whether the `path` is readable for the current user.
 """
-function Base.isreadable(path::OSPath)
+function Base.isreadable(path::SystemPath)
     s = stat(path)
     usr = User()
 
@@ -153,7 +153,7 @@ function Base.isreadable(path::OSPath)
     )
 end
 
-function Base.ismount(path::OSPath)
+function Base.ismount(path::SystemPath)
     isdir(path) || return false
     s1 = lstat(path)
     # Symbolic links cannot be mount points
@@ -179,8 +179,8 @@ code in the implementation instances.
 TODO: Document these once we're comfortable with them.
 =#
 
-Base.cd(path::OSPath) = cd(string(path))
-function Base.cd(fn::Function, dir::OSPath)
+Base.cd(path::SystemPath) = cd(string(path))
+function Base.cd(fn::Function, dir::SystemPath)
     old = cwd()
     try
         cd(dir)
@@ -190,7 +190,7 @@ function Base.cd(fn::Function, dir::OSPath)
     end
 end
 
-function Base.mkdir(path::OSPath; mode=0o777, recursive=false, exist_ok=false)
+function Base.mkdir(path::SystemPath; mode=0o777, recursive=false, exist_ok=false)
     if exists(path)
         !exist_ok && error("$path already exists.")
     else
@@ -209,7 +209,7 @@ function Base.mkdir(path::OSPath; mode=0o777, recursive=false, exist_ok=false)
     end
 end
 
-function Base.symlink(src::OSPath, dest::OSPath; exist_ok=false, overwrite=false)
+function Base.symlink(src::SystemPath, dest::SystemPath; exist_ok=false, overwrite=false)
     if exists(src)
         if exists(dest) && exist_ok && overwrite
             remove(dest, recursive=true)
@@ -226,7 +226,7 @@ function Base.symlink(src::OSPath, dest::OSPath; exist_ok=false, overwrite=false
 end
 
 
-function Base.copy(src::OSPath, dest::OSPath; recursive=false, exist_ok=false, overwrite=false, symlinks=false)
+function Base.copy(src::SystemPath, dest::SystemPath; recursive=false, exist_ok=false, overwrite=false, symlinks=false)
     if exists(src)
         if exists(dest) && exist_ok && overwrite
             remove(dest, recursive=true)
@@ -246,7 +246,7 @@ function Base.copy(src::OSPath, dest::OSPath; recursive=false, exist_ok=false, o
     end
 end
 
-function move(src::OSPath, dest::OSPath; recursive=false, exist_ok=false, overwrite=false)
+function move(src::SystemPath, dest::SystemPath; recursive=false, exist_ok=false, overwrite=false)
     if exists(src)
         if exists(dest) && exist_ok && overwrite
             remove(dest, recursive=true)
@@ -273,18 +273,18 @@ function Base.cp(src::AbstractPath, dest::AbstractPath; force::Bool=false, follo
     cp(string(src), string(dest); force=force, follow_symlinks=follow_symlinks)
 end
 
-Base.rm(path::OSPath; kwargs...) = rm(string(path); kwargs...)
-Base.touch(path::OSPath) = touch(string(path))
+Base.rm(path::SystemPath; kwargs...) = rm(string(path); kwargs...)
+Base.touch(path::SystemPath) = touch(string(path))
 
 tmpname() = Path(tempname())
 tmpdir() = Path(tempdir())
 
-function mktmp(parent::OSPath=Path(tempdir()))
+function mktmp(parent::SystemPath=Path(tempdir()))
     path, io = mktemp(string(parent))
     return Path(path), io
 end
 
-mktmpdir(parent::OSPath=tmpdir()) = Path(mktempdir(string(parent)))
+mktmpdir(parent::SystemPath=tmpdir()) = Path(mktempdir(string(parent)))
 
 function mktmp(fn::Function, parent=tmpdir())
     (tmp_path, tmp_io) = mktmp(parent)
@@ -306,11 +306,11 @@ function mktmpdir(fn::Function, parent=tmpdir())
 end
 
 """
-    chown(path::OSPath, user::AbstractString, group::AbstractString; recursive=false)
+    chown(path::SystemPath, user::AbstractString, group::AbstractString; recursive=false)
 
 Change the `user` and `group` of the `path`.
 """
-function Base.chown(path::OSPath, user::AbstractString, group::AbstractString; recursive=false)
+function Base.chown(path::SystemPath, user::AbstractString, group::AbstractString; recursive=false)
     @static if Sys.isunix()
         chown_cmd = String["chown"]
         if recursive
@@ -325,10 +325,10 @@ function Base.chown(path::OSPath, user::AbstractString, group::AbstractString; r
 end
 
 """
-    chmod(path::OSPath, mode::Mode; recursive=false)
-    chmod(path::OSPath, mode::Integer; recursive=false)
-    chmod(path::OSPath, user::UIn8=0o0, group::UInt8=0o0, other::UInt8=0o0; recursive=false)
-    chmod(path::OSPath, symbolic_mode::AbstractString; recursive=false)
+    chmod(path::SystemPath, mode::Mode; recursive=false)
+    chmod(path::SystemPath, mode::Integer; recursive=false)
+    chmod(path::SystemPath, user::UIn8=0o0, group::UInt8=0o0, other::UInt8=0o0; recursive=false)
+    chmod(path::SystemPath, symbolic_mode::AbstractString; recursive=false)
 
 Provides various methods for changing the `mode` of a `path`.
 
@@ -361,7 +361,7 @@ julia> mode(p"newfile")
 -rw-r--r--
 ```
 """
-function Base.chmod(path::OSPath, mode::Mode; recursive=false)
+function Base.chmod(path::SystemPath, mode::Mode; recursive=false)
     chmod_path = string(path)
     chmod_mode = raw(mode)
 
@@ -374,15 +374,15 @@ function Base.chmod(path::OSPath, mode::Mode; recursive=false)
     chmod(chmod_path, chmod_mode)
 end
 
-function Base.chmod(path::OSPath, mode::Integer; recursive=false)
+function Base.chmod(path::SystemPath, mode::Integer; recursive=false)
     chmod(path, Mode(mode); recursive=recursive)
 end
 
-function Base.chmod(path::OSPath; user::UInt8=0o0, group::UInt8=0o0, other::UInt8=0o0, recursive=false)
+function Base.chmod(path::SystemPath; user::UInt8=0o0, group::UInt8=0o0, other::UInt8=0o0, recursive=false)
     chmod(path, Mode(user=user, group=group, other=other); recursive=recursive)
 end
 
-function Base.chmod(path::OSPath, symbolic_mode::AbstractString; recursive=false)
+function Base.chmod(path::SystemPath, symbolic_mode::AbstractString; recursive=false)
     who_char = ['u', 'g', 'o']
     who_actual = [:USER, :GROUP, :OTHER]
     act_char = ['+', '-', '=']
@@ -433,22 +433,22 @@ function Base.chmod(path::OSPath, symbolic_mode::AbstractString; recursive=false
     end
 end
 
-Base.open(path::OSPath, args...) = open(string(path), args...)
-function Base.open(f::Function, path::OSPath, args...; kwargs...)
+Base.open(path::SystemPath, args...) = open(string(path), args...)
+function Base.open(f::Function, path::SystemPath, args...; kwargs...)
     open(f, string(path), args...; kwargs...)
 end
 
-Base.read(path::OSPath, args...) = read(string(path), args...)
-function Base.write(path::OSPath, x::Union{String, Vector{UInt8}}, mode="w")
+Base.read(path::SystemPath, args...) = read(string(path), args...)
+function Base.write(path::SystemPath, x::Union{String, Vector{UInt8}}, mode="w")
     open(path, mode) do f
         write(f, x)
     end
 end
 
-Base.readlink(path::OSPath) = Path(readlink(string(path)))
-Base.readdir(path::OSPath) = map(Path, readdir(string(path)))
+Base.readlink(path::SystemPath) = Path(readlink(string(path)))
+Base.readdir(path::SystemPath) = readdir(string(path))
 
-function Base.download(src::AbstractString, dest::OSPath, overwrite::Bool=false)
+function Base.download(src::AbstractString, dest::SystemPath, overwrite::Bool=false)
     if !exists(dest) || overwrite
         download(src, string(dest))
     end

@@ -13,38 +13,51 @@ NOTES:
 struct FileBuffer <: IO
     path::AbstractPath
     io::IOBuffer
-    readable::Bool
-    writable::Bool
+    read::Bool
+    write::Bool
+    create::Bool
 end
 
-function FileBuffer(path::AbstractPath; readable=true, writable=false)
-    FileBuffer(path, IOBuffer(), readable, writable)
+function FileBuffer(
+    path::AbstractPath; read=true, write=false, create=false, truncate=false, append=false
+)
+    buffer = FileBuffer(path, IOBuffer(), read, write, create)
+
+    # If we're wanting to append data then we we need to prepopulate the internal buffer
+    if write && append
+        _read(buffer)
+        seekstart(buffer)
+    end
+
+    return buffer
 end
 
-Base.isreadable(buffer::FileBuffer) = buffer.readable
-Base.iswritable(buffer::FileBuffer) = buffer.writable
+Base.isreadable(buffer::FileBuffer) = buffer.read
+Base.iswritable(buffer::FileBuffer) = buffer.write
 Base.seek(buffer::FileBuffer, n::Integer) = seek(buffer.io, n)
+Base.seekstart(buffer::FileBuffer) = seekstart(buffer.io)
 Base.seekend(buffer::FileBuffer) = seekend(buffer.io)
 Base.eof(buffer::FileBuffer) = eof(buffer.io)
 
 function _read(buffer::FileBuffer)
-    buffer.readable || throw(ArgumentError("read failed, FileBuffer is not readable"))
-
     # If our IOBuffer is empty then populate it with the
     # filepath contents
     if buffer.io.size == 0
         write(buffer.io, read(buffer.path))
-        seekstart(buffer.io)
     end
 end
 
 function Base.read(buffer::FileBuffer)
+    isreadable(buffer) || throw(ArgumentError("read failed, FileBuffer is not readable"))
     _read(buffer)
+    seekstart(buffer)
     read(buffer.io)
 end
 
 function Base.read(buffer::FileBuffer, ::Type{String})
+    isreadable(buffer) || throw(ArgumentError("read failed, FileBuffer is not readable"))
     _read(buffer)
+    seekstart(buffer)
     read(buffer.io, String)
 end
 

@@ -2,12 +2,15 @@ using FilePathsBase
 using LinearAlgebra
 using Test
 
-include("testpaths.jl")
+using FilePathsBase: TestPaths
+
+include("testpkg.jl")
 
 @testset "FilePathsBase" begin
     include("mode.jl")
     include("buffer.jl")
-    include("path.jl")
+    include("system.jl")
+    # include("path.jl")
 
     # Test that our weird registered path works
     path = p"test|;;my;weird;test;path"

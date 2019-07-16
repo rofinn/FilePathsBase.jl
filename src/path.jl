@@ -39,7 +39,7 @@ Constructs a `Path` (platform specific subtype of `AbstractPath`), such as
 `p"~/.juliarc.jl"`.
 """
 macro p_str(path)
-    Path(path)
+    return :(Path($path))
 end
 
 #=
@@ -53,7 +53,7 @@ function Base.show(io::IO, path::AbstractPath)
 end
 
 Base.parse(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
-Base.convert(::Type{AbstractPath}, x::AbstractString) = Path(x)
+Base.convert(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
 Base.convert(::Type{String}, x::AbstractPath) = string(x)
 Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String
 
@@ -382,12 +382,70 @@ function Base.mv(src::AbstractPath, dst::AbstractPath; force=false)
     rm(src; recursive=true)
 end
 
-# TODO: Implement walkdir
+"""
+    readpath(path::P) where {P <: AbstractPath} -> Vector{P}
+"""
+function readpath(p::P)::Vector{P} where P <: AbstractPath
+    return P[join(p, f) for f in readdir(p)]
+end
+
+"""
+    walkpath(path::AbstractPath; topdown=true, follow_symlinks=false, onerror=throw)
+
+Performs a depth first search through the directory structure
+"""
+function walkpath(path::AbstractPath; topdown=true, follow_symlinks=false, onerror=throw)
+    return Channel() do chnl
+        for p in readpath(path)
+            topdown && put!(chnl, p)
+            if isdir(p) && (follow_symlinks || !islink(p))
+                # Iterate through children
+                children = walkpath(
+                    p; topdown=topdown, follow_symlinks=follow_symlinks, onerror=onerror
+                )
+
+                for c in children
+                    put!(chnl, c)
+                end
+            end
+            topdown || put!(chnl, p)
+        end
+    end
+end
+
+"""
+  open(filename::AbstractPath; keywords...) -> FileBuffer
+  open(filename::AbstractPath, mode="r) -> FileBuffer
+
+Return a default FileBuffer for `open` calls to paths which only support `read` and `write`
+methods. See base `open` docs for details on valid keywords.
+"""
+Base.open(path::AbstractPath; kwargs...) = FileBuffer(path; kwargs...)
+
+function Base.open(path::AbstractPath, mode="r")
+    if mode == "r"
+        return FileBuffer(path; read=true, write=false)
+    elseif mode == "w"
+        return FileBuffer(path; read=false, write=true, create=true, truncate=true)
+    elseif mode == "a"
+        return FileBuffer(path; read=false, write=true, create=true, append=true)
+    elseif mode == "r+"
+        return FileBuffer(path; readable=true, writable=true)
+    elseif mode == "w+"
+        return FileBuffer(path; read=true, write=true, create=true, truncate=true)
+    elseif mode == "a+"
+        return FileBuffer(path; read=false, write=true, create=true, append=true)
+    else
+        throw(ArgumentError("$mode is not support for $(typeof(path))"))
+    end
+end
+
+# TODO: Implement walkdir?
 
 ############################################################################################
 #                     Implementation Specific Methods                                      #
 ############################################################################################
-# NOTE: Some methods seem `OSPath` specific, so we're leaving them out of the documented   #
+# NOTE: Some methods seem `SystemPath` specific, so we're leaving them out of the documented   #
 # AbstractPath API.                                                                        #
 #                                                                                          #
 # (e.g., `stat`, `mode`, `islink`, `issocket`, `isfifo`, `ismount`, `chown`/`chmod`)       #
@@ -507,6 +565,27 @@ Base.rm(path::AbstractPath; kwargs...) = throw(MethodError(rm, (path,)))
 Reads a list of files and directories at the top level of the provided path.
 """
 Base.readdir(path::AbstractPath) = throw(MethodError(readdir, (path,)))
+
+"""
+    read(path::AbstractPath)
+
+Reads the contents of the filepath
+"""
+Base.read(path::AbstractPath) = throw(MethodError(read, (path,)))
+
+"""
+    write(path::AbstractPath, x)
+
+Write the context `x` to a file.
+"""
+Base.write(path::AbstractPath, x) = throw(MethodError(write, (path, x)))
+
+#=
+- update the testpath example to test these fallback methods
+- introduce a `FilePathsBase.Test` module that provides a collection of tests for new path
+  types.
+
+=#
 
 # ALIASES for base filesystem API
 Base.dirname(path::AbstractPath) = parent(path)

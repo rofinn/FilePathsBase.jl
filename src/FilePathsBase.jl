@@ -11,6 +11,7 @@ export
     # Types
     AbstractPath,
     Path,
+    SystemPath,
     PosixPath,
     WindowsPath,
     Mode,
@@ -45,6 +46,8 @@ export
     readable,
     writable,
     raw,
+    readpath,
+    walkpath,
 
     # Macros
     @p_str,
@@ -102,6 +105,7 @@ include("buffer.jl")
 include("path.jl")
 include("posix.jl")
 include("windows.jl")
-include("ospath.jl")
+include("system.jl")
+include("test.jl")
 
 end # end of module

@@ -1,4 +1,4 @@
-module TestPaths
+module TestPkg
 
 using FilePathsBase
 
