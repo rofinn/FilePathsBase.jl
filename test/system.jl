@@ -62,5 +62,11 @@ ps = PathSet(; symlink=true)
     # Run all of the automated tests
     test(ps, testsets)
 
-    # TODO: Copy over specific tests that can't be tested reliably from the general case.
+    # Test the system path specific macros
+    cd(abs(parent(Path(@__FILE__)))) do
+        @test @__PATH__() == Path(@__DIR__)
+        @test @__FILEPATH__() == Path(@__FILE__)
+        @test FilePathsBase.@LOCAL("foo.txt") == join(@__PATH__, "foo.txt")
+        @test FilePathsBase.@LOCAL("foo.txt") == joinpath(@__PATH__, "foo.txt")
+    end
 end

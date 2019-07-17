@@ -1,15 +1,23 @@
 struct PosixPath <: AbstractPath
     parts::Tuple{Vararg{String}}
+    root::String
 end
+
+PosixPath() = PosixPath(tuple(), "")
 
 function PosixPath(parts::Tuple)
-    return PosixPath(Tuple(Iterators.filter(!isempty, parts)))
-end
+    parts = map(String, Iterators.filter(!isempty, parts))
 
-PosixPath() = PosixPath(tuple())
+    if parts[1]==POSIX_PATH_SEPARATOR
+        return PosixPath(tuple(parts[2:end]...), POSIX_PATH_SEPARATOR)
+    else
+        return PosixPath(tuple(parts...), "")
+    end
+end
 
 function PosixPath(str::AbstractString)
     str = string(str)
+    root = ""
 
     if isempty(str)
         return PosixPath(tuple("."))
@@ -17,35 +25,23 @@ function PosixPath(str::AbstractString)
 
     tokenized = split(str, POSIX_PATH_SEPARATOR)
     if isempty(tokenized[1])
-        tokenized[1] = POSIX_PATH_SEPARATOR
+        root = POSIX_PATH_SEPARATOR
     end
-    return PosixPath(tuple(map(String, tokenized)...))
+    return PosixPath(tuple(map(String, filter!(!isempty, tokenized))...), root)
 end
 
 # The following should be implemented in the concrete types
-==(a::PosixPath, b::PosixPath) = parts(a) == parts(b)
+function ==(a::PosixPath, b::PosixPath)
+    return parts(a) == parts(b) && root(a) == root(b)
+end
+
 parts(path::PosixPath) = path.parts
-ispathtype(::Type{PosixPath}, str::AbstractString) = Sys.isunix()
-
-function isabs(path::PosixPath)
-    if parts(path)[1] == POSIX_PATH_SEPARATOR
-        return true
-    else
-        return false
-    end
-end
-
+root(path::PosixPath) = path.root
 drive(path::PosixPath) = ""
+ispathtype(::Type{PosixPath}, str::AbstractString) = Sys.isunix()
+isabs(path::PosixPath) = !isempty(root(path))
 
-function root(path::PosixPath)
-    if parts(path)[1] == POSIX_PATH_SEPARATOR
-        return POSIX_PATH_SEPARATOR
-    else
-        return ""
-    end
-end
-
-function expanduser(path::PosixPath)
+function Base.expanduser(path::PosixPath)
     p = parts(path)
 
     if p[1] == "~"

@@ -26,7 +26,7 @@ function FileBuffer(
     # If we're wanting to append data then we we need to prepopulate the internal buffer
     if write && append
         _read(buffer)
-        seekstart(buffer)
+        seekend(buffer)
     end
 
     return buffer

@@ -46,7 +46,9 @@ end
 We only want to print the macro string syntax when compact is true and
 we want print to just return the string (this allows `string` to work normally)
 =#
-Base.print(io::IO, path::AbstractPath) = print(io, joinpath(drive(path), parts(path)...))
+function Base.print(io::IO, path::AbstractPath)
+    print(io, drive(path) * root(path) * joinpath(parts(path)...))
+end
 
 function Base.show(io::IO, path::AbstractPath)
     get(io, :compact, false) ? print(io, path) : print(io, "p\"$path\"")
@@ -109,7 +111,7 @@ julia> parents(p"~/.julia/v0.6/REQUIRE")
 function parents(path::T) where {T <: AbstractPath}
     if hasparent(path)
         return map(1:length(parts(path))-1) do i
-            T(parts(path)[1:i])
+            T(tuple(drive(path), root(path), parts(path)[1:i]...))
         end
     else
         error("$path has no parents")
@@ -160,15 +162,15 @@ julia> join(p"~/.julia/v0.6", "REQUIRE")
 p"~/.julia/v0.6/REQUIRE"
 ```
 """
-function Base.join(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
+function Base.join(prefix::T, pieces::Union{AbstractPath, AbstractString}...) where T <: AbstractPath
     all_parts = String[]
-    push!(all_parts, parts(root)...)
+    push!(all_parts, parts(prefix)...)
 
     for p in map(Path, pieces)
         push!(all_parts, parts(p)...)
     end
 
-    return Path(tuple(all_parts...))
+    return T(tuple(drive(prefix), root(prefix), all_parts...))
 end
 
 function Base.joinpath(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
@@ -278,7 +280,7 @@ function LinearAlgebra.norm(path::T) where {T <: AbstractPath}
         count += 1
     end
 
-    return T(tuple(fill("..", del)..., reverse(result)...))
+    return T(tuple(drive(path), root(path), fill("..", del)..., reverse(result)...))
 end
 
 """
@@ -294,6 +296,10 @@ function Base.abs(path::AbstractPath)
     else
         return norm(join(cwd(), result))
     end
+end
+
+function isabs(path::AbstractPath)
+    return !isempty(drive(path)) && !isempty(root(path))
 end
 
 """
@@ -444,11 +450,11 @@ function Base.open(path::AbstractPath, mode)
     elseif mode == "a"
         return FileBuffer(path; read=false, write=true, create=true, append=true)
     elseif mode == "r+"
-        return FileBuffer(path; readable=true, writable=true)
+        return FileBuffer(path; read=true, writable=true)
     elseif mode == "w+"
         return FileBuffer(path; read=true, write=true, create=true, truncate=true)
     elseif mode == "a+"
-        return FileBuffer(path; read=false, write=true, create=true, append=true)
+        return FileBuffer(path; read=true, write=true, create=true, append=true)
     else
         throw(ArgumentError("$mode is not support for $(typeof(path))"))
     end
@@ -461,13 +467,16 @@ tmpname() = Path(tempname())
 tmpdir() = Path(tempdir())
 
 function mktmp(parent::AbstractPath)
-    path = parent / uuid4()
+    path = parent / string(uuid4())
+    # touch the file in case `open` isn't implement for the path and
+    # we're buffering locally.
+    touch(path)
     io = open(path, "w+")
     return path, io
 end
 
 function mktmpdir(parent::AbstractPath)
-    path = parent / uuid4()
+    path = parent / string(uuid4())
     mkdir(path)
     return path
 end
@@ -490,153 +499,6 @@ function mktmpdir(fn::Function, parent=tmpdir())
         rm(tmpdir, recursive=true)
     end
 end
-
-# TODO: Implement walkdir?
-
-############################################################################################
-#                     Implementation Specific Methods                                      #
-############################################################################################
-# NOTE: Some methods seem `SystemPath` specific, so we're leaving them out of the documented   #
-# AbstractPath API.                                                                        #
-#                                                                                          #
-# (e.g., `stat`, `mode`, `islink`, `issocket`, `isfifo`, `ismount`, `chown`/`chmod`)       #
-############################################################################################
-
-"""
-    exists(path::AbstractPath) -> Bool
-
-Returns whether the path actually exists on the system.
-"""
-exists(path::AbstractPath) = throw(MethodError(exists, (path,)))
-
-"""
-    real(path::AbstractPath) -> AbstractPath
-
-Canonicalizes a path by expanding symlinks and removing "." and ".." entries.
-"""
-Base.real(path::AbstractPath) = throw(MethodError(real, (path,)))
-
-"""
-    size(path::AbstractPath) -> Int
-
-Returns the number of bytes for a file or object at the specified path location.
-"""
-Base.size(path::AbstractPath) = throw(MethodError(size, (path,)))
-
-"""
-    modified(path::AbstractPath) -> DateTime
-
-Returns the last modified date for the `path`.
-
-# Example
-```
-julia> modified(p"src/FilePathsBase.jl")
-2017-06-20T04:01:09
-```
-"""
-modified(path::AbstractPath) = throw(MethodError(modified, (path,)))
-
-"""
-    created(path::AbstractPath) -> DateTime
-
-Returns the creation date for the `path`.
-
-# Example
-```
-julia> created(p"src/FilePathsBase.jl")
-2017-06-20T04:01:09
-```
-"""
-created(path::AbstractPath) = throw(MethodError(created, (path,)))
-
-"""
-    isdir(path::AbstractPath) -> Bool
-
-Returns `true` if `path` is a "directory", `false` otherwise.
-"""
-Base.isdir(path::AbstractPath) = throw(MethodError(isdir, (path,)))
-
-"""
-    isfile(path::AbstractPath) -> Bool
-
-Returns `true` if `path` is a file, `false` otherwise.
-"""
-Base.isfile(path::AbstractPath) = throw(MethodError(isfile, (path,)))
-
-"""
-    isexecutable(path::AbstractPath) -> Bool
-
-Returns whether the `path` is executable for the current user.
-"""
-isexecutable(path::AbstractPath) = throw(MethodError(isexecutable, (path,)))
-
-"""
-    iswritable(path::AbstractPath) -> Bool
-
-Returns whether the `path` is writable for the current user.
-"""
-Base.iswritable(path::AbstractPath) = throw(MethodError(iswritable, (path,)))
-
-"""
-    isreadable(path::AbstractPath) -> Bool
-
-Returns whether the `path` is readable for the current user.
-"""
-Base.isreadable(path::AbstractPath) = throw(MethodError(isreadable, (path,)))
-
-"""
-    cd(path::AbstractPath)
-    cd(f::Function, path::AbstractPath)
-
-Set the current working directory, or run a function `f` in that directory.
-"""
-Base.cd(path::AbstractPath) = throw(MethodError(cd, (path,)))
-Base.cd(f::Function, path::AbstractPath) = throw(MethodError(cd, (f, path)))
-
-"""
-    mkdir(path::AbstractPath; mode=mode=0o777, recursive=false, exist_ok=false)
-
-Make a new directory with the permissions `mode`. If the directory already exists and
-`exist_ok` is `false` then an error will be thrown. All intermediate directories will be
-created if `recursive` is `true`.
-"""
-Base.mkdir(path::AbstractPath; kwargs...) = throw(MethodError(mkdir, (path,)))
-
-"""
-    rm(path::AbstractPath; force::Bool=false, recursive::Bool=false)
-
-Delete the file or directory. Directory contents will only be deleted recursively when `recursive=true`.
-Non-existent paths will error unless `force=true`.
-"""
-Base.rm(path::AbstractPath; kwargs...) = throw(MethodError(rm, (path,)))
-
-"""
-    readdir(path::AbstractPath)
-
-Reads a list of files and directories at the top level of the provided path.
-"""
-Base.readdir(path::AbstractPath) = throw(MethodError(readdir, (path,)))
-
-"""
-    read(path::AbstractPath)
-
-Reads the contents of the filepath
-"""
-Base.read(path::AbstractPath) = throw(MethodError(read, (path,)))
-
-"""
-    write(path::AbstractPath, x)
-
-Write the context `x` to a file.
-"""
-Base.write(path::AbstractPath, x) = throw(MethodError(write, (path, x)))
-
-#=
-- update the testpath example to test these fallback methods
-- introduce a `FilePathsBase.Test` module that provides a collection of tests for new path
-  types.
-
-=#
 
 # ALIASES for base filesystem API
 Base.dirname(path::AbstractPath) = parent(path)

@@ -5,6 +5,7 @@ module FilePathsBase
 using Dates
 using LinearAlgebra
 using Printf
+using UUIDs
 
 import Base: ==
 export

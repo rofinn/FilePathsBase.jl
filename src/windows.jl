@@ -2,6 +2,10 @@ struct WindowsPath <: AbstractPath
     parts::Tuple{Vararg{String}}
     drive::String
     root::String
+
+    function WindowsPath(parts::Tuple, drive::String, root::String)
+        return new(Tuple(Iterators.filter(!isempty, parts)), drive, root)
+    end
 end
 
 function _win_splitdrive(path::String)
@@ -12,8 +16,6 @@ end
 WindowsPath() = WindowsPath(tuple(), "", "")
 
 function WindowsPath(parts::Tuple)
-    parts = Tuple(Iterators.filter(!isempty, parts))
-
     if parts[1]==WIN_PATH_SEPARATOR
         return WindowsPath(parts, "", WIN_PATH_SEPARATOR)
     elseif occursin(":", parts[1])
@@ -89,4 +91,4 @@ function isabs(path::WindowsPath)
     return !isempty(drive(path)) || !isempty(root(path))
 end
 
-expanduser(path::WindowsPath) = path
+Base.expanduser(path::WindowsPath) = path
