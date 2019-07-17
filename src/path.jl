@@ -454,6 +454,43 @@ function Base.open(path::AbstractPath, mode)
     end
 end
 
+# Default `touch` will just write an empty string to a file
+Base.touch(path::AbstractPath) = write(path, "")
+
+tmpname() = Path(tempname())
+tmpdir() = Path(tempdir())
+
+function mktmp(parent::AbstractPath)
+    path = parent / uuid4()
+    io = open(path, "w+")
+    return path, io
+end
+
+function mktmpdir(parent::AbstractPath)
+    path = parent / uuid4()
+    mkdir(path)
+    return path
+end
+
+function mktmp(fn::Function, parent=tmpdir())
+    (tmp_path, tmp_io) = mktmp(parent)
+    try
+        fn(tmp_path, tmp_io)
+    finally
+        close(tmp_io)
+        rm(tmp_path)
+    end
+end
+
+function mktmpdir(fn::Function, parent=tmpdir())
+    tmpdir = mktmpdir(parent)
+    try
+        fn(tmpdir)
+    finally
+        rm(tmpdir, recursive=true)
+    end
+end
+
 # TODO: Implement walkdir?
 
 ############################################################################################

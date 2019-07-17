@@ -275,36 +275,12 @@ end
 
 Base.rm(path::SystemPath; kwargs...) = rm(string(path); kwargs...)
 Base.touch(path::SystemPath) = touch(string(path))
-
-# tmp stuff should probably have abstract counterpart
-tmpname() = Path(tempname())
-tmpdir() = Path(tempdir())
-
 function mktmp(parent::SystemPath=Path(tempdir()))
     path, io = mktemp(string(parent))
     return Path(path), io
 end
 
 mktmpdir(parent::SystemPath=tmpdir()) = Path(mktempdir(string(parent)))
-
-function mktmp(fn::Function, parent=tmpdir())
-    (tmp_path, tmp_io) = mktmp(parent)
-    try
-        fn(tmp_path, tmp_io)
-    finally
-        close(tmp_io)
-        remove(tmp_path)
-    end
-end
-
-function mktmpdir(fn::Function, parent=tmpdir())
-    tmpdir = mktmpdir(parent)
-    try
-        fn(tmpdir)
-    finally
-        remove(tmpdir, recursive=true)
-    end
-end
 
 """
     chown(path::SystemPath, user::AbstractString, group::AbstractString; recursive=false)

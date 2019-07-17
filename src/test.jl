@@ -46,6 +46,11 @@ module TestPaths
         test_cp,
         test_mv,
         test_symlink,
+        test_touch,
+        test_tmpname,
+        test_tmpdir,
+        test_mktmp,
+        test_mktmpdir,
         test_chown,
         test_chmod,
         test_download
@@ -93,6 +98,11 @@ module TestPaths
     - [X] cp
     - [X] mv
     - [X] symlink
+    - [X] touch
+    - [X] tmpname
+    - [X] tmpdir
+    - [X] mktmp
+    - [X] mktmpdir
     - [X] readpath
     - [X] walkpath
     - [X] open
@@ -533,6 +543,53 @@ module TestPaths
         end
     end
 
+    function test_touch(ps::PathSet)
+        @testset "touch" begin
+            newfile = ps.root / "newfile"
+            touch(newfile)
+            @test exists(newfile)
+            rm(newfile)
+        end
+    end
+
+    function test_tmpname(ps::PathSet)
+        @testset "tmpname" begin
+            @test isa(tmpname(), AbstractPath)
+            @test hasparent(tmpname())
+            @test exists(parent(tmpname()))
+        end
+    end
+
+    function test_tmpdir(ps::PathSet)
+        @testset "tmpname" begin
+            @test isa(tmpdir(), AbstractPath)
+            @test exists(tmpdir())
+            @test isdir(tmpdir())
+        end
+    end
+
+    function test_mktmp(ps::PathSet)
+        @testset "mktmp" begin
+            mktmp(ps.root) do path, io
+                @test exists(path)
+                @test iswritable(io)
+                write(io, "Foobar")
+                seekstart(io)
+                @test read(io, String) == "Foobar"
+            end
+        end
+    end
+
+    function test_mktmpdir(ps::PathSet)
+        @testset "mktmpdir" begin
+            mktmpdir(ps.root) do path
+                @test exists(path)
+                write(path / "test.txt", "Foobar")
+                @test read(path / "test.txt", String) == "Foobar"
+            end
+        end
+    end
+
     function test_chown(ps::PathSet)
         @testset "chown" begin
             newfile = ps.root / "newfile"
@@ -636,6 +693,11 @@ module TestPaths
         test_cp,
         test_mv,
         test_symlink,
+        test_touch,
+        test_tmpname,
+        test_tmpdir,
+        test_mktmp,
+        test_mktmpdir,
         test_chown,
         test_chmod,
         test_download,
