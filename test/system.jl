@@ -22,9 +22,6 @@ ps = PathSet()
         test_isfile,
         test_stat,
         test_size,
-        test_isexecutable,
-        test_isreadable,
-        test_iswritable,
         test_cd,
         test_readpath,
         test_walkpath,
@@ -38,11 +35,14 @@ ps = PathSet()
     ]
 
     if isa(ps.root, PosixPath)
-        append!(testsets, [test_chown, test_chmod])
+        append!(
+            testsets,
+            [test_isexecutable, test_isreadable, test_iswritable, test_chown, test_chmod]
+        )
     end
 
     # Run all of the automated tests
-    test(ps)
+    test(ps, testsets)
 
     # TODO: Copy over specific tests that can't be tested reliably from the general case.
 end

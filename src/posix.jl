@@ -2,6 +2,10 @@ struct PosixPath <: AbstractPath
     parts::Tuple{Vararg{String}}
 end
 
+function PosixPath(parts::Tuple)
+    return PosixPath(Tuple(Iterators.filter(!isempty, parts)))
+end
+
 PosixPath() = PosixPath(tuple())
 
 function PosixPath(str::AbstractString)

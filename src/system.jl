@@ -226,56 +226,57 @@ function Base.symlink(src::SystemPath, dest::SystemPath; exist_ok=false, overwri
 end
 
 
-function Base.copy(src::SystemPath, dest::SystemPath; recursive=false, exist_ok=false, overwrite=false, symlinks=false)
-    if exists(src)
-        if exists(dest) && exist_ok && overwrite
-            remove(dest, recursive=true)
-        end
+# function Base.copy(src::SystemPath, dest::SystemPath; recursive=false, exist_ok=false, overwrite=false, symlinks=false)
+#     if exists(src)
+#         if exists(dest) && exist_ok && overwrite
+#             remove(dest, recursive=true)
+#         end
 
-        if !exists(dest)
-            if hasparent(dest) && recursive
-                mkdir(parent(dest); recursive=recursive, exist_ok=true)
-            end
+#         if !exists(dest)
+#             if hasparent(dest) && recursive
+#                 mkdir(parent(dest); recursive=recursive, exist_ok=true)
+#             end
 
-            cp(src, dest; follow_symlinks=symlinks)
-        elseif !exist_ok
-            error("$dest already exists.")
-        end
-    else
-        error("$src is not a valid path")
-    end
-end
+#             cp(src, dest; follow_symlinks=symlinks)
+#         elseif !exist_ok
+#             error("$dest already exists.")
+#         end
+#     else
+#         error("$src is not a valid path")
+#     end
+# end
 
-function move(src::SystemPath, dest::SystemPath; recursive=false, exist_ok=false, overwrite=false)
-    if exists(src)
-        if exists(dest) && exist_ok && overwrite
-            remove(dest, recursive=true)
-        end
+# function move(src::SystemPath, dest::SystemPath; recursive=false, exist_ok=false, overwrite=false)
+#     if exists(src)
+#         if exists(dest) && exist_ok && overwrite
+#             remove(dest, recursive=true)
+#         end
 
-        if !exists(dest)
-            # If the destination is has missing parents
-            # and parents is true then we'll create the necessary parent
-            # directories.
-            if hasparent(dest) && recursive
-                mkdir(parent(dest); recursive=recursive, exist_ok=true)
-            end
+#         if !exists(dest)
+#             # If the destination is has missing parents
+#             # and parents is true then we'll create the necessary parent
+#             # directories.
+#             if hasparent(dest) && recursive
+#                 mkdir(parent(dest); recursive=recursive, exist_ok=true)
+#             end
 
-            mv(string(src), string(dest))
-        elseif !exist_ok
-            error("$dest already exists.")
-        end
-    else
-        error("$src is not a valid path")
-    end
-end
+#             mv(string(src), string(dest))
+#         elseif !exist_ok
+#             error("$dest already exists.")
+#         end
+#     else
+#         error("$src is not a valid path")
+#     end
+# end
 
-function Base.cp(src::AbstractPath, dest::AbstractPath; force::Bool=false, follow_symlinks::Bool=false)
-    cp(string(src), string(dest); force=force, follow_symlinks=follow_symlinks)
-end
+# function Base.cp(src::AbstractPath, dest::AbstractPath; force::Bool=false, follow_symlinks::Bool=false)
+#     cp(string(src), string(dest); force=force, follow_symlinks=follow_symlinks)
+# end
 
 Base.rm(path::SystemPath; kwargs...) = rm(string(path); kwargs...)
 Base.touch(path::SystemPath) = touch(string(path))
 
+# tmp stuff should probably have abstract counterpart
 tmpname() = Path(tempname())
 tmpdir() = Path(tempdir())
 
@@ -445,6 +446,6 @@ function Base.write(path::SystemPath, x::Union{String, Vector{UInt8}}, mode="w")
     end
 end
 
-Base.readlink(path::SystemPath) = Path(readlink(string(path)))
 Base.readdir(path::SystemPath) = readdir(string(path))
 Base.download(url::AbstractString, dest::SystemPath) = download(url, string(dest))
+Base.readlink(path::SystemPath) = Path(readlink(string(path)))

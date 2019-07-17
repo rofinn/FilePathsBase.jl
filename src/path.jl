@@ -436,7 +436,7 @@ methods. See base `open` docs for details on valid keywords.
 """
 Base.open(path::AbstractPath; kwargs...) = FileBuffer(path; kwargs...)
 
-function Base.open(path::AbstractPath, mode="r")
+function Base.open(path::AbstractPath, mode)
     if mode == "r"
         return FileBuffer(path; read=true, write=false)
     elseif mode == "w"

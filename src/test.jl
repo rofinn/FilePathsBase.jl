@@ -151,6 +151,8 @@ module TestPaths
     function test_show(ps::PathSet)
         @testset "show" begin
             str = string(ps.root)
+            # For windows paths
+            str = replace(str, "\\" => "/")
             @test sprint(show, ps.root; context=:compat => true) == "p\"$str\""
             # TODO: Figure out why this is broken.
             @test_broken sprint(show, ps.root; context=:compat => false) == str
