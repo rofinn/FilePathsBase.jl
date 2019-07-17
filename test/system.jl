@@ -1,4 +1,4 @@
-ps = PathSet()
+ps = PathSet(; symlink=true)
 
 @testset "$(typeof(ps.root))" begin
     testsets = [
@@ -22,6 +22,8 @@ ps = PathSet()
         test_isfile,
         test_stat,
         test_size,
+        test_modified,
+        test_created,
         test_cd,
         test_readpath,
         test_walkpath,
@@ -37,7 +39,18 @@ ps = PathSet()
     if isa(ps.root, PosixPath)
         append!(
             testsets,
-            [test_isexecutable, test_isreadable, test_iswritable, test_chown, test_chmod]
+            [
+                test_issocket,
+                test_isfifo,
+                test_ischardev,
+                test_isblockdev,
+                test_ismount,
+                test_isexecutable,
+                test_isreadable,
+                test_iswritable,
+                test_chown,
+                test_chmod,
+            ]
         )
     end
 

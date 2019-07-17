@@ -1,7 +1,8 @@
 module TestPaths
-    using Test
+    using Dates
     using FilePathsBase
     using LinearAlgebra: norm
+    using Test
 
     export PathSet,
         TESTALL,
@@ -26,6 +27,13 @@ module TestPaths
         test_isfile,
         test_stat,
         test_size,
+        test_modified,
+        test_created,
+        test_issocket,
+        test_isfifo,
+        test_ischardev,
+        test_isblockdev,
+        test_ismount,
         test_isexecutable,
         test_isreadable,
         test_iswritable,
@@ -65,6 +73,13 @@ module TestPaths
     - [X] size (could this default to using a FileBuffer?)
     - [X] modified
     - [X] created
+    - [X] modified
+    - [X] created
+    - [X] issocket
+    - [X] isfifo
+    - [X] ischardev
+    - [X] isblockdev
+    - [X] ismount
     - [X] isdir
     - [X] isfile
     - [X] isexecutable
@@ -296,7 +311,31 @@ module TestPaths
             if ps.plugh !== nothing
                 @test lstat(ps.plugh) != stat(ps.plugh)
             end
+
+            str = sprint(show, s)
         end
+    end
+
+    # Minimal testing of issocket, isfifo, ischardev, isblockdev and ismount which
+    # people won't typically include.
+    function test_issocket(ps::PathSet)
+        @test !issocket(ps.root)
+    end
+
+    function test_isfifo(ps::PathSet)
+        @test !isfifo(ps.root)
+    end
+
+    function test_ischardev(ps::PathSet)
+        @test !ischardev(ps.root)
+    end
+
+    function test_isblockdev(ps::PathSet)
+        @test !isblockdev(ps.root)
+    end
+
+    function test_ismount(ps::PathSet)
+        @test !ismount(ps.root)
     end
 
     function test_size(ps::PathSet)
@@ -489,7 +528,7 @@ module TestPaths
                 @test_throws ErrorException symlink(ps.foo, ps.plugh)
                 symlink(ps.foo, ps.plugh; exist_ok=true, overwrite=true)
                 symlink(ps.foo, ps.plugh; exist_ok=true)
-                @test_throws ErrorException symlink(ps.foo / "thud", ps.plugh; exist_ok=true, overwite=true)
+                @test_throws ErrorException symlink(ps.foo / "thud", ps.plugh; exist_ok=true, overwrite=true)
             end
         end
     end
@@ -578,6 +617,13 @@ module TestPaths
         test_isfile,
         test_stat,
         test_size,
+        test_modified,
+        test_created,
+        test_issocket,
+        test_isfifo,
+        test_ischardev,
+        test_isblockdev,
+        test_ismount,
         test_isexecutable,
         test_isreadable,
         test_iswritable,

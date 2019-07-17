@@ -157,7 +157,7 @@ function Base.ismount(path::SystemPath)
     isdir(path) || return false
     s1 = lstat(path)
     # Symbolic links cannot be mount points
-    islink(s1) && return false
+    islink(path) && return false
     s2 = lstat(parent(path))
     # If a directory and its parent are on different devices,  then the
     # directory must be a mount point
@@ -212,7 +212,7 @@ end
 function Base.symlink(src::SystemPath, dest::SystemPath; exist_ok=false, overwrite=false)
     if exists(src)
         if exists(dest) && exist_ok && overwrite
-            remove(dest, recursive=true)
+            rm(dest, recursive=true)
         end
 
         if !exists(dest)
