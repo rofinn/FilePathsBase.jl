@@ -70,17 +70,17 @@ cd(abs(parent(Path(@__FILE__)))) do
         @test !isblockdev(p)
 
         p1 = WindowsPath(tuple(["\\", "foo", "bar"]...))
-        @test p1.parts == ("\\", "foo", "bar")
+        @test p1.parts == ("foo", "bar")
         @test p1.drive == ""
         @test p1.root == "\\"
 
         p2 = WindowsPath(tuple(["C:\\", "foo", "bar"]...))
-        @test p2.parts == ("C:\\", "foo", "bar")
+        @test p2.parts == ("foo", "bar")
         @test p2.drive == "C:"
         @test p2.root == "\\"
 
         p3 = WindowsPath(tuple(["C:", "foo", "bar"]...))
-        @test p3.parts == ("C:", "foo", "bar")
+        @test p3.parts == ("foo", "bar")
         @test p3.drive == "C:"
         @test p3.root == ""
 

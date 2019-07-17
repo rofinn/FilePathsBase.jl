@@ -715,6 +715,8 @@ module TestPaths
                 ts(ps)
             end
         finally
+            @show ps.root
+            @show string(ps.root)
             rm(ps.root; recursive=true, force=true)
         end
     end
