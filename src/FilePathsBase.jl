@@ -23,7 +23,7 @@ export
     cwd,
     drive,
     home,
-    parts,
+    components,
     root,
     hasparent,
     parents,
@@ -80,7 +80,7 @@ Defines an abstract filesystem path. Subtypes of `AbstractPath` should implement
 following methods:
 
 - `Base.print(io, p)` (default: call base julia's joinpath with drive and path parts)
-- `FilePathsBase.parts(p)`
+- `FilePathsBase.path(p)`
 - `FilePathsBase.root(p)`
 - `FilePathsBase.drive(p)`
 - `FilePathsBase.ispathtype(::Type{MyPath}, x::AbstractString) = true`

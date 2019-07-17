@@ -19,9 +19,9 @@ struct FileBuffer <: IO
 end
 
 function FileBuffer(
-    path::AbstractPath; read=true, write=false, create=false, truncate=false, append=false
+    fp::AbstractPath; read=true, write=false, create=false, truncate=false, append=false
 )
-    buffer = FileBuffer(path, IOBuffer(), read, write, create)
+    buffer = FileBuffer(fp, IOBuffer(), read, write, create)
 
     # If we're wanting to append data then we we need to prepopulate the internal buffer
     if write && append

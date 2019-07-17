@@ -1,17 +1,17 @@
 struct PosixPath <: AbstractPath
-    parts::Tuple{Vararg{String}}
+    path::Tuple{Vararg{String}}
     root::String
 end
 
 PosixPath() = PosixPath(tuple(), "")
 
-function PosixPath(parts::Tuple)
-    parts = map(String, Iterators.filter(!isempty, parts))
+function PosixPath(components::Tuple)
+    components = map(String, Iterators.filter(!isempty, components))
 
-    if parts[1]==POSIX_PATH_SEPARATOR
-        return PosixPath(tuple(parts[2:end]...), POSIX_PATH_SEPARATOR)
+    if components[1]==POSIX_PATH_SEPARATOR
+        return PosixPath(tuple(components[2:end]...), POSIX_PATH_SEPARATOR)
     else
-        return PosixPath(tuple(parts...), "")
+        return PosixPath(tuple(components...), "")
     end
 end
 
@@ -30,19 +30,14 @@ function PosixPath(str::AbstractString)
     return PosixPath(tuple(map(String, filter!(!isempty, tokenized))...), root)
 end
 
-# The following should be implemented in the concrete types
-function ==(a::PosixPath, b::PosixPath)
-    return parts(a) == parts(b) && root(a) == root(b)
-end
-
-parts(path::PosixPath) = path.parts
-root(path::PosixPath) = path.root
-drive(path::PosixPath) = ""
+path(fp::PosixPath) = fp.path
+root(fp::PosixPath) = fp.root
+drive(fp::PosixPath) = ""
 ispathtype(::Type{PosixPath}, str::AbstractString) = Sys.isunix()
-isabs(path::PosixPath) = !isempty(root(path))
+isabs(fp::PosixPath) = !isempty(root(fp))
 
-function Base.expanduser(path::PosixPath)
-    p = parts(path)
+function Base.expanduser(fp::PosixPath)
+    p = path(fp)
 
     if p[1] == "~"
         if length(p) > 1
@@ -52,5 +47,5 @@ function Base.expanduser(path::PosixPath)
         end
     end
 
-    return path
+    return fp
 end

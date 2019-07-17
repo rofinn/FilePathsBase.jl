@@ -1,30 +1,35 @@
 struct WindowsPath <: AbstractPath
-    parts::Tuple{Vararg{String}}
+    path::Tuple{Vararg{String}}
     root::String
     drive::String
 
-    function WindowsPath(parts::Tuple, root::String, drive::String)
-        return new(Tuple(Iterators.filter(!isempty, parts)), root, drive)
+    function WindowsPath(path::Tuple, root::String, drive::String)
+        return new(Tuple(Iterators.filter(!isempty, path)), root, drive)
     end
 end
 
-function _win_splitdrive(path::String)
-    m = match(r"^([^\\]+:|\\\\[^\\]+\\[^\\]+|\\\\\?\\UNC\\[^\\]+\\[^\\]+|\\\\\?\\[^\\]+:|)(.*)$", path)
+function _win_splitdrive(fp::String)
+    m = match(r"^([^\\]+:|\\\\[^\\]+\\[^\\]+|\\\\\?\\UNC\\[^\\]+\\[^\\]+|\\\\\?\\[^\\]+:|)(.*)$", fp)
     String(m.captures[1]), String(m.captures[2])
 end
 
 WindowsPath() = WindowsPath(tuple(), "", "")
 
-function WindowsPath(parts::Tuple)
-    # @show parts
-    if occursin(":", parts[1])
-        drive, root = _win_splitdrive(parts[1])
-        return WindowsPath(parts[2:end], root, drive)
-    elseif parts[1] == WIN_PATH_SEPARATOR
-        return WindowsPath(parts[2:end], WIN_PATH_SEPARATOR, "")
-    else
-        WindowsPath(parts, "", "")
+function WindowsPath(components::Tuple)
+    drive = ""
+    root = ""
+    path = collect(components)
+
+    if occursin(":", first(path))
+        drive, root  = _win_splitdrive(popfirst!(path))
     end
+
+    if isempty(root) && first(path) == WIN_PATH_SEPARATOR
+        root = WIN_PATH_SEPARATOR
+        popfirst!(path)
+    end
+
+    return WindowsPath(tuple(path...), root, drive)
 end
 
 function WindowsPath(str::AbstractString)
@@ -67,27 +72,28 @@ function WindowsPath(str::AbstractString)
     end
 end
 
-function ==(a::WindowsPath, b::WindowsPath)
-    return lowercase.(parts(a)) == lowercase.(parts(b)) &&
-        lowercase(drive(a)) == lowercase(drive(b)) &&
-        lowercase(root(a)) == lowercase(root(b))
-end
-parts(path::WindowsPath) = path.parts
-drive(path::WindowsPath) = path.drive
-root(path::WindowsPath) = path.root
+==(a::WindowsPath, b::WindowsPath) = lowercase.(components(a)) == lowercase.(components(b))
+
+path(fp::WindowsPath) = fp.path
+drive(fp::WindowsPath) = fp.drive
+root(fp::WindowsPath) = fp.root
 ispathtype(::Type{WindowsPath}, str::AbstractString) = Sys.iswindows()
 
-function Base.show(io::IO, path::WindowsPath)
+function Base.print(io::IO, fp::WindowsPath)
+    print(io, drive(fp) * root(fp) * join(path(fp), WIN_PATH_SEPARATOR))
+end
+
+function Base.show(io::IO, fp::WindowsPath)
     print(io, "p\"")
-    if isabs(path)
-        print(io, replace(anchor(path), "\\" => "/"))
+    if isabs(fp)
+        print(io, replace(anchor(fp), "\\" => "/"))
     end
-    print(io, join(parts(path), "/"))
+    print(io, join(path(fp), "/"))
     print(io, "\"")
 end
 
-function isabs(path::WindowsPath)
-    return !isempty(drive(path)) || !isempty(root(path))
+function isabs(fp::WindowsPath)
+    return !isempty(drive(fp)) || !isempty(root(fp))
 end
 
-Base.expanduser(path::WindowsPath) = path
+Base.expanduser(fp::WindowsPath) = fp

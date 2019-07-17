@@ -2,9 +2,9 @@
 
 """
     Path()
-    Path(path::AbstractPath)
-    Path(path::Tuple)
-    Path(path::AbstractString)
+    Path(fp::AbstractPath)
+    Path(fp::Tuple)
+    Path(fp::AbstractString)
 
 Responsible for creating the appropriate platform specific path
 (e.g., `PosixPath` and `WindowsPath` for Unix and Windows systems respectively)
@@ -14,7 +14,7 @@ for that type.
 """
 function Path end
 
-Path(path::AbstractPath) = path
+Path(fp::AbstractPath) = fp
 
 # May want to support using the registry for other constructors as well
 function Path(str::AbstractString; debug=false)
@@ -38,20 +38,20 @@ end
 Constructs a `Path` (platform specific subtype of `AbstractPath`), such as
 `p"~/.juliarc.jl"`.
 """
-macro p_str(path)
-    return :(Path($path))
+macro p_str(fp)
+    return :(Path($fp))
 end
+
+==(a::P, b::P) where P <: AbstractPath = components(a) == components(b)
 
 #=
 We only want to print the macro string syntax when compact is true and
 we want print to just return the string (this allows `string` to work normally)
 =#
-function Base.print(io::IO, path::AbstractPath)
-    print(io, drive(path) * root(path) * joinpath(parts(path)...))
-end
+Base.print(io::IO, fp::AbstractPath) = print(io, anchor(fp) * joinpath(path(fp)...))
 
-function Base.show(io::IO, path::AbstractPath)
-    get(io, :compact, false) ? print(io, path) : print(io, "p\"$path\"")
+function Base.show(io::IO, fp::AbstractPath)
+    get(io, :compact, false) ? print(io, fp) : print(io, "p\"$fp\"")
 end
 
 Base.parse(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
@@ -62,7 +62,8 @@ Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String
 cwd() = Path(pwd())
 home() = Path(homedir())
 
-anchor(path::AbstractPath) = drive(path) * root(path)
+anchor(fp::AbstractPath) = drive(fp) * root(fp)
+components(fp::AbstractPath) = tuple(drive(fp), root(fp), path(fp)...)
 
 #=
 Path Modifiers
@@ -71,14 +72,14 @@ The following are methods for working with and extracting
 path components
 =#
 """
-    hasparent(path::AbstractPath) -> Bool
+    hasparent(fp::AbstractPath) -> Bool
 
 Returns whether there is a parent directory component to the supplied path.
 """
-hasparent(path::AbstractPath) = length(parts(path)) > 1
+hasparent(fp::AbstractPath) = length(path(fp)) > 1
 
 """
-    parent{T<:AbstractPath}(path::T) -> T
+    parent{T<:AbstractPath}(fp::T) -> T
 
 Returns the parent of the supplied path.
 
@@ -91,10 +92,10 @@ p"~/.julia/v0.6"
 # Throws
 * `ErrorException`: if `path` doesn't have a parent
 """
-Base.parent(path::AbstractPath) = parents(path)[end]
+Base.parent(fp::AbstractPath) = parents(fp)[end]
 
 """
-    parents{T<:AbstractPath}(path::T) -> Array{T}
+    parents{T<:AbstractPath}(fp::T) -> Array{T}
 
 # Example
 ```
@@ -108,13 +109,13 @@ julia> parents(p"~/.julia/v0.6/REQUIRE")
 # Throws
 * `ErrorException`: if `path` doesn't have a parent
 """
-function parents(path::T) where {T <: AbstractPath}
-    if hasparent(path)
-        return map(1:length(parts(path))-1) do i
-            T(tuple(drive(path), root(path), parts(path)[1:i]...))
+function parents(fp::T) where {T <: AbstractPath}
+    if hasparent(fp)
+        return map(2:length(components(fp))-1) do i
+            T(tuple(components(fp)[1:i]...))
         end
     else
-        error("$path has no parents")
+        error("$fp has no parents")
     end
 end
 
@@ -164,23 +165,23 @@ p"~/.julia/v0.6/REQUIRE"
 """
 function Base.join(prefix::T, pieces::Union{AbstractPath, AbstractString}...) where T <: AbstractPath
     all_parts = String[]
-    push!(all_parts, parts(prefix)...)
+    push!(all_parts, components(prefix)...)
 
     for p in map(Path, pieces)
-        push!(all_parts, parts(p)...)
+        push!(all_parts, components(p)...)
     end
 
-    return T(tuple(drive(prefix), root(prefix), all_parts...))
+    return T(tuple(all_parts...))
 end
 
 function Base.joinpath(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
     return join(root, pieces...)
 end
 
-Base.basename(path::AbstractPath) = parts(path)[end]
+Base.basename(fp::AbstractPath) = path(fp)[end]
 
 """
-    filename(path::AbstractPath) -> AbstractString
+    filename(fp::AbstractPath) -> AbstractString
 
 Extracts the `basename` without any extensions.
 
@@ -190,13 +191,13 @@ julia> filename(p"~/repos/FilePathsBase.jl/src/FilePathsBase.jl")
 "FilePathsBase"
 ```
 """
-function filename(path::AbstractPath)
-    name = basename(path)
+function filename(fp::AbstractPath)
+    name = basename(fp)
     return split(name, '.')[1]
 end
 
 """
-    extension(path::AbstractPath) -> AbstractString
+    extension(fp::AbstractPath) -> AbstractString
 
 Extracts the last extension from a filename if there any, otherwise it returns an empty string.
 
@@ -206,8 +207,8 @@ julia> extension(p"~/repos/FilePathsBase.jl/src/FilePathsBase.jl")
 "jl"
 ```
 """
-function extension(path::AbstractPath)
-    name = basename(path)
+function extension(fp::AbstractPath)
+    name = basename(fp)
 
     tokenized = split(name, '.')
     if length(tokenized) > 1
@@ -218,7 +219,7 @@ function extension(path::AbstractPath)
 end
 
 """
-    extensions(path::AbstractPath) -> AbstractString
+    extensions(fp::AbstractPath) -> AbstractString
 
 Extracts all extensions from a filename if there any, otherwise it returns an empty string.
 
@@ -230,8 +231,8 @@ julia> extensions(p"~/repos/FilePathsBase.jl/src/FilePathsBase.jl.bak")
  "bak"
 ```
 """
-function extensions(path::AbstractPath)
-    name = basename(path)
+function extensions(fp::AbstractPath)
+    name = basename(fp)
 
     tokenized = split(name, '.')
     if length(tokenized) > 1
@@ -242,22 +243,22 @@ function extensions(path::AbstractPath)
 end
 
 """
-    isempty(path::AbstractPath) -> Bool
+    isempty(fp::AbstractPath) -> Bool
 
 Returns whether or not a path is empty.
 
 NOTE: Empty paths are usually only created by `Path()`, as `p""` and `Path("")` will
 default to using the current directory (or `p"."`).
 """
-Base.isempty(path::AbstractPath) = isempty(parts(path))
+Base.isempty(fp::AbstractPath) = isempty(path(fp))
 
 """
-    norm(path::AbstractPath) -> AbstractPath
+    norm(fp::AbstractPath) -> AbstractPath
 
 Normalizes a path by removing "." and ".." entries.
 """
-function LinearAlgebra.norm(path::T) where {T <: AbstractPath}
-    p = parts(path)
+function LinearAlgebra.norm(fp::T) where {T <: AbstractPath}
+    p = path(fp)
     result = String[]
     rem = length(p)
     count = 0
@@ -280,16 +281,16 @@ function LinearAlgebra.norm(path::T) where {T <: AbstractPath}
         count += 1
     end
 
-    return T(tuple(drive(path), root(path), fill("..", del)..., reverse(result)...))
+    return T(tuple(drive(fp), root(fp), fill("..", del)..., reverse(result)...))
 end
 
 """
-    abs(path::AbstractPath) -> AbstractPath
+    abs(fp::AbstractPath) -> AbstractPath
 
 Creates an absolute path by adding the current working directory if necessary.
 """
-function Base.abs(path::AbstractPath)
-    result = expanduser(path)
+function Base.abs(fp::AbstractPath)
+    result = expanduser(fp)
 
     if isabs(result)
         return norm(result)
@@ -298,21 +299,21 @@ function Base.abs(path::AbstractPath)
     end
 end
 
-function isabs(path::AbstractPath)
-    return !isempty(drive(path)) && !isempty(root(path))
+function isabs(fp::AbstractPath)
+    return !isempty(drive(fp)) && !isempty(root(fp))
 end
 
 """
-    relative{T<:AbstractPath}(path::T, start::T=T("."))
+    relative{T<:AbstractPath}(fp::T, start::T=T("."))
 
 Creates a relative path from either the current directory or an arbitrary start directory.
 """
-function relative(path::T, start::T=T(".")) where {T <: AbstractPath}
+function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
     curdir = "."
     pardir = ".."
 
-    p = parts(abs(path))
-    s = parts(abs(start))
+    p = path(abs(fp))
+    s = path(abs(start))
 
     p == s && return T(curdir)
 
@@ -365,8 +366,8 @@ function Base.cp(src::AbstractPath, dst::AbstractPath; force=false)
     elseif isdir(src)
         mkdir(dst)
 
-        for path in readdir(src)
-            cp(src / path, dst / path; force=force)
+        for fp in readdir(src)
+            cp(src / fp, dst / fp; force=force)
         end
     elseif isfile(src)
         write(dst, read(src))
@@ -394,29 +395,29 @@ end
 Download a file from the remote url and save it to the localfile path.
 """
 function Base.download(url::AbstractString, localfile::AbstractPath)
-    mktmp() do path, io
-        download(url, path)
-        cp(path, localfile)
+    mktmp() do fp, io
+        download(url, fp)
+        cp(fp, localfile)
     end
 end
 
 Base.download(url::AbstractPath, localfile::AbstractPath) = cp(url, localfile)
 
 """
-    readpath(path::P) where {P <: AbstractPath} -> Vector{P}
+    readpath(fp::P) where {P <: AbstractPath} -> Vector{P}
 """
 function readpath(p::P)::Vector{P} where P <: AbstractPath
     return P[join(p, f) for f in readdir(p)]
 end
 
 """
-    walkpath(path::AbstractPath; topdown=true, follow_symlinks=false, onerror=throw)
+    walkpath(fp::AbstractPath; topdown=true, follow_symlinks=false, onerror=throw)
 
 Performs a depth first search through the directory structure
 """
-function walkpath(path::AbstractPath; topdown=true, follow_symlinks=false, onerror=throw)
+function walkpath(fp::AbstractPath; topdown=true, follow_symlinks=false, onerror=throw)
     return Channel() do chnl
-        for p in readpath(path)
+        for p in readpath(fp)
             topdown && put!(chnl, p)
             if isdir(p) && (follow_symlinks || !islink(p))
                 # Iterate through children
@@ -440,54 +441,54 @@ end
 Return a default FileBuffer for `open` calls to paths which only support `read` and `write`
 methods. See base `open` docs for details on valid keywords.
 """
-Base.open(path::AbstractPath; kwargs...) = FileBuffer(path; kwargs...)
+Base.open(fp::AbstractPath; kwargs...) = FileBuffer(fp; kwargs...)
 
-function Base.open(path::AbstractPath, mode)
+function Base.open(fp::AbstractPath, mode)
     if mode == "r"
-        return FileBuffer(path; read=true, write=false)
+        return FileBuffer(fp; read=true, write=false)
     elseif mode == "w"
-        return FileBuffer(path; read=false, write=true, create=true, truncate=true)
+        return FileBuffer(fp; read=false, write=true, create=true, truncate=true)
     elseif mode == "a"
-        return FileBuffer(path; read=false, write=true, create=true, append=true)
+        return FileBuffer(fp; read=false, write=true, create=true, append=true)
     elseif mode == "r+"
-        return FileBuffer(path; read=true, writable=true)
+        return FileBuffer(fp; read=true, writable=true)
     elseif mode == "w+"
-        return FileBuffer(path; read=true, write=true, create=true, truncate=true)
+        return FileBuffer(fp; read=true, write=true, create=true, truncate=true)
     elseif mode == "a+"
-        return FileBuffer(path; read=true, write=true, create=true, append=true)
+        return FileBuffer(fp; read=true, write=true, create=true, append=true)
     else
-        throw(ArgumentError("$mode is not support for $(typeof(path))"))
+        throw(ArgumentError("$mode is not support for $(typeof(fp))"))
     end
 end
 
 # Default `touch` will just write an empty string to a file
-Base.touch(path::AbstractPath) = write(path, "")
+Base.touch(fp::AbstractPath) = write(fp, "")
 
 tmpname() = Path(tempname())
 tmpdir() = Path(tempdir())
 
 function mktmp(parent::AbstractPath)
-    path = parent / string(uuid4())
+    fp = parent / string(uuid4())
     # touch the file in case `open` isn't implement for the path and
     # we're buffering locally.
-    touch(path)
-    io = open(path, "w+")
-    return path, io
+    touch(fp)
+    io = open(fp, "w+")
+    return fp, io
 end
 
 function mktmpdir(parent::AbstractPath)
-    path = parent / string(uuid4())
-    mkdir(path)
-    return path
+    fp = parent / string(uuid4())
+    mkdir(fp)
+    return fp
 end
 
 function mktmp(fn::Function, parent=tmpdir())
-    (tmp_path, tmp_io) = mktmp(parent)
+    (tmp_fp, tmp_io) = mktmp(parent)
     try
-        fn(tmp_path, tmp_io)
+        fn(tmp_fp, tmp_io)
     finally
         close(tmp_io)
-        rm(tmp_path)
+        rm(tmp_fp)
     end
 end
 
@@ -501,16 +502,16 @@ function mktmpdir(fn::Function, parent=tmpdir())
 end
 
 # ALIASES for base filesystem API
-Base.dirname(path::AbstractPath) = parent(path)
-Base.ispath(path::AbstractPath) = exists(path)
-Base.realpath(path::AbstractPath) = real(path)
-Base.normpath(path::AbstractPath) = norm(path)
-Base.abspath(path::AbstractPath) = abs(path)
-Base.relpath(path::AbstractPath) = relative(path)
-Base.filemode(path::AbstractPath) = mode(path)
-Base.isabspath(path::AbstractPath) = isabs(path)
-Base.mkpath(path::AbstractPath) = mkdir(path; recursive=true)
+Base.dirname(fp::AbstractPath) = parent(fp)
+Base.ispath(fp::AbstractPath) = exists(fp)
+Base.realpath(fp::AbstractPath) = real(fp)
+Base.normpath(fp::AbstractPath) = norm(fp)
+Base.abspath(fp::AbstractPath) = abs(fp)
+Base.relpath(fp::AbstractPath) = relative(fp)
+Base.filemode(fp::AbstractPath) = mode(fp)
+Base.isabspath(fp::AbstractPath) = isabs(fp)
+Base.mkpath(fp::AbstractPath) = mkdir(fp; recursive=true)
 
 # ALIASES for now old FilePaths API
 move(src::AbstractPath, dest::AbstractPath; kwargs...) = mv(src, dest; kwargs...)
-remove(path::AbstractPath; kwargs...) = rm(path; kwargs...)
+remove(fp::AbstractPath; kwargs...) = rm(fp; kwargs...)

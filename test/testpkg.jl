@@ -1,6 +1,7 @@
 module TestPkg
 
 using FilePathsBase
+using FilePathsBase: path
 
 import Base: ==
 
@@ -9,29 +10,29 @@ __init__() = FilePathsBase.register(TestPath)
 # Warning: We only expect this test to work on posix systems.
 
 struct TestPath <: AbstractPath
-    parts::Tuple{Vararg{String}}
+    path::Tuple{Vararg{String}}
     root::String
     drive::String
 end
 
 TestPath() = TestPath(tuple(), "", "test:")
 
-function TestPath(parts::Tuple)
-    parts = map(String, Iterators.filter(!isempty, parts))
+function TestPath(components::Tuple)
+    components = map(String, Iterators.filter(!isempty, components))
 
     root = ""
     drive = "test:"
 
-    if parts[1] == "test:"
-        parts = parts[2:end]
+    if components[1] == "test:"
+        components = components[2:end]
     end
 
-    if parts[1] == ";"
+    if components[1] == ";"
         root = ";"
-        parts = parts[2:end]
+        components = components[2:end]
     end
 
-    return TestPath(tuple(parts...), root, drive)
+    return TestPath(tuple(components...), root, drive)
 end
 
 function TestPath(str::AbstractString)
@@ -54,66 +55,53 @@ function TestPath(str::AbstractString)
     return TestPath(tuple(map(String, filter!(!isempty, tokenized))...), root, drive)
 end
 
-# The following should be implemented in the concrete types
-function ==(a::TestPath, b::TestPath)
-    return parts(a) == parts(b) &&
-        drive(a) == drive(b) &&
-        root(a) == root(b)
-end
-FilePathsBase.parts(path::TestPath) = path.parts
-FilePathsBase.drive(path::TestPath) = path.drive
-FilePathsBase.root(path::TestPath) = path.root
+FilePathsBase.path(fp::TestPath) = fp.path
+FilePathsBase.drive(fp::TestPath) = fp.drive
+FilePathsBase.root(fp::TestPath) = fp.root
 FilePathsBase.ispathtype(::Type{TestPath}, str::AbstractString) = startswith(str, "test:")
-function test2posix(path::TestPath)
-    return PosixPath(
-        parts(path),
-        isempty(root(path)) ? "" : "/",
-    )
+function test2posix(fp::TestPath)
+    return PosixPath(path(fp), isempty(root(fp)) ? "" : "/")
 end
 
-function posix2test(path::PosixPath)
-    return TestPath(
-        parts(path),
-        isempty(root(path)) ? "" : ";",
-        "test:",
-    )
+function posix2test(fp::PosixPath)
+    return TestPath(path(fp), isempty(root(fp)) ? "" : ";", "test:")
 end
 
-function Base.print(io::IO, path::TestPath)
-    print(io, drive(path) * root(path) * join(parts(path), ";"))
+function Base.print(io::IO, fp::TestPath)
+    print(io, drive(fp) * root(fp) * join(path(fp), ";"))
 end
 
-FilePathsBase.isabs(path::TestPath) = !isempty(drive(path)) && !isempty(root(path))
-Base.expanduser(path::TestPath) = path
+FilePathsBase.isabs(fp::TestPath) = !isempty(drive(fp)) && !isempty(root(fp))
+Base.expanduser(fp::TestPath) = fp
 # We're going to implement most of the posix API, but this won't make sense for many path types
-FilePathsBase.exists(path::TestPath) = exists(test2posix(path))
-Base.real(path::TestPath) = posix2test(real(test2posix(path)))
-FilePathsBase.stat(path::TestPath) = stat(test2posix(path))
-FilePathsBase.lstat(path::TestPath) = lstat(test2posix(path))
-FilePathsBase.mode(path::TestPath) = stat(path).mode
-Base.size(path::TestPath) = stat(path).size
-FilePathsBase.created(path::TestPath) = stat(path).ctime
-FilePathsBase.modified(path::TestPath) = stat(path).mtime
-FilePathsBase.isdir(path::TestPath) = isdir(mode(path))
-Base.isfile(path::TestPath) = isfile(mode(path))
-Base.islink(path::TestPath) = islink(lstat(path).mode)
-Base.issocket(path::TestPath) = issocket(mode(path))
-Base.isfifo(path::TestPath) = issocket(mode(path))
-Base.ischardev(path::TestPath) = ischardev(mode(path))
-Base.isblockdev(path::TestPath) = isblockdev(mode(path))
-Base.ismount(path::TestPath) = ismount(test2posix(path))
-FilePathsBase.isexecutable(path::TestPath) = isexecutable(test2posix(path))
-Base.iswritable(path::TestPath) = iswritable(test2posix(path))
-Base.isreadable(path::TestPath) = isreadable(test2posix(path))
-Base.cd(path::TestPath) = cd(test2posix(path))
-Base.cd(f::Function, path::TestPath) = cd(f, test2posix(path))
-Base.mkdir(path::TestPath; kwargs...) = mkdir(test2posix(path); kwargs...)
+FilePathsBase.exists(fp::TestPath) = exists(test2posix(fp))
+Base.real(fp::TestPath) = posix2test(real(test2posix(fp)))
+FilePathsBase.stat(fp::TestPath) = stat(test2posix(fp))
+FilePathsBase.lstat(fp::TestPath) = lstat(test2posix(fp))
+FilePathsBase.mode(fp::TestPath) = stat(fp).mode
+Base.size(fp::TestPath) = stat(fp).size
+FilePathsBase.created(fp::TestPath) = stat(fp).ctime
+FilePathsBase.modified(fp::TestPath) = stat(fp).mtime
+FilePathsBase.isdir(fp::TestPath) = isdir(mode(fp))
+Base.isfile(fp::TestPath) = isfile(mode(fp))
+Base.islink(fp::TestPath) = islink(lstat(fp).mode)
+Base.issocket(fp::TestPath) = issocket(mode(fp))
+Base.isfifo(fp::TestPath) = issocket(mode(fp))
+Base.ischardev(fp::TestPath) = ischardev(mode(fp))
+Base.isblockdev(fp::TestPath) = isblockdev(mode(fp))
+Base.ismount(fp::TestPath) = ismount(test2posix(fp))
+FilePathsBase.isexecutable(fp::TestPath) = isexecutable(test2posix(fp))
+Base.iswritable(fp::TestPath) = iswritable(test2posix(fp))
+Base.isreadable(fp::TestPath) = isreadable(test2posix(fp))
+Base.cd(fp::TestPath) = cd(test2posix(fp))
+Base.cd(f::Function, fp::TestPath) = cd(f, test2posix(fp))
+Base.mkdir(fp::TestPath; kwargs...) = mkdir(test2posix(fp); kwargs...)
 Base.symlink(src::TestPath, dest::TestPath; kwargs...) = symlink(test2posix(src), test2posix(dest); kwargs...)
-Base.rm(path::TestPath; kwargs...) = rm(test2posix(path); kwargs...)
-Base.readdir(path::TestPath) = readdir(test2posix(path))
-Base.read(path::TestPath, args...) = read(test2posix(path), args...)
-Base.write(path::TestPath, x) = write(test2posix(path), x)
-Base.chown(path::TestPath, args...; kwargs...) = chown(test2posix(path), args...; kwargs...)
-Base.chmod(path::TestPath, args...; kwargs...) = chmod(test2posix(path), args...; kwargs...)
+Base.rm(fp::TestPath; kwargs...) = rm(test2posix(fp); kwargs...)
+Base.readdir(fp::TestPath) = readdir(test2posix(fp))
+Base.read(fp::TestPath, args...) = read(test2posix(fp), args...)
+Base.write(fp::TestPath, x) = write(test2posix(fp), x)
+Base.chown(fp::TestPath, args...; kwargs...) = chown(test2posix(fp), args...; kwargs...)
+Base.chmod(fp::TestPath, args...; kwargs...) = chmod(test2posix(fp), args...; kwargs...)
 
 end

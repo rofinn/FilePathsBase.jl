@@ -1,6 +1,7 @@
 module TestPaths
     using Dates
     using FilePathsBase
+    using FilePathsBase: path
     using LinearAlgebra: norm
     using Test
 
@@ -203,7 +204,8 @@ module TestPaths
         @testset "components" begin
             str = string(ps.root)
             @test anchor(ps.root) == drive(ps.root) * root(ps.root)
-            @test parts(ps.quux)[end-2:end] == ("bar", "qux", "quux.tar.gz")
+            @test components(ps.quux)[3:end] == path(ps.quux)
+            @test components(ps.quux)[end-2:end] == ("bar", "qux", "quux.tar.gz")
         end
     end
 
@@ -287,7 +289,7 @@ module TestPaths
 
     function test_relative(ps::PathSet)
         @testset "relative" begin
-            @test parts(relative(ps.foo, ps.qux)) == ("..", "..", "foo")
+            @test path(relative(ps.foo, ps.qux)) == ("..", "..", "foo")
         end
     end
 
