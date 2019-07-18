@@ -11,7 +11,7 @@ cd(abs(parent(Path(@__FILE__)))) do
         @test string(cwd()) == pwd()
         @test string(home()) == homedir()
 
-        @test parts(p) == ("..", "src", "FilePathsBase.jl")
+        @test path(p) == ("..", "src", "FilePathsBase.jl")
         @test hasparent(p)
         @test parent(p) == p"../src"
         @test parents(p) == [p"..", p"../src"]
@@ -70,22 +70,22 @@ cd(abs(parent(Path(@__FILE__)))) do
         @test !isblockdev(p)
 
         p1 = WindowsPath(tuple(["\\", "foo", "bar"]...))
-        @test p1.parts == ("\\", "foo", "bar")
+        @test p1.path == ("foo", "bar")
         @test p1.drive == ""
         @test p1.root == "\\"
 
         p2 = WindowsPath(tuple(["C:\\", "foo", "bar"]...))
-        @test p2.parts == ("C:\\", "foo", "bar")
+        @test p2.path == ("foo", "bar")
         @test p2.drive == "C:"
         @test p2.root == "\\"
 
         p3 = WindowsPath(tuple(["C:", "foo", "bar"]...))
-        @test p3.parts == ("C:", "foo", "bar")
+        @test p3.path == ("foo", "bar")
         @test p3.drive == "C:"
         @test p3.root == ""
 
         p4 = WindowsPath(tuple(["foo", "bar"]...))
-        @test p4.parts == ("foo", "bar")
+        @test p4.path == ("foo", "bar")
         @test p4.drive == ""
         @test p4.root == ""
 
@@ -163,7 +163,7 @@ mktmpdir() do d
                 @test string(mode(p"newfile")) == "-rw-r--r--"
                 chmod(p"newfile", "+x")
                 write(p"newfile", "foobar")
-                @test read(p"newfile") == "foobar"
+                @test read(p"newfile", String) == "foobar"
                 chmod(p"newfile", "u=rwx")
 
                 open(p"newfile") do io
