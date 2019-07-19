@@ -1,7 +1,6 @@
 module TestPaths
     using Dates
     using FilePathsBase
-    using FilePathsBase: path
     using LinearAlgebra: norm
     using Test
 
@@ -128,7 +127,8 @@ module TestPaths
         qux::P
         quux::P
         fred::P
-        plugh::Union{P, Nothing}
+        plugh::P
+        link::Bool
     end
 
     function PathSet(root=tmpdir() / "pathset_root"; symlink=false)
@@ -142,7 +142,8 @@ module TestPaths
             root / "bar" / "qux",
             root / "bar" / "qux" / "quux.tar.gz",
             root / "fred",
-            symlink ? root / "fred" / "plugh" : nothing,
+            root / "fred" / "plugh",
+            symlink,
         )
     end
 
@@ -152,9 +153,11 @@ module TestPaths
         write(ps.baz, "Hello World!")
         write(ps.quux, "Hello Again!")
 
-        # If plugh isn't nothing then create a symlink to foo
-        if ps.plugh !== nothing
+        # If link is true then plugh is a symlink to foo
+        if ps.link
             symlink(ps.foo, ps.plugh)
+        else
+            touch(ps.plugh)
         end
     end
 
@@ -203,9 +206,8 @@ module TestPaths
     function test_components(ps::PathSet)
         @testset "components" begin
             str = string(ps.root)
-            @test anchor(ps.root) == drive(ps.root) * root(ps.root)
-            @test components(ps.quux)[3:end] == path(ps.quux)
-            @test components(ps.quux)[end-2:end] == ("bar", "qux", "quux.tar.gz")
+            @test ps.root.anchor == ps.root.drive * ps.root.root
+            @test ps.quux.segments[end-2:end] == ("bar", "qux", "quux.tar.gz")
         end
     end
 
@@ -289,7 +291,7 @@ module TestPaths
 
     function test_relative(ps::PathSet)
         @testset "relative" begin
-            @test path(relative(ps.foo, ps.qux)) == ("..", "..", "foo")
+            @test relative(ps.foo, ps.qux).segments == ("..", "..", "foo")
         end
     end
 
@@ -324,7 +326,7 @@ module TestPaths
             @test :user in fields
             @test :mode in fields
 
-            if ps.plugh !== nothing
+            if ps.link
                 @test lstat(ps.plugh) != stat(ps.plugh)
             end
 
@@ -442,16 +444,8 @@ module TestPaths
 
     function test_walkpath(ps::PathSet)
         @testset "walkpath" begin
-            topdown = [ps.bar, ps.qux, ps.quux, ps.foo, ps.baz]
-            bottomup = [ps.quux, ps.qux, ps.bar, ps.baz, ps.foo]
-
-            if ps.plugh == nothing
-                push!(topdown, ps.fred)
-                push!(bottomup, ps.fred)
-            else
-                append!(topdown, [ps.fred, ps.plugh])
-                append!(bottomup, [ps.plugh, ps.fred])
-            end
+            topdown = [ps.bar, ps.qux, ps.quux, ps.foo, ps.baz, ps.fred, ps.plugh]
+            bottomup = [ps.quux, ps.qux, ps.bar, ps.baz, ps.foo, ps.plugh, ps.fred]
 
             @test collect(walkpath(ps.root; topdown=true)) == topdown
             @test collect(walkpath(ps.root; topdown=false)) == bottomup
@@ -517,12 +511,11 @@ module TestPaths
 
     function test_cp(ps::PathSet)
         @testset "cp" begin
-            cp(ps.foo, ps.qux / "foo")
+            cp(ps.foo, ps.qux / "foo"; force=true)
             @test exists(ps.qux / "foo" / "baz.txt")
             @test_throws ArgumentError cp(ps.foo, ps.qux / "foo")
             cp(ps.foo, ps.qux / "foo"; force=true)
             rm(ps.qux / "foo"; recursive=true)
-            @test !exists(ps.qux / "foo")
         end
     end
 
@@ -532,14 +525,13 @@ module TestPaths
             mkdir(garply; recursive=true, exist_ok=true)
             @test exists(garply)
             mv(ps.root / "corge", ps.foo / "corge"; force=true)
-            @test !exists(garply)
             @test exists(ps.foo / "corge" / "grault" / "garply")
             rm(ps.foo / "corge"; recursive=true)
         end
     end
 
     function test_symlink(ps::PathSet)
-        if ps.plugh !== nothing
+        if ps.link
             @testset "symlink" begin
                 @test_throws ErrorException symlink(ps.foo, ps.plugh)
                 symlink(ps.foo, ps.plugh; exist_ok=true, overwrite=true)
@@ -645,6 +637,7 @@ module TestPaths
 
     function test_download(ps::PathSet)
         @testset "download" begin
+            rm(ps.foo / "README.md"; force=true)
             download(
                 "https://github.com/rofinn/FilePathsBase.jl/blob/master/README.md",
                 ps.foo / "README.md"
@@ -717,8 +710,6 @@ module TestPaths
                 ts(ps)
             end
         finally
-            @show ps.root
-            @show string(ps.root)
             rm(ps.root; recursive=true, force=true)
         end
     end

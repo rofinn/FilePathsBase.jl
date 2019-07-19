@@ -1,10 +1,11 @@
 
 
 """
-    Path()
-    Path(fp::AbstractPath)
-    Path(fp::Tuple)
-    Path(fp::AbstractString)
+    Path() -> SystemPath
+    Path(fp::Tuple) -> SystemPath
+    Path(fp::P) where P <: AbstractPath) -> P
+    Path(fp::AbstractString) -> AbstractPath
+    Path(fp::P, segments::Tuple) -> P
 
 Responsible for creating the appropriate platform specific path
 (e.g., `PosixPath` and `WindowsPath` for Unix and Windows systems respectively)
@@ -32,6 +33,10 @@ function Path(str::AbstractString; debug=false)
     return first(types)(str)
 end
 
+function Path(fp::T, segments::Tuple{Vararg{String}}) where T <: AbstractPath
+    T((s === :segments ? segments : getfield(fp, s) for s in fieldnames(T))...)
+end
+
 """
     @p_str -> Path
 
@@ -42,13 +47,31 @@ macro p_str(fp)
     return :(Path($fp))
 end
 
-==(a::P, b::P) where P <: AbstractPath = components(a) == components(b)
+function Base.getproperty(fp::T, attr::Symbol) where T <: AbstractPath
+    if isdefined(fp, attr)
+        return getfield(fp, attr)
+    elseif attr === :drive
+        return ""
+    elseif attr === :root
+        return POSIX_PATH_SEPARATOR
+    elseif attr === :anchor
+        return fp.drive * fp.root
+    elseif attr === :separator
+        return POSIX_PATH_SEPARATOR
+    else
+        # Call getfield even though we know it'll error
+        # so the message is consistent.
+        return getfield(fp, attr)
+    end
+end
 
 #=
 We only want to print the macro string syntax when compact is true and
 we want print to just return the string (this allows `string` to work normally)
 =#
-Base.print(io::IO, fp::AbstractPath) = print(io, anchor(fp) * joinpath(path(fp)...))
+function Base.print(io::IO, fp::AbstractPath)
+    print(io, fp.anchor * join(fp.segments, fp.separator))
+end
 
 function Base.show(io::IO, fp::AbstractPath)
     get(io, :compact, false) ? print(io, fp) : print(io, "p\"$fp\"")
@@ -62,8 +85,7 @@ Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String
 cwd() = Path(pwd())
 home() = Path(homedir())
 
-anchor(fp::AbstractPath) = drive(fp) * root(fp)
-components(fp::AbstractPath) = tuple(drive(fp), root(fp), path(fp)...)
+# components(fp::AbstractPath) = tuple(drive(fp), root(fp), path(fp)...)
 
 #=
 Path Modifiers
@@ -76,7 +98,7 @@ path components
 
 Returns whether there is a parent directory component to the supplied path.
 """
-hasparent(fp::AbstractPath) = length(path(fp)) > 1
+hasparent(fp::AbstractPath) = length(fp.segments) > 1
 
 """
     parent{T<:AbstractPath}(fp::T) -> T
@@ -111,9 +133,7 @@ julia> parents(p"~/.julia/v0.6/REQUIRE")
 """
 function parents(fp::T) where {T <: AbstractPath}
     if hasparent(fp)
-        return map(2:length(components(fp))-1) do i
-            T(tuple(components(fp)[1:i]...))
-        end
+        return [Path(fp, fp.segments[1:i]) for i in 1:length(fp.segments)-1]
     else
         error("$fp has no parents")
     end
@@ -164,21 +184,24 @@ p"~/.julia/v0.6/REQUIRE"
 ```
 """
 function Base.join(prefix::T, pieces::Union{AbstractPath, AbstractString}...) where T <: AbstractPath
-    all_parts = String[]
-    push!(all_parts, components(prefix)...)
+    segments = String[prefix.segments...]
 
-    for p in map(Path, pieces)
-        push!(all_parts, components(p)...)
+    for p in pieces
+        if isa(p, AbstractPath)
+            push!(segments, p.segments...)
+        else
+            push!(segments, Path(p).segments...)
+        end
     end
 
-    return T(tuple(all_parts...))
+    return Path(prefix, tuple(segments...))
 end
 
 function Base.joinpath(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
     return join(root, pieces...)
 end
 
-Base.basename(fp::AbstractPath) = path(fp)[end]
+Base.basename(fp::AbstractPath) = fp.segments[end]
 
 """
     filename(fp::AbstractPath) -> AbstractString
@@ -250,7 +273,7 @@ Returns whether or not a path is empty.
 NOTE: Empty paths are usually only created by `Path()`, as `p""` and `Path("")` will
 default to using the current directory (or `p"."`).
 """
-Base.isempty(fp::AbstractPath) = isempty(path(fp))
+Base.isempty(fp::AbstractPath) = isempty(fp.segments)
 
 """
     norm(fp::AbstractPath) -> AbstractPath
@@ -258,7 +281,7 @@ Base.isempty(fp::AbstractPath) = isempty(path(fp))
 Normalizes a path by removing "." and ".." entries.
 """
 function LinearAlgebra.norm(fp::T) where {T <: AbstractPath}
-    p = path(fp)
+    p = fp.segments
     result = String[]
     rem = length(p)
     count = 0
@@ -281,7 +304,7 @@ function LinearAlgebra.norm(fp::T) where {T <: AbstractPath}
         count += 1
     end
 
-    return T(tuple(drive(fp), root(fp), fill("..", del)..., reverse(result)...))
+    return Path(fp, tuple(fill("..", del)..., reverse(result)...))
 end
 
 """
@@ -300,7 +323,7 @@ function Base.abs(fp::AbstractPath)
 end
 
 function isabs(fp::AbstractPath)
-    return !isempty(drive(fp)) && !isempty(root(fp))
+    return !isempty(fp.drive) && !isempty(fp.root)
 end
 
 """
@@ -312,8 +335,8 @@ function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
     curdir = "."
     pardir = ".."
 
-    p = path(abs(fp))
-    s = path(abs(start))
+    p = abs(fp).segments
+    s = abs(start).segments
 
     p == s && return T(curdir)
 
@@ -340,9 +363,9 @@ function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
             tuple(fill(pardir, prefix_num + 1)...) :
             tuple(fill(pardir, prefix_num + 1)..., pathpart...)
     else
-        relpath_ = pathpart
+        relpath_ = tuple(pathpart...)
     end
-    return isempty(relpath_) ? T(curdir) : T(relpath_)
+    return isempty(relpath_) ? T(curdir) : Path(fp, relpath_)
 end
 
 """
@@ -397,11 +420,11 @@ Download a file from the remote url and save it to the localfile path.
 function Base.download(url::AbstractString, localfile::AbstractPath)
     mktmp() do fp, io
         download(url, fp)
-        cp(fp, localfile)
+        cp(fp, localfile; force=true)
     end
 end
 
-Base.download(url::AbstractPath, localfile::AbstractPath) = cp(url, localfile)
+Base.download(url::AbstractPath, localfile::AbstractPath) = cp(url, localfile; force=true)
 
 """
     readpath(fp::P) where {P <: AbstractPath} -> Vector{P}

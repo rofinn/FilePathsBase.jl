@@ -48,16 +48,16 @@ struct User
     gid::UInt64
     dir::String
     shell::String
+end
 
-    function User(ps::Cpasswd)
-        new(
-            unsafe_string(ps.pw_name),
-            UInt64(ps.pw_uid),
-            UInt64(ps.pw_gid),
-            unsafe_string(ps.pw_dir),
-            unsafe_string(ps.pw_shell)
-        )
-    end
+function User(ps::Cpasswd)
+    User(
+        unsafe_string(ps.pw_name),
+        UInt64(ps.pw_uid),
+        UInt64(ps.pw_gid),
+        unsafe_string(ps.pw_dir),
+        unsafe_string(ps.pw_shell)
+    )
 end
 
 User(passwd::Ptr{Cpasswd}) = User(unsafe_load(passwd))
@@ -94,10 +94,9 @@ end
 struct Group
     name::String
     gid::UInt64
-
-    Group(gr::Cgroup) = new(unsafe_string(gr.gr_name), UInt64(gr.gr_gid))
 end
 
+Group(gr::Cgroup) = Group(unsafe_string(gr.gr_name), UInt64(gr.gr_gid))
 Group(group::Ptr{Cgroup}) = Group(unsafe_load(group))
 
 function Base.show(io::IO, group::Group)

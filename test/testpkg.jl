@@ -1,7 +1,6 @@
 module TestPkg
 
 using FilePathsBase
-using FilePathsBase: path
 
 import Base: ==
 
@@ -10,30 +9,13 @@ __init__() = FilePathsBase.register(TestPath)
 # Warning: We only expect this test to work on posix systems.
 
 struct TestPath <: AbstractPath
-    path::Tuple{Vararg{String}}
+    segments::Tuple{Vararg{String}}
     root::String
     drive::String
+    separator::String
 end
 
-TestPath() = TestPath(tuple(), "", "test:")
-
-function TestPath(components::Tuple)
-    components = map(String, Iterators.filter(!isempty, components))
-
-    root = ""
-    drive = "test:"
-
-    if components[1] == "test:"
-        components = components[2:end]
-    end
-
-    if components[1] == ";"
-        root = ";"
-        components = components[2:end]
-    end
-
-    return TestPath(tuple(components...), root, drive)
-end
+TestPath() = TestPath(tuple(), "", "test:", ";")
 
 function TestPath(str::AbstractString)
     str = String(str)
@@ -52,26 +34,19 @@ function TestPath(str::AbstractString)
         root = ";"
     end
 
-    return TestPath(tuple(map(String, filter!(!isempty, tokenized))...), root, drive)
+    return TestPath(tuple(map(String, filter!(!isempty, tokenized))...), root, drive, ";")
 end
 
-FilePathsBase.path(fp::TestPath) = fp.path
-FilePathsBase.drive(fp::TestPath) = fp.drive
-FilePathsBase.root(fp::TestPath) = fp.root
 FilePathsBase.ispathtype(::Type{TestPath}, str::AbstractString) = startswith(str, "test:")
 function test2posix(fp::TestPath)
-    return PosixPath(path(fp), isempty(root(fp)) ? "" : "/")
+    return PosixPath(fp.segments, isempty(fp.root) ? "" : "/")
 end
 
 function posix2test(fp::PosixPath)
-    return TestPath(path(fp), isempty(root(fp)) ? "" : ";", "test:")
+    return TestPath(fp.segments, isempty(fp.root) ? "" : ";", "test:", ";")
 end
 
-function Base.print(io::IO, fp::TestPath)
-    print(io, drive(fp) * root(fp) * join(path(fp), ";"))
-end
-
-FilePathsBase.isabs(fp::TestPath) = !isempty(drive(fp)) && !isempty(root(fp))
+FilePathsBase.isabs(fp::TestPath) = !isempty(fp.drive) && !isempty(fp.root)
 Base.expanduser(fp::TestPath) = fp
 # We're going to implement most of the posix API, but this won't make sense for many path types
 FilePathsBase.exists(fp::TestPath) = exists(test2posix(fp))
