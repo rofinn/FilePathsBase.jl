@@ -7,7 +7,7 @@ struct WindowsPath <: AbstractPath
     function WindowsPath(
         segments::Tuple, root::String, drive::String, separator::String=WIN_PATH_SEPARATOR
     )
-        return new(Tuple(Iterators.filter(!isempty, path)), root, drive, separator)
+        return new(Tuple(Iterators.filter(!isempty, segments)), root, drive, separator)
     end
 end
 
@@ -76,7 +76,7 @@ function Base.show(io::IO, fp::WindowsPath)
 end
 
 function isabs(fp::WindowsPath)
-    return !isempty(drive(fp)) || !isempty(root(fp))
+    return !isempty(fp.drive) || !isempty(fp.root)
 end
 
 Base.expanduser(fp::WindowsPath) = fp

@@ -149,7 +149,7 @@ module TestPaths
 
     function initialize(ps::PathSet)
         @info "Initializing $(typeof(ps))"
-        mkdir.([ps.foo, ps.qux, ps.fred]; recursive=true)
+        mkdir.([ps.foo, ps.qux, ps.fred]; recursive=true, exist_ok=true)
         write(ps.baz, "Hello World!")
         write(ps.quux, "Hello Again!")
 
