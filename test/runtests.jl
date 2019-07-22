@@ -16,8 +16,6 @@ include("testpkg.jl")
         # Test that our weird registered path works
         ps = PathSet(TestPkg.posix2test(tmpdir()) / "pathset_root"; symlink=true)
 
-        @show ps
-
         @testset "$(typeof(ps.root))" begin
             testsets = [
                 test_constructor,

@@ -15,23 +15,23 @@ struct Status
     blocks::Int64
     mtime::DateTime
     ctime::DateTime
+end
 
-    function Status(s::StatStruct)
-        new(
-            s.device,
-            s.inode,
-            Mode(s.mode),
-            s.nlink,
-            User(s.uid),
-            Group(s.gid),
-            s.rdev,
-            s.size,
-            s.blksize,
-            s.blocks,
-            unix2datetime(s.mtime),
-            unix2datetime(s.ctime)
-        )
-    end
+function Status(s::StatStruct)
+    Status(
+        s.device,
+        s.inode,
+        Mode(s.mode),
+        s.nlink,
+        User(s.uid),
+        Group(s.gid),
+        s.rdev,
+        s.size,
+        s.blksize,
+        s.blocks,
+        unix2datetime(s.mtime),
+        unix2datetime(s.ctime)
+    )
 end
 
 function Base.show(io::IO, s::Status)

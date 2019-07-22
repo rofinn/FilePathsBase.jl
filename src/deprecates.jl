@@ -22,5 +22,7 @@ import Base:
 @deprecate filemode(fp::AbstractPath) mode(fp)
 @deprecate isabspath(fp::AbstractPath) isabs(fp)
 @deprecate mkpath(fp::AbstractPath) mkdir(fp; recursive=true, exist_ok=true)
-@deprecate mv(src::AbstractPath, dest::AbstractPath; kwargs...) move(src, dest; kwargs...)
-@deprecate rm(fp::AbstractPath; kwargs...) remove(fp; kwargs...)
+@deprecate parts(fp::AbstractPath) fp.segments
+@deprecate drive(fp::Abstractpath) fp.drive
+@deprecate root(fp::AbstractPath) fp.root
+@deprecate anchor(fp::AbstractPath) fp.anchor

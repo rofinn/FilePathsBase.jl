@@ -1,19 +1,9 @@
 struct PosixPath <: AbstractPath
-    path::Tuple{Vararg{String}}
+    segments::Tuple{Vararg{String}}
     root::String
 end
 
 PosixPath() = PosixPath(tuple(), "")
-
-function PosixPath(components::Tuple)
-    components = map(String, Iterators.filter(!isempty, components))
-
-    if components[1]==POSIX_PATH_SEPARATOR
-        return PosixPath(tuple(components[2:end]...), POSIX_PATH_SEPARATOR)
-    else
-        return PosixPath(tuple(components...), "")
-    end
-end
 
 function PosixPath(str::AbstractString)
     str = string(str)
@@ -30,14 +20,11 @@ function PosixPath(str::AbstractString)
     return PosixPath(tuple(map(String, filter!(!isempty, tokenized))...), root)
 end
 
-path(fp::PosixPath) = fp.path
-root(fp::PosixPath) = fp.root
-drive(fp::PosixPath) = ""
 ispathtype(::Type{PosixPath}, str::AbstractString) = Sys.isunix()
-isabs(fp::PosixPath) = !isempty(root(fp))
+isabs(fp::PosixPath) = !isempty(fp.root)
 
 function Base.expanduser(fp::PosixPath)
-    p = path(fp)
+    p = fp.segments
 
     if p[1] == "~"
         if length(p) > 1

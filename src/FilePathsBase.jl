@@ -19,12 +19,8 @@ export
     Status,
 
     # Methods
-    anchor,
     cwd,
-    drive,
     home,
-    components,
-    root,
     hasparent,
     parents,
     filename,
@@ -76,13 +72,16 @@ end
 """
     AbstractPath
 
-Defines an abstract filesystem path. Subtypes of `AbstractPath` should implement the
-following methods:
+Defines an abstract filesystem path. Subtypes of `AbstractPath` should have the following
+fields:
 
+- fp.segments   # tuple of path segments
+- fp.root       # fs root (defaults to "/")
+- fp.drive      # fs drive (defaults to "")
+- fp.separator  # symbol for separating path segments (defaults to "/")
+
+And the following methods defined
 - `Base.print(io, p)` (default: call base julia's joinpath with drive and path parts)
-- `FilePathsBase.path(p)`
-- `FilePathsBase.root(p)`
-- `FilePathsBase.drive(p)`
 - `FilePathsBase.ispathtype(::Type{MyPath}, x::AbstractString) = true`
 """
 abstract type AbstractPath end  # Define the AbstractPath here to avoid circular include dependencies
