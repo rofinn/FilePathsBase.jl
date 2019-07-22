@@ -46,8 +46,6 @@ function posix2test(fp::PosixPath)
     return TestPath(fp.segments, isempty(fp.root) ? "" : ";", "test:", ";")
 end
 
-FilePathsBase.isabs(fp::TestPath) = !isempty(fp.drive) && !isempty(fp.root)
-Base.expanduser(fp::TestPath) = fp
 # We're going to implement most of the posix API, but this won't make sense for many path types
 FilePathsBase.exists(fp::TestPath) = exists(test2posix(fp))
 Base.real(fp::TestPath) = posix2test(real(test2posix(fp)))
