@@ -81,6 +81,7 @@ Base.parse(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
 Base.convert(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
 Base.convert(::Type{String}, x::AbstractPath) = string(x)
 Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String
+Base.isless(a::P, b::P) where P<:AbstractPath = isless(a.segments, b.segments)
 
 cwd() = Path(pwd())
 home() = Path(homedir())
