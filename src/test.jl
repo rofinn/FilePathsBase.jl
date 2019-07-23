@@ -224,6 +224,13 @@ module TestPaths
             _parents = parents(ps.qux)
             @test _parents[end] == ps.bar
             @test _parents[end - 1] == ps.root
+
+            # Test that relative paths with no parents return p"."
+            @test parent(Path(basename(ps.foo))) == p"."
+
+            # Test that parent on p"." should be ===
+            path = p"."
+            @test parent(path) === path
         end
     end
 

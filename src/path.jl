@@ -121,6 +121,9 @@ Base.parent(fp::AbstractPath) = parents(fp)[end]
 """
     parents{T<:AbstractPath}(fp::T) -> Array{T}
 
+Return all parents of the path. If no parent exists then either "/" or "."
+will be returned depending on whether the path is absolute.
+
 # Example
 ```
 julia> parents(p"~/.julia/v0.6/REQUIRE")
@@ -128,16 +131,27 @@ julia> parents(p"~/.julia/v0.6/REQUIRE")
  p"~"
  p"~/.julia"
  p"~/.julia/v0.6"
- ```
 
-# Throws
-* `ErrorException`: if `path` doesn't have a parent
+julia> parents(p"/etc")
+1-element Array{PosixPath,1}:
+ p"/"
+
+julia> parents(p"etc")
+1-element Array{PosixPath,1}:
+ p"."
+
+ julia> parents(p".")
+1-element Array{PosixPath,1}:
+ p"."
+ ```
 """
 function parents(fp::T) where {T <: AbstractPath}
     if hasparent(fp)
         return [Path(fp, fp.segments[1:i]) for i in 1:length(fp.segments)-1]
+    elseif fp.segments == tuple(".") || isempty(fp.segments)
+        return [fp]
     else
-        error("$fp has no parents")
+        return [isempty(fp.root) ? Path(fp, tuple(".")) : Path(fp, ())]
     end
 end
 
