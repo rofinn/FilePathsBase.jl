@@ -208,6 +208,10 @@ module TestPaths
             str = string(ps.root)
             @test ps.root.anchor == ps.root.drive * ps.root.root
             @test ps.quux.segments[end-2:end] == ("bar", "qux", "quux.tar.gz")
+
+            # Check that isless on the path segments works
+            @test ps.bar < ps.foo
+            @test sort([ps.foo, ps.bar, ps.fred]) == [ps.bar, ps.foo, ps.fred]
         end
     end
 
