@@ -84,6 +84,7 @@ Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String
 
 cwd() = Path(pwd())
 home() = Path(homedir())
+Base.expanduser(fp::AbstractPath) = fp
 
 # components(fp::AbstractPath) = tuple(drive(fp), root(fp), path(fp)...)
 

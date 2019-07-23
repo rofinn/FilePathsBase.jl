@@ -78,5 +78,3 @@ end
 function isabs(fp::WindowsPath)
     return !isempty(fp.drive) || !isempty(fp.root)
 end
-
-Base.expanduser(fp::WindowsPath) = fp
