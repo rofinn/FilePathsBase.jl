@@ -14,3 +14,10 @@ makedocs(
     checkdocs = :exports,
     # strict = true,
 )
+
+deploydocs(
+    repo = "github.com/rofinn/FilePathsBase.jl.git",
+    target = "build",
+    deps = nothing,
+    make = nothing,
+)
