@@ -1,3 +1,61 @@
+"""
+    TestPaths
+
+This module is intended to be used for testing new path types to
+ensure that they are adhering to the AbstractPath API.
+
+# Example
+
+```
+# Create a PathSet
+ps = PathSet(; symlink=true)
+
+# Select the subset of tests to run
+# Inspect TestPaths.TESTALL to see full list
+testsets = [
+    test_constructor,
+    test_registration,
+    test_show,
+    test_parse,
+    test_convert,
+    test_components,
+    test_parents,
+    test_join,
+    test_basename,
+    test_filename,
+    test_extensions,
+    test_isempty,
+    test_norm,
+    test_real,
+    test_relative,
+    test_abs,
+    test_isdir,
+    test_isfile,
+    test_stat,
+    test_size,
+    test_modified,
+    test_created,
+    test_cd,
+    test_readpath,
+    test_walkpath,
+    test_read,
+    test_write,
+    test_mkdir,
+    test_cp,
+    test_mv,
+    test_symlink,
+    test_touch,
+    test_tmpname,
+    test_tmpdir,
+    test_mktmp,
+    test_mktmpdir,
+    test_download,
+]
+
+# Run all the tests
+test(ps, testsets)
+```
+"""
 module TestPaths
     using Dates
     using FilePathsBase
@@ -111,13 +169,22 @@ module TestPaths
     - [X] download
     =#
     """
+        PathSet(root::AbstractPath=tmpdir(); symlink=false)
 
+    Constructs a common test path hierarchy to running shared API tests.
+
+    Hierarchy:
+
+    ```
     root
     |-- foo
     |   |-- baz.txt
     |-- bar
     |   |-- qux
     |       |-- quux.tar.gz
+    |-- fred
+    |   |-- plugh
+    ```
     """
     struct PathSet{P<:AbstractPath}
         root::P

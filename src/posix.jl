@@ -1,3 +1,9 @@
+"""
+    PosixPath()
+    PosixPath(str)
+
+Represents any posix path (e.g., `/home/user/docs`)
+"""
 struct PosixPath <: AbstractPath
     segments::Tuple{Vararg{String}}
     root::String

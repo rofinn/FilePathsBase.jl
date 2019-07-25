@@ -25,12 +25,12 @@ segments are represented as an immutable tuple of strings.
 Path creation:
 ```julia
 julia> Path("~/repos/FilePathsBase.jl/")
-Paths.PosixPath(("~","repos","FilePathsBase.jl",""))
+p"~/repos/FilePathsBase.jl/"
 ```
 or
 ```julia
 julia> p"~/repos/FilePathsBase.jl/"
-Paths.PosixPath(("~","repos","FilePathsBase.jl",""))
+p"~/repos/FilePathsBase.jl/"
 ```
 
 Human readable file status info:
@@ -152,3 +152,54 @@ read | read
 write | write
 @__DIR__ | @__PATH__
 @__FILE__ | @__FILEPATH__
+
+
+```@docs
+FilePathsBase.AbstractPath
+FilePathsBase.Path
+FilePathsBase.SystemPath
+FilePathsBase.PosixPath
+FilePathsBase.WindowsPath
+FilePathsBase.Mode
+FilePathsBase.@p_str
+FilePathsBase.@__PATH__
+FilePathsBase.@__FILEPATH__
+FilePathsBase.@LOCAL
+FilePathsBase.cwd
+FilePathsBase.home
+FilePathsBase.hasparent
+FilePathsBase.parents
+FilePathsBase.parent
+Base.:(*)(::P, ::Union{P, AbstractString, Char}...) where P <: AbstractPath
+Base.:(/)(::AbstractPath, ::Union{AbstractPath, AbstractString}...)
+Base.join(::T, ::Union{AbstractPath, AbstractString}...) where T <: AbstractPath
+FilePathsBase.filename(::AbstractPath)
+FilePathsBase.extension(::AbstractPath)
+FilePathsBase.extensions(::AbstractPath)
+Base.isempty(::AbstractPath)
+LinearAlgebra.norm(::T) where {T <: AbstractPath}
+Base.abs(::AbstractPath)
+FilePathsBase.isabs(::AbstractPath)
+FilePathsBase.relative(::T, ::T) where {T <: AbstractPath}
+Base.real(::AbstractPath)
+FilePathsBase.mode(::AbstractPath)
+FilePathsBase.modified(::AbstractPath)
+FilePathsBase.created(::AbstractPath)
+FilePathsBase.isexecutable
+Base.iswritable(::PosixPath)
+Base.isreadable(::PosixPath)
+Base.cp(::AbstractPath, ::AbstractPath)
+Base.mv(::AbstractPath, ::AbstractPath)
+Base.download(::AbstractString, ::AbstractPath)
+FilePathsBase.readpath
+FilePathsBase.walkpath
+Base.open(::AbstractPath)
+FilePathsBase.tmpname
+FilePathsBase.tmpdir
+FilePathsBase.mktmp
+FilePathsBase.mktmpdir
+Base.chown(::PosixPath, ::AbstractString, ::AbstractString)
+Base.chmod(::PosixPath, ::Mode)
+FilePathsBase.TestPaths
+FilePathsBase.TestPaths.PathSet
+```

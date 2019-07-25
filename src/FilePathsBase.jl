@@ -72,17 +72,25 @@ end
 """
     AbstractPath
 
-Defines an abstract filesystem path. Subtypes of `AbstractPath` should have the following
-fields:
+Defines an abstract filesystem path.
 
-- fp.segments   # tuple of path segments
-- fp.root       # fs root (defaults to "/")
-- fp.drive      # fs drive (defaults to "")
-- fp.separator  # symbol for separating path segments (defaults to "/")
+# Properties
 
-And the following methods defined
-- `Base.print(io, p)` (default: call base julia's joinpath with drive and path parts)
-- `FilePathsBase.ispathtype(::Type{MyPath}, x::AbstractString) = true`
+- `segments::Tuple{Vararg{String}}` - path segments (required)
+- `root::String` - path root (defaults to "/")
+- `drive::String` - path drive (defaults to "")
+- `separator::String` - path separator (defaults to "/")
+
+# Required Methods
+- `T(str::String)` - A string constructor
+- `FilePathsBase.ispathtype(::Type{T}, x::AbstractString) = true`
+- `read(path::T)`
+- `write(path::T, data)`
+- `exists(path::T` - whether the path exists
+- `stat(path::T)` - File status describing permissions, size and creation/modified times
+- `mkdir(path::T; kwargs...)` - Create a new directory
+- `rm(path::T; kwags...)` - Remove a file or directory
+- `readdir(path::T)` - Scan all files and directories at a specific path level
 """
 abstract type AbstractPath end  # Define the AbstractPath here to avoid circular include dependencies
 
@@ -98,6 +106,13 @@ function register(T::Type{<:AbstractPath})
     # Windows paths.
     pushfirst!(PATH_TYPES, T)
 end
+
+"""
+    ispathtype(::Type{T}, x::AbstractString) where T <: AbstractPath
+
+Return a boolean as to whether the string `x` fits the specified the path type.
+"""
+function ispathtype end
 
 include("constants.jl")
 include("utils.jl")
