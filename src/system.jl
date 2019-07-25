@@ -369,7 +369,7 @@ function Base.open(f::Function, fp::SystemPath, args...; kwargs...)
     open(f, string(fp), args...; kwargs...)
 end
 
-Base.read(fp::SystemPath, args...) = read(string(fp), args...)
+Base.read(fp::SystemPath) = read(string(fp))
 function Base.write(fp::SystemPath, x::Union{String, Vector{UInt8}}, mode="w")
     open(fp, mode) do f
         write(f, x)
