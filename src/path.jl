@@ -8,10 +8,11 @@
     Path(fp::P, segments::Tuple) -> P
 
 Responsible for creating the appropriate platform specific path
-(e.g., `PosixPath` and `WindowsPath` for Unix and Windows systems respectively)
+(e.g., [PosixPath](@ref) and [WindowsPath`](@ref) for Unix and
+Windows systems respectively)
 
-NOTE: `Path(::AbstractString` can also work for custom paths if `ispathtype` is defined
-for that type.
+NOTE: `Path(::AbstractString)` can also work for custom paths if
+[ispathtype](@ref) is defined for that type.
 """
 function Path end
 
@@ -40,8 +41,8 @@ end
 """
     @p_str -> Path
 
-Constructs a `Path` (platform specific subtype of `AbstractPath`), such as
-`p"~/.juliarc.jl"`.
+Constructs a [Path](@path) (platform specific subtype of [AbstractPath](@ref)),
+such as `p"~/.juliarc.jl"`.
 """
 macro p_str(fp)
     return :(Path($fp))
@@ -83,6 +84,22 @@ Base.convert(::Type{String}, x::AbstractPath) = string(x)
 Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String
 Base.isless(a::P, b::P) where P<:AbstractPath = isless(a.segments, b.segments)
 
+"""
+      cwd() -> SystemPath
+
+Get the current working directory.
+
+# Examples
+```
+julia> cwd()
+p"/home/JuliaUser"
+
+julia> cd(p"/home/JuliaUser/Projects/julia")
+
+julia> cwd()
+p"/home/JuliaUser/Projects/julia"
+```
+"""
 cwd() = Path(pwd())
 home() = Path(homedir())
 Base.expanduser(fp::AbstractPath) = fp
@@ -105,16 +122,24 @@ hasparent(fp::AbstractPath) = length(fp.segments) > 1
 """
     parent{T<:AbstractPath}(fp::T) -> T
 
-Returns the parent of the supplied path.
+Returns the parent of the supplied path. If no parent exists
+then either "/" or "." will be returned depending on whether the path
+is absolute.
 
 # Example
 ```
 julia> parent(p"~/.julia/v0.6/REQUIRE")
 p"~/.julia/v0.6"
-```
 
-# Throws
-* `ErrorException`: if `path` doesn't have a parent
+julia> parent(p"/etc")
+p"/"
+
+julia> parent(p"etc")
+p"."
+
+julia> parent(p".")
+p"."
+```
 """
 Base.parent(fp::AbstractPath) = parents(fp)[end]
 
@@ -140,7 +165,7 @@ julia> parents(p"etc")
 1-element Array{PosixPath,1}:
  p"."
 
- julia> parents(p".")
+julia> parents(p".")
 1-element Array{PosixPath,1}:
  p"."
  ```
@@ -163,9 +188,10 @@ This is equivalent to concatenating the string representations of paths and othe
 and then constructing a new path.
 
 # Example
-
+```
 julia> p"foo" * "bar"
 p"foobar"
+```
 """
 function Base.:(*)(a::T, b::Union{T, AbstractString, AbstractChar}...) where T <: AbstractPath
     T(*(string(a), string.(b)...))
@@ -177,12 +203,13 @@ end
 Join the path components into a new fulll path, equivalent to calling `joinpath`
 
 # Example
-
+```
 julia> p"foo" / "bar"
 p"foo/bar"
 
 julia> p"foo" / "bar" / "baz"
 p"foo/bar/baz"
+```
 """
 function Base.:(/)(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
     join(root, pieces...)
@@ -383,6 +410,64 @@ function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
     end
     return isempty(relpath_) ? T(curdir) : Path(fp, relpath_)
 end
+
+"""
+    real(path::AbstractPath) -> AbstractPath
+
+Canonicalize a path by expanding symbolic links and removing "." and ".." entries.
+"""
+Base.real(fp::AbstractPath) = fp
+
+Base.read(fp::AbstractPath, ::Type{String}) = String(read(fp))
+
+Base.lstat(fp::AbstractPath) = stat(fp)
+
+"""
+    mode(fp::AbstractPath) -> Mode
+
+Returns the `Mode` for the specified path.
+
+# Example
+```
+julia> mode(p"src/FilePathsBase.jl")
+-rw-r--r--
+```
+"""
+mode(fp::AbstractPath) = stat(fp).mode
+Base.size(fp::AbstractPath) = stat(fp).size
+
+"""
+    modified(fp::AbstractPath) -> DateTime
+
+Returns the last modified date for the `path`.
+
+# Example
+```
+julia> modified(p"src/FilePathsBase.jl")
+2017-06-20T04:01:09
+```
+"""
+modified(fp::AbstractPath) = stat(fp).mtime
+
+"""
+    created(fp::AbstractPath) -> DateTime
+
+Returns the creation date for the `path`.
+
+# Example
+```
+julia> created(p"src/FilePathsBase.jl")
+2017-06-20T04:01:09
+```
+"""
+created(fp::AbstractPath) = stat(fp).ctime
+Base.isdir(fp::AbstractPath) = isdir(mode(fp))
+Base.isfile(fp::AbstractPath) = isfile(mode(fp))
+Base.islink(fp::AbstractPath) = islink(lstat(fp).mode)
+Base.issocket(fp::AbstractPath) = issocket(mode(fp))
+Base.isfifo(fp::AbstractPath) = issocket(mode(fp))
+Base.ischardev(fp::AbstractPath) = ischardev(mode(fp))
+Base.isblockdev(fp::AbstractPath) = isblockdev(mode(fp))
 
 """
     cp(src::AbstractPath, dst::AbstractPath; force=false, follow_symlinks=false)

@@ -1,18 +1,24 @@
-"""
-The following file contains simple abstractions to make working with
-posix permissions easier in julia.
-
-For now we're focused on user permissions.
-
-A lot of the low level permissions code below and the corresponding
-constants have been translated from cpython's Lib/stat.py file.
-
-https://github.com/python/cpython/blob/master/Lib/stat.py
-"""
 struct Mode
     m::UInt64
 end
 
+"""
+    Mode(m::UInt8)
+    Mode(;user::UInt8=0o0, group::UInt8=0o0, other::UInt8=0o0)
+    Mode(mode::UInt8, usr_grps::Symbol...)
+    Mode(str)
+
+Provides an abstraction for working with posix file permissions.
+A lot of the low level permissions code for this type was below
+and the corresponding constants have been translated from
+cpython's [Lib/stat.py](https://github.com/python/cpython/blob/master/Lib/stat.py).
+
+# Examples
+```julia
+julia> Mode("-rwxr-x--x")
+-rwxr-x--x
+```
+"""
 function Mode(;user::UInt8=0o0, group::UInt8=0o0, other::UInt8=0o0,)
     @assert user <= 0o7 && group <= 0o7 && other <= 0o7
 
