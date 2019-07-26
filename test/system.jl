@@ -32,6 +32,7 @@ ps = PathSet(; symlink=true)
         test_mkdir,
         test_cp,
         test_mv,
+        test_sync,
         test_symlink,
         test_touch,
         test_tmpname,

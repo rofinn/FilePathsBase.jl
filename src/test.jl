@@ -43,6 +43,7 @@ testsets = [
     test_mkdir,
     test_cp,
     test_mv,
+    test_sync,
     test_symlink,
     test_touch,
     test_tmpname,
@@ -103,6 +104,7 @@ module TestPaths
         test_mkdir,
         test_cp,
         test_mv,
+        test_sync,
         test_symlink,
         test_touch,
         test_tmpname,
@@ -605,6 +607,39 @@ module TestPaths
             mv(ps.root / "corge", ps.foo / "corge"; force=true)
             @test exists(ps.foo / "corge" / "grault" / "garply")
             rm(ps.foo / "corge"; recursive=true)
+        end
+    end
+
+    function test_sync(ps::PathSet)
+        @testset "sync" begin
+            # Base cp case
+            sync(ps.foo, ps.qux / "foo")
+            @test exists(ps.qux / "foo" / "baz.txt")
+
+            # Test that the copied baz file has a newer modified time
+            baz_t = modified(ps.qux / "foo" / "baz.txt")
+            @test modified(ps.baz) < baz_t
+
+            # Don't cp unchanged files when a new file is added
+            # NOTE: sleep before we make a new file, so it's clear tha the
+            # modified time has changed.
+            sleep(1)
+            write(ps.foo / "test.txt", "New File")
+            sync(ps.foo, ps.qux / "foo")
+            @test exists(ps.qux / "foo" / "test.txt")
+            @test read(ps.qux / "foo" / "test.txt", String) == "New File"
+            @test modified(ps.qux / "foo" / "baz.txt") == baz_t
+            @test modified(ps.qux / "foo" / "test.txt") > baz_t
+
+            # Test not deleting a file on sync
+            rm(ps.foo / "test.txt")
+            sync(ps.foo, ps.qux / "foo")
+            @test exists(ps.qux / "foo" / "test.txt")
+
+            # Test passing delete flag
+            sync(ps.foo, ps.qux / "foo"; delete=true)
+            @test !exists(ps.qux / "foo" / "test.txt")
+            rm(ps.qux / "foo"; recursive=true)
         end
     end
 
