@@ -514,6 +514,41 @@ function Base.mv(src::AbstractPath, dst::AbstractPath; force=false)
 end
 
 """
+    sync(src::AbstractPath, dst::AbstractPath; delete=false)
+
+Recursively copy new and updated files from the source path to the
+destination. If delete is true then files at the destination that don't
+exist at the source will be removed.
+"""
+function sync(src::AbstractPath, dst::AbstractPath; delete=false)
+    # Create an index of all of the source files
+    index = Dict(Tuple(setdiff(p.segments, src.segments)) => p for p in walkpath(src))
+
+    if exists(dst)
+        for p in walkpath(dst)
+            k = Tuple(setdiff(p.segments, dst.segments))
+
+            if haskey(index, k)
+                if modified(index[k]) > modified(p)
+                    cp(index[k], p; force=true)
+                end
+
+                delete!(index, k)
+            elseif delete
+                rm(p; recursive=true)
+            end
+        end
+
+        # Finally, copy over files that don't exist at the destination
+        for (seg, p) in index
+            cp(p, Path(dst, tuple(dst.segments..., seg...)); force=true)
+        end
+    else
+        cp(src, dst)
+    end
+end
+
+"""
     download(url::Union{AbstractString, AbstractPath}, localfile::AbstractPath)
 
 Download a file from the remote url and save it to the localfile path.

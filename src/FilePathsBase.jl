@@ -36,7 +36,7 @@ export
     islink,
     cp,
     mv,
-    remove,
+    sync,
     tmpname,
     tmpdir,
     mktmp,
