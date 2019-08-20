@@ -761,7 +761,10 @@ module TestPaths
             download(ps.foo / "README.md", ps.qux / "README.md")
             @test exists(ps.qux / "README.md")
 
-            rm.([ps.foo / "README.md", ps.qux / "README.md"])
+             # Test downloading to a string
+            download(ps.foo / "README.md", string(ps.fred / "README.md"))
+            @test exists(ps.fred / "README.md")
+            rm.([ps.foo / "README.md", ps.qux / "README.md", ps.fred / "README.md"])
         end
     end
 

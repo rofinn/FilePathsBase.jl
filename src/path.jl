@@ -562,6 +562,11 @@ end
 
 Base.download(url::AbstractPath, localfile::AbstractPath) = cp(url, localfile; force=true)
 
+function Base.download(url::AbstractPath, localfile::AbstractString)
+    download(url, Path(localfile))
+    return localfile
+end
+
 """
     readpath(fp::P) where {P <: AbstractPath} -> Vector{P}
 """
