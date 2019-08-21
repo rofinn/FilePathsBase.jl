@@ -21,6 +21,7 @@ testsets = [
     test_components,
     test_parents,
     test_join,
+    test_splitext,
     test_basename,
     test_filename,
     test_extensions,
@@ -74,6 +75,7 @@ module TestPaths
         test_components,
         test_parents,
         test_join,
+        test_splitext,
         test_basename,
         test_filename,
         test_extensions,
@@ -311,6 +313,13 @@ module TestPaths
         end
     end
 
+    function test_splitext(ps::PathSet)
+        @testset "splitext" begin
+            @test splitext(ps.foo) == (ps.foo, "")
+            @test splitext(ps.baz) == (ps.root / "baz", ".txt")
+            @test splitext(ps.quux) == (ps.qux / "quux.tar", ".gz")
+        end
+    end
     function test_basename(ps::PathSet)
         @testset "basename" begin
             @test basename(ps.foo) == "foo"

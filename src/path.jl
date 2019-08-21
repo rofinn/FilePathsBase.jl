@@ -244,6 +244,11 @@ function Base.joinpath(root::AbstractPath, pieces::Union{AbstractPath, AbstractS
     return join(root, pieces...)
 end
 
+function Base.splitext(fp::AbstractPath)
+    new_fp, ext = splitext(string(fp))
+    return (Path(new_fp), ext)
+end
+
 Base.basename(fp::AbstractPath) = fp.segments[end]
 
 """
@@ -680,8 +685,8 @@ function Base.mktempdir(fn::Function, parent::AbstractPath)
     end
 end
 
-mktmp(args...) = mktemp(args...)
-mktmpdir(args...) = mktempdir(args...)
+mktmp(arg1, args...) = mktemp(arg1, args...)
+mktmpdir(arg1, args...) = mktempdir(arg1, args...)
 
 # ALIASES for base filesystem API
 Base.dirname(fp::AbstractPath) = parent(fp)

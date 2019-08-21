@@ -229,12 +229,12 @@ function Base.rm(fp::SystemPath; kwargs...)
     rm(string(fp); kwargs...)
 end
 Base.touch(fp::SystemPath) = touch(string(fp))
-function mktmp(parent::SystemPath=Path(tempdir()))
+function Base.mktemp(parent::SystemPath)
     fp, io = mktemp(string(parent))
     return Path(fp), io
 end
 
-mktmpdir(parent::SystemPath=tmpdir()) = Path(mktempdir(string(parent)))
+Base.mktempdir(parent::SystemPath) = Path(mktempdir(string(parent)))
 
 """
     chown(fp::SystemPath, user::AbstractString, group::AbstractString; recursive=false)
