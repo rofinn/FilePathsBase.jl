@@ -553,8 +553,8 @@ end
 
 Download a file from the remote url and save it to the localfile path.
 """
-function Base.download(url::AbstractString, localfile::AbstractPath)
-    mktmp() do fp, io
+function Base.download(url::AbstractString, localfile::P) where P <: AbstractPath
+    mktemp(P) do fp, io
         download(url, fp)
         cp(fp, localfile; force=true)
     end
@@ -628,10 +628,25 @@ end
 # Default `touch` will just write an empty string to a file
 Base.touch(fp::AbstractPath) = write(fp, "")
 
-tmpname() = Path(tempname())
-tmpdir() = Path(tempdir())
+Base.tempname(::Type{<:AbstractPath}) = Path(tempname())
+tmpname() = tempname(SystemPath)
 
-function mktmp(parent::AbstractPath)
+Base.tempdir(::Type{<:AbstractPath}) = Path(tempdir())
+tmpdir() = tempdir(SystemPath)
+
+Base.mktemp(P::Type{<:AbstractPath}) = mktemp(tempdir(P))
+mktmp() = mktemp(SystemPath)
+
+Base.mktemp(fn::Function, P::Type{<:AbstractPath}) = mktemp(fn, tempdir(P))
+mktmp(fn::Function) = mktemp(fn, SystemPath)
+
+Base.mktempdir(P::Type{<:AbstractPath}) = mktempdir(tempdir(P))
+mktmpdir() = mktempdir(SystemPath)
+
+Base.mktempdir(fn::Function, P::Type{<:AbstractPath}) = mktempdir(fn, tempdir(P))
+mktmpdir(fn::Function) = mktempdir(fn, SystemPath)
+
+function Base.mktemp(parent::AbstractPath)
     fp = parent / string(uuid4())
     # touch the file in case `open` isn't implement for the path and
     # we're buffering locally.
@@ -640,13 +655,13 @@ function mktmp(parent::AbstractPath)
     return fp, io
 end
 
-function mktmpdir(parent::AbstractPath)
+function Base.mktempdir(parent::AbstractPath)
     fp = parent / string(uuid4())
     mkdir(fp)
     return fp
 end
 
-function mktmp(fn::Function, parent=tmpdir())
+function Base.mktemp(fn::Function, parent::AbstractPath)
     (tmp_fp, tmp_io) = mktmp(parent)
     try
         fn(tmp_fp, tmp_io)
@@ -656,7 +671,7 @@ function mktmp(fn::Function, parent=tmpdir())
     end
 end
 
-function mktmpdir(fn::Function, parent=tmpdir())
+function Base.mktempdir(fn::Function, parent::AbstractPath)
     tmpdir = mktmpdir(parent)
     try
         fn(tmpdir)
@@ -664,6 +679,9 @@ function mktmpdir(fn::Function, parent=tmpdir())
         rm(tmpdir, recursive=true)
     end
 end
+
+mktmp(args...) = mktemp(args...)
+mktmpdir(args...) = mktempdir(args...)
 
 # ALIASES for base filesystem API
 Base.dirname(fp::AbstractPath) = parent(fp)
