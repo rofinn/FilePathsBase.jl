@@ -640,6 +640,29 @@ module TestPaths
             sync(ps.foo, ps.qux / "foo"; delete=true)
             @test !exists(ps.qux / "foo" / "test.txt")
             rm(ps.qux / "foo"; recursive=true)
+
+            # Test a condtion where the index could reorder the walkpath order.
+            tmp_src = ps.root / "tmp-src"
+            mkdir(tmp_src)
+            src_file = tmp_src / "file1"
+            write(src_file, "Hello World!")
+
+            src_folder = tmp_src / "folder1"
+            mkdir(src_folder)
+            src_folder_file = src_folder / "file2"
+            write(src_folder_file, "") # empty file
+
+            src_folder2 = src_folder / "folder2"  # nested folders
+            mkdir(src_folder2)
+            src_folder2_file = src_folder2 / "file3"
+            write(src_folder2_file, "Test")
+
+            tmp_dst = ps.root / "tmp_dst"
+            mkdir(tmp_dst)
+            sync(tmp_src, tmp_dst)
+            @test exists(tmp_dst / "folder1" / "folder2" / "file3")
+            rm(tmp_src; recursive=true)
+            rm(tmp_dst; recursive=true)
         end
     end
 

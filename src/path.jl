@@ -522,15 +522,19 @@ exist at the source will be removed.
 """
 function sync(src::AbstractPath, dst::AbstractPath; delete=false)
     # Create an index of all of the source files
-    index = Dict(Tuple(setdiff(p.segments, src.segments)) => p for p in walkpath(src))
+    src_paths = collect(walkpath(src))
+    index = Dict(
+        Tuple(setdiff(p.segments, src.segments)) => i for (i, p) in enumerate(src_paths)
+    )
 
     if exists(dst)
         for p in walkpath(dst)
             k = Tuple(setdiff(p.segments, dst.segments))
 
             if haskey(index, k)
-                if modified(index[k]) > modified(p)
-                    cp(index[k], p; force=true)
+                src_path = src_paths[index[k]]
+                if modified(src_path) > modified(p)
+                    cp(src_path, p; force=true)
                 end
 
                 delete!(index, k)
@@ -540,8 +544,12 @@ function sync(src::AbstractPath, dst::AbstractPath; delete=false)
         end
 
         # Finally, copy over files that don't exist at the destination
-        for (seg, p) in index
-            cp(p, Path(dst, tuple(dst.segments..., seg...)); force=true)
+        # But we need to iterate through it in a way that respects the original
+        # walkpath order otherwise we may end up trying to copy a file before its parents.
+        index_pairs = collect(pairs(index))
+        index_pairs = index_pairs[sortperm(last.(index_pairs))]
+        for (seg, i) in index_pairs
+            cp(src_paths[i], Path(dst, tuple(dst.segments..., seg...)); force=true)
         end
     else
         cp(src, dst)
