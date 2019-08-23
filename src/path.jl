@@ -514,13 +514,22 @@ function Base.mv(src::AbstractPath, dst::AbstractPath; force=false)
 end
 
 """
-    sync(src::AbstractPath, dst::AbstractPath; delete=false)
+    sync([f::Function,] src::AbstractPath, dst::AbstractPath; delete=false, overwrite=true)
 
-Recursively copy new and updated files from the source path to the
-destination. If delete is true then files at the destination that don't
-exist at the source will be removed.
+Recursively copy new and updated files from the source path to the destination.
+If delete is true then files at the destination that don't exist at the source will be removed.
+By default, source files are sent to the destination if they have different sizes or the source has newer
+last modified date.
+
+Optionally, you can specify a function `f` which will take a `src` and `dst` path and return
+true if the `src` should be sent. This may be useful if you'd like to use a checksum for
+comparison.
 """
-function sync(src::AbstractPath, dst::AbstractPath; delete=false)
+function sync(src::AbstractPath, dst::AbstractPath; kwargs...)
+    sync(should_sync, src, dst; kwargs...)
+end
+
+function sync(f::Function, src::AbstractPath, dst::AbstractPath; delete=false, overwrite=true)
     # Create an index of all of the source files
     src_paths = collect(walkpath(src))
     index = Dict(
@@ -533,7 +542,7 @@ function sync(src::AbstractPath, dst::AbstractPath; delete=false)
 
             if haskey(index, k)
                 src_path = src_paths[index[k]]
-                if modified(src_path) > modified(p)
+                if overwrite && f(src_path, p)
                     cp(src_path, p; force=true)
                 end
 
@@ -553,6 +562,22 @@ function sync(src::AbstractPath, dst::AbstractPath; delete=false)
         end
     else
         cp(src, dst)
+    end
+end
+
+function should_sync(src::AbstractPath, dst::AbstractPath)
+    src_stat = stat(src)
+    dst_stat = stat(dst)
+
+    if src_stat.size != dst_stat.size || src_stat.mtime > dst_stat.mtime
+        @debug(
+            "syncing: $src -> $dst, " *
+            "size: $(src_stat.size) -> $(dst_stat.size), " *
+            "modified_time: $(src_stat.mtime) -> $(dst_stat.mtime)"
+        )
+        return true
+    else
+        return false
     end
 end
 

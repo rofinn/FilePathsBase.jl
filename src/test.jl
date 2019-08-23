@@ -621,7 +621,7 @@ module TestPaths
             @test modified(ps.baz) < baz_t
 
             # Don't cp unchanged files when a new file is added
-            # NOTE: sleep before we make a new file, so it's clear tha the
+            # NOTE: sleep before we make a new file, so it's clear that the
             # modified time has changed.
             sleep(1)
             write(ps.foo / "test.txt", "New File")
