@@ -514,37 +514,93 @@ function Base.mv(src::AbstractPath, dst::AbstractPath; force=false)
 end
 
 """
-    sync(src::AbstractPath, dst::AbstractPath; delete=false)
+    sync([f::Function,] src::AbstractPath, dst::AbstractPath; delete=false, overwrite=true)
 
-Recursively copy new and updated files from the source path to the
-destination. If delete is true then files at the destination that don't
-exist at the source will be removed.
+Recursively copy new and updated files from the source path to the destination.
+If delete is true then files at the destination that don't exist at the source will be removed.
+By default, source files are sent to the destination if they have different sizes or the source has newer
+last modified date.
+
+Optionally, you can specify a function `f` which will take a `src` and `dst` path and return
+true if the `src` should be sent. This may be useful if you'd like to use a checksum for
+comparison.
 """
-function sync(src::AbstractPath, dst::AbstractPath; delete=false)
-    # Create an index of all of the source files
-    index = Dict(Tuple(setdiff(p.segments, src.segments)) => p for p in walkpath(src))
+function sync(src::AbstractPath, dst::AbstractPath; kwargs...)
+    sync(should_sync, src, dst; kwargs...)
+end
 
-    if exists(dst)
-        for p in walkpath(dst)
-            k = Tuple(setdiff(p.segments, dst.segments))
+function sync(f::Function, src::AbstractPath, dst::AbstractPath; delete=false, overwrite=true)
+    # Throw an error if the source path doesn't exist at all
+    exists(src) || throw(ArgumentError("$src does not exist"))
 
-            if haskey(index, k)
-                if modified(index[k]) > modified(p)
-                    cp(index[k], p; force=true)
-                end
-
-                delete!(index, k)
-            elseif delete
-                rm(p; recursive=true)
+    # If the top level source is just a file then try to just sync that
+    # without calling walkpath
+    if isfile(src)
+        # If the destination exists then we should make sure it is a file and check
+        # if we should copy the source over.
+        if exists(dst)
+            isfile(dst) || throw(ArgumentError("$dst is not a file"))
+            if overwrite && f(src, dst)
+                cp(src, dst; force=true)
             end
-        end
-
-        # Finally, copy over files that don't exist at the destination
-        for (seg, p) in index
-            cp(p, Path(dst, tuple(dst.segments..., seg...)); force=true)
+        else
+            cp(src, dst)
         end
     else
-        cp(src, dst)
+        isdir(src) || throw(ArgumentError("$src is neither a file or directory."))
+        if exists(dst) && !isdir(dst)
+            throw(ArgumentError("$dst is not a directory while $src is"))
+        end
+
+        # Create an index of all of the source files
+        src_paths = collect(walkpath(src))
+        index = Dict(
+            Tuple(setdiff(p.segments, src.segments)) => i for (i, p) in enumerate(src_paths)
+        )
+
+        if exists(dst)
+            for p in walkpath(dst)
+                k = Tuple(setdiff(p.segments, dst.segments))
+
+                if haskey(index, k)
+                    src_path = src_paths[index[k]]
+                    if overwrite && f(src_path, p)
+                        cp(src_path, p; force=true)
+                    end
+
+                    delete!(index, k)
+                elseif delete
+                    rm(p; recursive=true)
+                end
+            end
+
+            # Finally, copy over files that don't exist at the destination
+            # But we need to iterate through it in a way that respects the original
+            # walkpath order otherwise we may end up trying to copy a file before its parents.
+            index_pairs = collect(pairs(index))
+            index_pairs = index_pairs[sortperm(last.(index_pairs))]
+            for (seg, i) in index_pairs
+                cp(src_paths[i], Path(dst, tuple(dst.segments..., seg...)); force=true)
+            end
+        else
+            cp(src, dst)
+        end
+    end
+end
+
+function should_sync(src::AbstractPath, dst::AbstractPath)
+    src_stat = stat(src)
+    dst_stat = stat(dst)
+
+    if src_stat.size != dst_stat.size || src_stat.mtime > dst_stat.mtime
+        @debug(
+            "syncing: $src -> $dst, " *
+            "size: $(src_stat.size) -> $(dst_stat.size), " *
+            "modified_time: $(src_stat.mtime) -> $(dst_stat.mtime)"
+        )
+        return true
+    else
+        return false
     end
 end
 

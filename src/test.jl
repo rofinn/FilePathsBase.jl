@@ -612,34 +612,93 @@ module TestPaths
 
     function test_sync(ps::PathSet)
         @testset "sync" begin
-            # Base cp case
-            sync(ps.foo, ps.qux / "foo")
-            @test exists(ps.qux / "foo" / "baz.txt")
+            @testset "empty destination" begin
+                sync(ps.foo, ps.qux / "foo")
+                @test exists(ps.qux / "foo" / "baz.txt")
 
-            # Test that the copied baz file has a newer modified time
-            baz_t = modified(ps.qux / "foo" / "baz.txt")
-            @test modified(ps.baz) < baz_t
+                # Test that the copied baz file has a newer modified time
+                baz_t = modified(ps.qux / "foo" / "baz.txt")
+                @test modified(ps.baz) < baz_t
+            end
 
-            # Don't cp unchanged files when a new file is added
-            # NOTE: sleep before we make a new file, so it's clear tha the
-            # modified time has changed.
-            sleep(1)
-            write(ps.foo / "test.txt", "New File")
-            sync(ps.foo, ps.qux / "foo")
-            @test exists(ps.qux / "foo" / "test.txt")
-            @test read(ps.qux / "foo" / "test.txt", String) == "New File"
-            @test modified(ps.qux / "foo" / "baz.txt") == baz_t
-            @test modified(ps.qux / "foo" / "test.txt") > baz_t
+            @testset "empty source" begin
+                @test_throws ArgumentError sync(ps.root / "quux", ps.foo)
+            end
 
-            # Test not deleting a file on sync
-            rm(ps.foo / "test.txt")
-            sync(ps.foo, ps.qux / "foo")
-            @test exists(ps.qux / "foo" / "test.txt")
+            @testset "new source" begin
+                # Don't cp unchanged files when a new file is added
+                # NOTE: sleep before we make a new file, so it's clear that the
+                # modified time has changed.
+                baz_t = modified(ps.qux / "foo" / "baz.txt")
+                sleep(1)
+                write(ps.foo / "test.txt", "New src")
+                sync(ps.foo, ps.qux / "foo")
+                @test exists(ps.qux / "foo" / "test.txt")
+                @test read(ps.qux / "foo" / "test.txt", String) == "New src"
+                @test modified(ps.qux / "foo" / "baz.txt") == baz_t
+                @test modified(ps.qux / "foo" / "test.txt") > baz_t
+            end
 
-            # Test passing delete flag
-            sync(ps.foo, ps.qux / "foo"; delete=true)
-            @test !exists(ps.qux / "foo" / "test.txt")
-            rm(ps.qux / "foo"; recursive=true)
+            @testset "new destination" begin
+                # Newer file of the same size is likely the result of an upload which
+                # will always have a newer last modified time.
+                test_t = modified(ps.foo / "test.txt")
+                sleep(1)
+                write(ps.qux / "foo" / "test.txt", "New dst")
+                @test modified(ps.qux / "foo" / "test.txt") > test_t
+                sync(ps.foo, ps.qux / "foo")
+                @test read(ps.qux / "foo" / "test.txt", String) == "New dst"
+                @test modified(ps.qux / "foo" / "test.txt") > test_t
+            end
+
+            @testset "no delete" begin
+                # Test not deleting a file on sync
+                rm(ps.foo / "test.txt")
+                sync(ps.foo, ps.qux / "foo")
+                @test exists(ps.qux / "foo" / "test.txt")
+            end
+
+            @testset "delete" begin
+                # Test passing delete flag
+                sync(ps.foo, ps.qux / "foo"; delete=true)
+                @test !exists(ps.qux / "foo" / "test.txt")
+                rm(ps.qux / "foo"; recursive=true)
+            end
+
+            @testset "mixed types" begin
+                @testset "directory -> file" begin
+                    @test_throws ArgumentError sync(ps.foo, ps.quux)
+                end
+
+                @testset "file -> directory" begin
+                    @test_throws ArgumentError sync(ps.quux, ps.foo)
+                end
+            end
+
+            @testset "walkpath order" begin
+                # Test a condtion where the index could reorder the walkpath order.
+                tmp_src = ps.root / "tmp-src"
+                mkdir(tmp_src)
+                src_file = tmp_src / "file1"
+                write(src_file, "Hello World!")
+
+                src_folder = tmp_src / "folder1"
+                mkdir(src_folder)
+                src_folder_file = src_folder / "file2"
+                write(src_folder_file, "") # empty file
+
+                src_folder2 = src_folder / "folder2"  # nested folders
+                mkdir(src_folder2)
+                src_folder2_file = src_folder2 / "file3"
+                write(src_folder2_file, "Test")
+
+                tmp_dst = ps.root / "tmp_dst"
+                mkdir(tmp_dst)
+                sync(tmp_src, tmp_dst)
+                @test exists(tmp_dst / "folder1" / "folder2" / "file3")
+                rm(tmp_src; recursive=true)
+                rm(tmp_dst; recursive=true)
+            end
         end
     end
 
