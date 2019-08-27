@@ -612,7 +612,7 @@ Download a file from the remote url and save it to the localfile path.
 function Base.download(url::AbstractString, localfile::AbstractPath)
     mktmp() do fp, io
         download(url, fp)
-        cp(fp, localfile; force=true)
+        cp(fp, localfile; force=false)
     end
 end
 
