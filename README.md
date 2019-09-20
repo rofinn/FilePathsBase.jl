@@ -97,14 +97,15 @@ Base | FilePathsBase.jl
 --- | ---
 "/home/user/docs" | `p"/home/user/docs"`
 N/A | Path()
-pwd() | cwd()
-homedir() | home()
+pwd() | pwd(::Type{<:AbstractPath}) (or cwd())
+homedir() | homedir(::Type{<:AbstractPath}) (or home())
 cd() | cd()
 joinpath() | joinpath(), join, /
 basename() | basename()
 N/A | hasparent, parents, parent
-splitext(basename())[1] | filename
-splitext(basename())[2] | extension
+splitext | splitext
+N/A | filename
+N/A | extension
 N/A | extensions
 ispath | exists
 realpath | real
@@ -135,17 +136,18 @@ expanduser | expanduser
 mkdir | mkdir
 mkpath | N/A (use mkdir)
 symlink | symlink
-cp | copy
-mv | move
+cp | cp
+mv | mv
+download | download
 readdir | readdir
 N/A | readpath
 N/A | walkpath
-rm | remove
+rm | rm
 touch | touch
-tempname | tmpname
-tempdir | tmpdir
-mktemp | mktmp
-mktempdir | mktmpdir
+tempname() | tempname(::Type{<:AbstractPath}) (or tmpname)
+tempdir() | tempdir(::Type{<:AbstractPath}) (or tmpdir)
+mktemp() | mktemp(::Type{<:AbstractPath}) (or mktmp)
+mktempdir() | mktempdir(::Type{<:AbstractPath}) (or mktmpdir)
 chmod | chmod (recursive unix-only)
 chown (unix only) | chown (unix only)
 read | read
