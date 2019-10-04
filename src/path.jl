@@ -168,7 +168,7 @@ julia> parents(p"etc")
 julia> parents(p".")
 1-element Array{PosixPath,1}:
  p"."
- ```
+```
 """
 function parents(fp::T) where {T <: AbstractPath}
     if hasparent(fp)

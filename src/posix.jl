@@ -16,7 +16,7 @@ function PosixPath(str::AbstractString)
     root = ""
 
     if isempty(str)
-        return PosixPath(tuple("."))
+        return PosixPath(tuple("."), "")
     end
 
     tokenized = split(str, POSIX_PATH_SEPARATOR)
@@ -34,9 +34,9 @@ function Base.expanduser(fp::PosixPath)
 
     if p[1] == "~"
         if length(p) > 1
-            return PosixPath(tuple(homedir(), p[2:end]...))
+            return PosixPath(joinpath(homedir(), p[2:end]...))
         else
-            return PosixPath(tuple(homedir()))
+            return PosixPath(homedir())
         end
     end
 
