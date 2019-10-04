@@ -133,6 +133,7 @@ splitdrive()[1] | drive
 N/A | root (property)
 split(p, "/") | segments (property)
 expanduser | expanduser
+Base.Filesystem.contractuser | Base.Filesystem.contractuser
 mkdir | mkdir
 mkpath | N/A (use mkdir)
 symlink | symlink

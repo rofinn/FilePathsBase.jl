@@ -42,3 +42,14 @@ function Base.expanduser(fp::PosixPath)
 
     return fp
 end
+
+function Base.Filesystem.contractuser(fp::PosixPath)
+    h = homedir()
+    str = string(fp)
+
+    if startswith(str, h)
+        return PosixPath(replace(str, h => "~"; count=1))
+    end
+
+    return fp
+end
