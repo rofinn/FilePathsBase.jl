@@ -423,8 +423,6 @@ Canonicalize a path by expanding symbolic links and removing "." and ".." entrie
 """
 Base.real(fp::AbstractPath) = fp
 
-Base.read(fp::AbstractPath, ::Type{String}) = String(read(fp))
-
 Base.lstat(fp::AbstractPath) = stat(fp)
 
 """
@@ -685,6 +683,11 @@ function Base.open(fp::AbstractPath, mode)
         throw(ArgumentError("$mode is not support for $(typeof(fp))"))
     end
 end
+
+
+# Fallback read write methods
+Base.read(fp::AbstractPath, ::Type{T}) where {T} = open(io -> read(io, T), fp)
+Base.write(fp::AbstractPath, x) = open(io -> write(io, x), fp, "w")
 
 # Default `touch` will just write an empty string to a file
 Base.touch(fp::AbstractPath) = write(fp, "")
