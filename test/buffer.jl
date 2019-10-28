@@ -48,4 +48,37 @@ using FilePathsBase: FileBuffer
             end
         end
     end
+
+    @testset "Custom Types" begin
+        jlso = JLSOFile("msg" => "Hello World!")
+        mktmpdir() do d
+            cd(d) do
+                write(p"hello_world.jlso", jlso)
+                new_jlso = read(p"hello_world.jlso", JLSOFile)
+                @test new_jlso["msg"] == "Hello World!"
+
+                rm(p"hello_world.jlso")
+                data = IOBuffer()
+                write(data, jlso)
+                open(p"hello_world.jlso", "w") do io
+                    for x in take!(data)
+                        write(io, x)
+                    end
+                end
+
+
+                open(p"hello_world.jlso") do io
+                    data = UInt8[]
+                    push!(data, read(io, UInt8))
+
+                    while !eof(io)
+                        push!(data, read(io, UInt8))
+                    end
+
+                    new_jlso = read(IOBuffer(data), JLSOFile)
+                    @test new_jlso["msg"] == "Hello World!"
+                end
+            end
+        end
+    end
 end

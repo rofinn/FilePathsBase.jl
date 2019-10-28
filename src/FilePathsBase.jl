@@ -17,6 +17,7 @@ export
     WindowsPath,
     Mode,
     Status,
+    FileBuffer,
 
     # Methods
     cwd,
