@@ -612,6 +612,9 @@ end
     download(url::Union{AbstractString, AbstractPath}, localfile::AbstractPath)
 
 Download a file from the remote url and save it to the localfile path.
+
+NOTE: Not downloading into a `localfile` directory matches the base julia behaviour.
+https://github.com/rofinn/FilePathsBase.jl/issues/48
 """
 function Base.download(url::AbstractString, localfile::P) where P <: AbstractPath
     mktemp(P) do fp, io
