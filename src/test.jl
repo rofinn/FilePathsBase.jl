@@ -310,6 +310,7 @@ module TestPaths
             @test join(ps.root, "bar") == ps.bar
             @test ps.root / "foo" / "baz.txt" == ps.baz
             @test ps.root / "foobaz.txt" == ps.root / "foo" * "baz.txt"
+            @test ps.root ./ ["foo", "bar"] == [ps.foo, ps.bar]
         end
     end
 

@@ -103,6 +103,7 @@ p"/home/JuliaUser/Projects/julia"
 cwd() = Path(pwd())
 home() = Path(homedir())
 Base.expanduser(fp::AbstractPath) = fp
+Base.broadcastable(fp::AbstractPath) = Ref(fp)
 
 # components(fp::AbstractPath) = tuple(drive(fp), root(fp), path(fp)...)
 
