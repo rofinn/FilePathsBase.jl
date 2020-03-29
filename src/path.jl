@@ -774,3 +774,21 @@ Base.mkpath(fp::AbstractPath) = mkdir(fp; recursive=true)
 # ALIASES for now old FilePaths API
 move(src::AbstractPath, dest::AbstractPath; kwargs...) = mv(src, dest; kwargs...)
 remove(fp::AbstractPath; kwargs...) = rm(fp; kwargs...)
+
+"""
+	isdescendent(child::AbstractPath, parent::AbstractPath) -> Bool
+
+Returns `true` if `child` is within the directory tree of `parent`.
+"""
+function isdescendent(child::AbstractPath, parent::AbstractPath)
+	cn = normpath(child).segments
+	pn = normpath(parent).segments
+	return length(pn) <= length(cn) && all(cn[1:length(pn)] .== pn)
+end
+
+"""
+	isascendant(parent::AbstractPath, child::AbstractPath) -> Bool
+
+Returns `true` if `parent` is a directory containing `child`.
+"""
+isascendant(parent::AbstractPath, child::AbstractPath) = isdescendent(child, parent)

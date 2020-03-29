@@ -93,6 +93,18 @@ cd(abs(parent(Path(@__FILE__)))) do
         @test @__FILEPATH__() == Path(@__FILE__)
         @test FilePathsBase.@LOCAL("foo.txt") == join(@__PATH__, "foo.txt")
         @test FilePathsBase.@LOCAL("foo.txt") == joinpath(@__PATH__, "foo.txt")
+
+        @testset "path nesting" begin
+            @test true == isdescendent(p"/a/b", p"/")
+            @test true == isdescendent(p"/a/b", p"/a")
+            @test true == isdescendent(p"/a/b", p"/a/b")
+            @test false == isdescendent(p"/a/b", p"/a/b/c")
+            @test false == isdescendent(p"/a/b", p"/c")
+
+            @test true == isascendant(p"/a", p"/a/b")
+            @test false == isascendant(p"/a/b", p"/a")
+        end
+
     end
 end
 
