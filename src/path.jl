@@ -201,7 +201,7 @@ end
 """
   /(a::AbstractPath, b::Union{AbstractPath, AbstractString}...) -> AbstractPath
 
-Join the path components into a new fulll path, equivalent to calling `joinpath`
+Join the path components into a new full path, equivalent to calling `joinpath`.
 
 # Example
 ```
@@ -611,9 +611,9 @@ end
 """
     download(url::Union{AbstractString, AbstractPath}, localfile::AbstractPath)
 
-Download a file from the remote url and save it to the localfile path.
+Download a file from the remote `url` and save it to the `localfile` path.
 
-NOTE: Not downloading into a `localfile` directory matches the base julia behaviour.
+NOTE: Not downloading into a `localfile` directory matches the base Julia behaviour.
 https://github.com/rofinn/FilePathsBase.jl/issues/48
 """
 function Base.download(url::AbstractString, localfile::P) where P <: AbstractPath
