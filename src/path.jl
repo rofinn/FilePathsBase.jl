@@ -107,6 +107,8 @@ Base.broadcastable(fp::AbstractPath) = Ref(fp)
 
 # components(fp::AbstractPath) = tuple(drive(fp), root(fp), path(fp)...)
 
+isrelative(fp::AbstractPath) = isempty(fp.root)
+
 #=
 Path Modifiers
 ===============================================
@@ -118,7 +120,7 @@ path components
 
 Returns whether there is a parent directory component to the supplied path.
 """
-hasparent(fp::AbstractPath) = length(fp.segments) > Int(isempty(fp.root))
+hasparent(fp::AbstractPath) = length(fp.segments) > isrelative(fp)
 
 """
     parent{T<:AbstractPath}(fp::T) -> T
@@ -173,10 +175,9 @@ julia> parents(p".")
 """
 function parents(fp::T) where {T <: AbstractPath}
     if hasparent(fp)
-        # If we have a root then include that in the returned paths
-        # j = 1 when fp.root is empty and 0 otherwise
-        j = Int(isempty(fp.root))
-        return [Path(fp, fp.segments[1:i]) for i in j:length(fp.segments)-1]
+        # Iterate from 1:n-1 or 0:n-1 for relative and absolute paths respectively.
+        # (i.e., include fp.root when applicable)
+        return [Path(fp, fp.segments[1:i]) for i in isrelative(fp):length(fp.segments) - 1]
     elseif fp.segments == tuple(".") || !isempty(fp.root)
         return [fp]
     else
