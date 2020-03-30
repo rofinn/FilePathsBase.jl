@@ -118,7 +118,7 @@ path components
 
 Returns whether there is a parent directory component to the supplied path.
 """
-hasparent(fp::AbstractPath) = length(fp.segments) > 1
+hasparent(fp::AbstractPath) = length(fp.segments) > Int(isempty(fp.root))
 
 """
     parent{T<:AbstractPath}(fp::T) -> T
@@ -173,11 +173,14 @@ julia> parents(p".")
 """
 function parents(fp::T) where {T <: AbstractPath}
     if hasparent(fp)
-        return [Path(fp, fp.segments[1:i]) for i in 1:length(fp.segments)-1]
-    elseif fp.segments == tuple(".") || isempty(fp.segments)
+        # If we have a root then include that in the returned paths
+        # j = 1 when fp.root is empty and 0 otherwise
+        j = Int(isempty(fp.root))
+        return [Path(fp, fp.segments[1:i]) for i in j:length(fp.segments)-1]
+    elseif fp.segments == tuple(".") || !isempty(fp.root)
         return [fp]
     else
-        return [isempty(fp.root) ? Path(fp, tuple(".")) : Path(fp, ())]
+        return [Path(fp, tuple("."))]
     end
 end
 
