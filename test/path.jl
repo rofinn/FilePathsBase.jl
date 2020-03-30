@@ -97,6 +97,7 @@ cd(abs(parent(Path(@__FILE__)))) do
         @testset "path nesting" begin
             @test true == isdescendent(p"/a/b", p"/")
             @test true == isdescendent(p"/a/b", p"/a")
+            @test true == isdescendent(p"/a/b/c", p"/a")
             @test true == isdescendent(p"/a/b", p"/a/b")
             @test false == isdescendent(p"/a/b", p"/a/b/c")
             @test false == isdescendent(p"/a/b", p"/c")
