@@ -107,6 +107,11 @@ Base.broadcastable(fp::AbstractPath) = Ref(fp)
 
 # components(fp::AbstractPath) = tuple(drive(fp), root(fp), path(fp)...)
 
+"""
+    isrelative(fp::AbstractPath) -> Bool
+
+Returns true if `fp.root` is empty, indicating that it is a relative path.
+"""
 isrelative(fp::AbstractPath) = isempty(fp.root)
 
 #=
