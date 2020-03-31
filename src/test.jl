@@ -295,6 +295,16 @@ module TestPaths
             _parents = parents(ps.qux)
             @test _parents[end] == ps.bar
             @test _parents[end - 1] == ps.root
+            @test _parents[1] == Path(ps.root, ())
+
+            # More abstract path tests for edge cases when no parent exists
+            @test hasparent(p"/foo")
+            @test hasparent(p"./foo")
+            @test hasparent(p"~/foo")
+            @test !hasparent(p"foo")
+            @test !hasparent(p"~")
+            @test !hasparent(p".")
+            @test !hasparent(p"/")
 
             # Test that relative paths with no parents return p"."
             @test parent(Path(basename(ps.foo))) == p"."
@@ -302,6 +312,18 @@ module TestPaths
             # Test that parent on p"." should be ===
             path = p"."
             @test parent(path) === path
+
+            # Test that parent on p"/" should be ===
+            path = p"/"
+            @test parent(path) === path
+
+            # Test inclusion of root in parents
+            relparents = parents(PosixPath(ps.root.segments, ""))
+            absparents = parents(PosixPath(ps.root.segments, "/"))
+            @test relparents !== absparents
+            @test length(absparents) == length(relparents) + 1
+            @test !in(absparents[1], relparents)
+            @test absparents[1] == PosixPath((), "/")
         end
     end
 
@@ -778,6 +800,8 @@ module TestPaths
             if haskey(ENV, "USER")
                 if ENV["USER"] == "root"
                     chown(newfile, "nobody", "nogroup"; recursive=true)
+                elseif VERSION >= v"1.2"    # Error type changed in Julia 1.2
+                    @test_throws ProcessFailedException chown(newfile, "nobody", "nogroup"; recursive=true)
                 else
                     @test_throws ErrorException chown(newfile, "nobody", "nogroup"; recursive=true)
                 end

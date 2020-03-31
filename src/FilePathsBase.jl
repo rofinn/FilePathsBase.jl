@@ -33,6 +33,7 @@ export
     created,
     modified,
     relative,
+    isrelative,
     ismount,
     islink,
     cp,

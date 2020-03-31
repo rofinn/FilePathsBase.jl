@@ -50,12 +50,12 @@ using FilePathsBase: FileBuffer
     end
 
     @testset "Custom Types" begin
-        jlso = JLSOFile("msg" => "Hello World!")
+        jlso = JLSOFile(:msg => "Hello World!")
         mktmpdir() do d
             cd(d) do
                 write(p"hello_world.jlso", jlso)
                 new_jlso = read(p"hello_world.jlso", JLSOFile)
-                @test new_jlso["msg"] == "Hello World!"
+                @test new_jlso[:msg] == "Hello World!"
 
                 rm(p"hello_world.jlso")
                 data = IOBuffer()
@@ -76,7 +76,7 @@ using FilePathsBase: FileBuffer
                     end
 
                     new_jlso = read(IOBuffer(data), JLSOFile)
-                    @test new_jlso["msg"] == "Hello World!"
+                    @test new_jlso[:msg] == "Hello World!"
                 end
             end
         end
