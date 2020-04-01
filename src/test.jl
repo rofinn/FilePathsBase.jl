@@ -628,6 +628,25 @@ module TestPaths
             @test_throws ArgumentError cp(ps.foo, ps.qux / "foo")
             cp(ps.foo, ps.qux / "foo"; force=true)
             rm(ps.qux / "foo"; recursive=true)
+
+            @testset "non-existent destination parent" begin
+                # Test consistency with `cp` (e.g., destination parent must exist)
+                dest = ps.root / "non-existent" / "destination"
+
+                # The base behaviour can only be tested on system paths.
+                if isa(dest, SystemPath)
+                    if VERSION >= v"1.2"    # Error type changed in Julia 1.2
+                        @test_throws ProcessFailedException run(`cp -r $(ps.foo) $dest`)
+                    else
+                        @test_throws ErrorException run(`cp -r $(ps.foo) $dest`)
+                    end
+
+                    @test_throws SystemError cp(string(ps.foo), string(dest))
+                end
+
+                # TODO: Use a more specific error type
+                @test_throws ErrorException cp(ps.foo, dest)
+            end
         end
     end
 
@@ -730,6 +749,15 @@ module TestPaths
                 @test exists(tmp_dst / "folder1" / "folder2" / "file3")
                 rm(tmp_src; recursive=true)
                 rm(tmp_dst; recursive=true)
+            end
+
+            @testset "non-existent destination parent" begin
+                # Test consistency with `cp` (e.g., destination parent must exist)
+                # See full `cp` comparison tests above
+                dest = ps.root / "non-existent" / "destination"
+
+                # TODO: Use a more specific error type
+                @test_throws ErrorException sync(ps.foo, dest)
             end
         end
     end
