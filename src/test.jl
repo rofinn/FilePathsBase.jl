@@ -392,7 +392,7 @@ module TestPaths
             @test real(ps.bar / ".") == norm(real(ps.bar) / ".")
 
             if ps.plugh !== nothing
-                if isa(ps.plugh, WindowsPath)
+                if isa(ps.plugh, WindowsPath) && VERSION < v"1.2"
                     @test_broken real(ps.plugh) == real(ps.foo)
                 else
                     @test real(ps.plugh) == real(ps.foo)
