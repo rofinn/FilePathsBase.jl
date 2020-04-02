@@ -90,7 +90,7 @@ Base.isless(a::P, b::P) where P<:AbstractPath = isless(a.segments, b.segments)
 Get the current working directory.
 
 # Examples
-```
+```julia-repl
 julia> cwd()
 p"/home/JuliaUser"
 
@@ -135,7 +135,7 @@ then either "/" or "." will be returned depending on whether the path
 is absolute.
 
 # Example
-```
+```jldoctest
 julia> parent(p"~/.julia/v0.6/REQUIRE")
 p"~/.julia/v0.6"
 
@@ -158,7 +158,7 @@ Return all parents of the path. If no parent exists then either "/" or "."
 will be returned depending on whether the path is absolute.
 
 # Example
-```
+```jldoctest
 julia> parents(p"~/.julia/v0.6/REQUIRE")
 3-element Array{FilePathsBase.PosixPath,1}:
  p"~"
@@ -198,7 +198,7 @@ This is equivalent to concatenating the string representations of paths and othe
 and then constructing a new path.
 
 # Example
-```
+```jldoctest
 julia> p"foo" * "bar"
 p"foobar"
 ```
@@ -213,7 +213,7 @@ end
 Join the path components into a new full path, equivalent to calling `joinpath`.
 
 # Example
-```
+```jldoctest
 julia> p"foo" / "bar"
 p"foo/bar"
 
@@ -231,7 +231,7 @@ end
 Joins path components into a full path.
 
 # Example
-```
+```jldoctest
 julia> join(p"~/.julia/v0.6", "REQUIRE")
 p"~/.julia/v0.6/REQUIRE"
 ```
@@ -267,7 +267,7 @@ Base.basename(fp::AbstractPath) = fp.segments[end]
 Extracts the `basename` without any extensions.
 
 # Example
-```
+```jldoctest
 julia> filename(p"~/repos/FilePathsBase.jl/src/FilePathsBase.jl")
 "FilePathsBase"
 ```
@@ -283,7 +283,7 @@ end
 Extracts the last extension from a filename if there any, otherwise it returns an empty string.
 
 # Example
-```
+```jldoctest
 julia> extension(p"~/repos/FilePathsBase.jl/src/FilePathsBase.jl")
 "jl"
 ```
@@ -305,7 +305,7 @@ end
 Extracts all extensions from a filename if there any, otherwise it returns an empty string.
 
 # Example
-```
+```jldoctest
 julia> extensions(p"~/repos/FilePathsBase.jl/src/FilePathsBase.jl.bak")
 2-element Array{SubString{String},1}:
  "jl"
@@ -441,7 +441,7 @@ Base.lstat(fp::AbstractPath) = stat(fp)
 Returns the `Mode` for the specified path.
 
 # Example
-```
+```julia-repl
 julia> mode(p"src/FilePathsBase.jl")
 -rw-r--r--
 ```
@@ -455,7 +455,7 @@ Base.size(fp::AbstractPath) = stat(fp).size
 Returns the last modified date for the `path`.
 
 # Example
-```
+```julia-repl
 julia> modified(p"src/FilePathsBase.jl")
 2017-06-20T04:01:09
 ```
@@ -468,7 +468,7 @@ modified(fp::AbstractPath) = stat(fp).mtime
 Returns the creation date for the `path`.
 
 # Example
-```
+```julia-repl
 julia> created(p"src/FilePathsBase.jl")
 2017-06-20T04:01:09
 ```

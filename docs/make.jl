@@ -7,6 +7,7 @@ makedocs(
     ),
     pages=[
         "Home" => "index.md",
+        "API" => "api.md",
     ],
     repo="https://github.com/rofinn/FilePathsBase.jl/blob/{commit}{path}#L{line}",
     sitename="FilePathsBase.jl",

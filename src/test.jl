@@ -6,7 +6,7 @@ ensure that they are adhering to the AbstractPath API.
 
 # Example
 
-```
+```julia
 # Create a PathSet
 ps = PathSet(; symlink=true)
 
