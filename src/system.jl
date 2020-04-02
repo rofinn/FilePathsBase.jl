@@ -264,7 +264,7 @@ end
 Provides various methods for changing the `mode` of a `fp`.
 
 # Examples
-```
+```julia-repl
 julia> touch(p"newfile")
 Base.Filesystem.File(false, RawFD(-1))
 

@@ -1,6 +1,6 @@
 # FilePathsBase.jl
 
-[![Build Status](https://travis-ci.org/rofinn/FilePathsBase.jl.svg?branch=master)](https://travis-ci.org/rofinn/FilePathsBase.jl)
+[![Build Status](https://travis-ci.com/rofinn/FilePathsBase.jl.svg?branch=master)](https://travis-ci.com/rofinn/FilePathsBase.jl)
 [![codecov.io](https://codecov.io/github/rofinn/FilePathsBase.jl/coverage.svg?branch=master)](https://codecov.io/rofinn/FilePathsBase.jl?branch=master)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://rofinn.github.io/FilePathsBase.jl/stable)
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://rofinn.github.io/FilePathsBase.jl/dev)
@@ -9,12 +9,12 @@ FilePathsBase.jl provides a type based approach to working with filesystem paths
 
 ## Intallation
 FilePathsBase.jl is registered, so you can to use `Pkg.add` to install it.
-```julia
+```julia-repl
 julia> Pkg.add("FilePathsBase")
 ```
 
 ## Usage
-```julia
+```julia-repl
 julia> using FilePathsBase
 ```
 
@@ -22,18 +22,18 @@ The first important difference about working with paths in FilePathsBase.jl is t
 segments are represented as an immutable tuple of strings.
 
 Path creation:
-```julia
+```julia-repl
 julia> Path("~/repos/FilePathsBase.jl/")
-Paths.PosixPath(("~","repos","FilePathsBase.jl",""))
+p"~/repos/FilePathsBase.jl/"
 ```
 or
-```julia
+```julia-repl
 julia> p"~/repos/FilePathsBase.jl/"
-Paths.PosixPath(("~","repos","FilePathsBase.jl",""))
+p"~/repos/FilePathsBase.jl/"
 ```
 
 Human readable file status info:
-```julia
+```julia-repl
 julia> stat(p"README.md")
 Status(
   device = 16777220,
@@ -52,7 +52,7 @@ Status(
 ```
 
 Working with permissions:
-```julia
+```julia-repl
 julia> m = mode(p"README.md")
 -rw-r--r--
 
@@ -80,76 +80,10 @@ julia> mode(p"README.md")
 ```
 
 Reading and writing directly to file paths:
-```julia
+```julia-repl
 julia> write(p"testfile", "foobar")
 6
 
 julia> read(p"testfile")
 "foobar"
 ```
-
-## API
-
-All the standard methods for working with paths in base julia exist in the FilePathsBase.jl. The following describes the rough mapping of method names. Use `?` at the REPL to get the documentation and arguments as they may be different than the base implementations.
-
-Base | FilePathsBase.jl
---- | ---
-"/home/user/docs" | `p"/home/user/docs"`
-N/A | Path()
-pwd() | pwd(::Type{<:AbstractPath}) (or cwd())
-homedir() | homedir(::Type{<:AbstractPath}) (or home())
-cd() | cd()
-joinpath() | joinpath(), join, /
-basename() | basename()
-N/A | hasparent, parents, parent
-splitext | splitext
-N/A | filename
-N/A | extension
-N/A | extensions
-ispath | exists
-realpath | real
-normpath | norm
-abspath | abs
-relpath | relative
-stat | stat
-lstat | lstat
-filemode | mode
-mtime | modified
-ctime | created
-isdir | isdir
-isfile | isfile
-islink | islink
-issocket | issocket
-isfifo | isfifo
-ischardev | ischardev
-isblockdev | isblockdev
-isexecutable (deprecated) | isexecutable
-iswritable (deprecated) | iswritable
-isreadable (deprecated) | isreadable
-ismount | ismount
-isabspath | isabs
-splitdrive()[1] | drive
-N/A | root (property)
-split(p, "/") | segments (property)
-expanduser | expanduser
-mkdir | mkdir
-mkpath | N/A (use mkdir)
-symlink | symlink
-cp | cp
-mv | mv
-download | download
-readdir | readdir
-N/A | readpath
-N/A | walkpath
-rm | rm
-touch | touch
-tempname() | tempname(::Type{<:AbstractPath}) (or tmpname)
-tempdir() | tempdir(::Type{<:AbstractPath}) (or tmpdir)
-mktemp() | mktemp(::Type{<:AbstractPath}) (or mktmp)
-mktempdir() | mktempdir(::Type{<:AbstractPath}) (or mktmpdir)
-chmod | chmod (recursive unix-only)
-chown (unix only) | chown (unix only)
-read | read
-write | write
-@__DIR__ | @__PATH__
-@__FILE__ | @__FILEPATH__

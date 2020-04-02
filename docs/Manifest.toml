@@ -23,9 +23,9 @@ version = "0.22.6"
 
 [[FilePathsBase]]
 deps = ["Dates", "LinearAlgebra", "Printf", "Test", "UUIDs"]
-path = "/Users/rory/.playground/share/filepaths/depot/dev/FilePathsBase"
+path = ".."
 uuid = "48062228-2e41-5def-b9a4-89aafe57970f"
-version = "0.5.0"
+version = "0.8.0"
 
 [[InteractiveUtils]]
 deps = ["LinearAlgebra", "Markdown"]

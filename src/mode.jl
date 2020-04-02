@@ -13,8 +13,8 @@ A lot of the low level permissions code for this type was below
 and the corresponding constants have been translated from
 cpython's [Lib/stat.py](https://github.com/python/cpython/blob/master/Lib/stat.py).
 
-# Examples
-```julia
+# Example
+```julia-repl
 julia> Mode("-rwxr-x--x")
 -rwxr-x--x
 ```
