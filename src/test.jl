@@ -641,7 +641,11 @@ module TestPaths
                         @test_throws ErrorException run(`cp -r $(ps.foo) $dest`)
                     end
 
-                    @test_throws SystemError cp(string(ps.foo), string(dest))
+                    if VERSION >= v"1.4"
+                        @test_throws Base.IOError cp(string(ps.foo), string(dest))
+                    else
+                        @test_throws SystemError cp(string(ps.foo), string(dest))
+                    end
                 end
 
                 # TODO: Use a more specific error type
