@@ -776,19 +776,14 @@ move(src::AbstractPath, dest::AbstractPath; kwargs...) = mv(src, dest; kwargs...
 remove(fp::AbstractPath; kwargs...) = rm(fp; kwargs...)
 
 """
-	isdescendent(child::AbstractPath, parent::AbstractPath) -> Bool
+	isdescendant(fp::P, asc::P) where {P <: AbstractPath} -> Bool
 
-Returns `true` if `child` is within the directory tree of `parent`.
+Returns `true` if `fp` is within the directory tree of the `asc`.
 """
-function isdescendent(child::AbstractPath, parent::AbstractPath)
-	cn = normpath(child).segments
-	pn = normpath(parent).segments
-	return length(pn) <= length(cn) && all(cn[1:length(pn)] .== pn)
-end
+isdescendant(fp::P, asc::P) where {P <: AbstractPath} = fp == asc || asc in parents(fp)
+"""
+	isascendant(fp::P, desc::P) where {P <: AbstractPath} -> Bool
 
+Returns `true` if `fp` is a directory containing `desc`.
 """
-	isascendant(parent::AbstractPath, child::AbstractPath) -> Bool
-
-Returns `true` if `parent` is a directory containing `child`.
-"""
-isascendant(parent::AbstractPath, child::AbstractPath) = isdescendent(child, parent)
+isascendant(fp::P, desc::P) where {P <: AbstractPath} = isdescendant(fp, desc)
