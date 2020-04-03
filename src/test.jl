@@ -74,6 +74,7 @@ module TestPaths
         test_convert,
         test_components,
         test_parents,
+        test_descendants_and_ascendants,
         test_join,
         test_splitext,
         test_basename,
@@ -327,12 +328,46 @@ module TestPaths
         end
     end
 
+    function test_descendants_and_ascendants(ps::PathSet)
+        @testset "descendants and ascendants" begin
+            # Test base cases
+            @test isdescendant(p"/a/b", p"/")
+            @test isdescendant(p"/a/b", p"/a")
+            @test isdescendant(p"/a/b/c", p"/a")
+            @test isdescendant(p"/a/b", p"/a/b")
+            @test !isdescendant(p"/a/b", p"/a/b/c")
+            @test !isdescendant(p"/a/b", p"/c")
+            @test isascendant(p"/a", p"/a/b")
+            @test !isascendant(p"/a/b", p"/a")
+
+            # Test without our path types
+            @test isdescendant(ps.foo, ps.root)
+            @test isdescendant(ps.qux, ps.root)
+            @test isdescendant(ps.foo, ps.foo)
+            @test !isdescendant(ps.root, ps.foo)
+            @test !isdescendant(ps.root, ps.qux)
+            @test isascendant(ps.root, ps.foo)
+            @test isascendant(ps.root, ps.quux)
+            @test !isascendant(ps.qux, ps.root)
+        end
+    end
+
     function test_join(ps::PathSet)
         @testset "join" begin
             @test join(ps.root, "bar") == ps.bar
             @test ps.root / "foo" / "baz.txt" == ps.baz
             @test ps.root / "foobaz.txt" == ps.root / "foo" * "baz.txt"
             @test ps.root ./ ["foo", "bar"] == [ps.foo, ps.bar]
+            @test ps.root / "foo/baz.txt" == ps.baz
+            @test ps.root / p"foo/baz.txt" == ps.baz
+            @test ps.root / p"/foo/baz.txt" == ps.baz
+            @test ps.root / p"foo" / p"baz.txt" == ps.baz
+            @test ps.root / p"foo" / "baz.txt" == ps.baz
+            if !isa(ps.root, WindowsPath)
+                @test_throws MethodError ps.root / p"foo" / "" / "baz.txt"
+            else
+                @test_broken ps.root / p"foo" / "" / "baz.txt" == ps.baz
+            end
         end
     end
 
@@ -901,6 +936,7 @@ module TestPaths
         test_convert,
         test_components,
         test_parents,
+        test_descendants_and_ascendants,
         test_join,
         test_basename,
         test_filename,

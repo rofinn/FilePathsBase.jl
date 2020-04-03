@@ -24,6 +24,10 @@ end
 
 WindowsPath() = WindowsPath(tuple(), "", "")
 
+function WindowsPath(segments::Tuple; root="", drive="", separator="\\")
+    return WindowsPath(segments, root, drive, separator)
+end
+
 function WindowsPath(str::AbstractString)
     if isempty(str)
         return WindowsPath(tuple("."), "", "")

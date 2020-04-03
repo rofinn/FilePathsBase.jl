@@ -781,9 +781,10 @@ remove(fp::AbstractPath; kwargs...) = rm(fp; kwargs...)
 Returns `true` if `fp` is within the directory tree of the `asc`.
 """
 isdescendant(fp::P, asc::P) where {P <: AbstractPath} = fp == asc || asc in parents(fp)
+
 """
 	isascendant(fp::P, desc::P) where {P <: AbstractPath} -> Bool
 
 Returns `true` if `fp` is a directory containing `desc`.
 """
-isascendant(fp::P, desc::P) where {P <: AbstractPath} = isdescendant(fp, desc)
+isascendant(fp::P, desc::P) where {P <: AbstractPath} = isdescendant(desc, fp)
