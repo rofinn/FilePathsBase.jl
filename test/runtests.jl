@@ -28,6 +28,7 @@ include("testpkg.jl")
                 test_parents,
                 test_descendants_and_ascendants,
                 test_join,
+                test_splitext,
                 test_basename,
                 test_filename,
                 test_extensions,

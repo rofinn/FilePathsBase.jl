@@ -291,6 +291,7 @@ module TestPaths
         @testset "parents" begin
             @test parent(ps.foo) == ps.root
             @test parent(ps.qux) == ps.bar
+            @test dirname(ps.foo) == ps.root
 
             @test hasparent(ps.qux)
             _parents = parents(ps.qux)
@@ -374,7 +375,7 @@ module TestPaths
     function test_splitext(ps::PathSet)
         @testset "splitext" begin
             @test splitext(ps.foo) == (ps.foo, "")
-            @test splitext(ps.baz) == (ps.root / "baz", ".txt")
+            @test splitext(ps.baz) == (ps.foo / "baz", ".txt")
             @test splitext(ps.quux) == (ps.qux / "quux.tar", ".gz")
         end
     end
@@ -416,6 +417,7 @@ module TestPaths
         @testset "norm" begin
             @test norm(ps.bar / ".." / "foo") == ps.foo
             @test norm(ps.bar / ".") == ps.bar
+            @test normpath(ps.bar / ".") == ps.bar
         end
     end
 
@@ -425,6 +427,7 @@ module TestPaths
             # macOS the temp directory may include a symlink.
             @test real(ps.bar / ".." / "foo") == norm(real(ps.bar) / ".." / "foo")
             @test real(ps.bar / ".") == norm(real(ps.bar) / ".")
+            @test realpath(ps.bar / ".") == real(ps.bar / ".")
 
             if ps.plugh !== nothing
                 if isa(ps.plugh, WindowsPath) && VERSION < v"1.2"
@@ -445,6 +448,7 @@ module TestPaths
     function test_abs(ps::PathSet)
         @testset "abs" begin
             @test isabs(ps.root) || isabs(abs(ps.root))
+            @test abs(ps.root) == abspath(ps.root)
         end
     end
 
@@ -817,6 +821,7 @@ module TestPaths
             newfile = ps.root / "newfile"
             touch(newfile)
             @test exists(newfile)
+            @test ispath(newfile)
             rm(newfile)
         end
     end
@@ -938,6 +943,7 @@ module TestPaths
         test_parents,
         test_descendants_and_ascendants,
         test_join,
+        test_splitext,
         test_basename,
         test_filename,
         test_extensions,
