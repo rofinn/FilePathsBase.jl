@@ -1,4 +1,5 @@
 using FilePathsBase
+using Base.Filesystem
 using JLSO
 using LinearAlgebra
 using Test

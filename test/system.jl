@@ -108,7 +108,13 @@ ps = PathSet(; symlink=true)
             if Sys.iswindows()
                 conv_f = isuppercase(abspath(string(p))[1]) ? uppercase : lowercase
                 homedir_patched = conv_f(homedir_patched[1]) * homedir_patched[2:end]
+            elseif Sys.isunix()
+                contracted_path = p"~/opt/foo/bar.jl"
+                expanded_path = joinpath(home(), "opt/foo/bar.jl")
+                @test expanduser(contracted_path) == expanded_path
+                @test contractuser(expanded_path) == contracted_path
             end
+
             @test string(relative(p, home())) == relpath(string(p), homedir_patched)
 
             @test isa(relative(Path(".")), AbstractPath)

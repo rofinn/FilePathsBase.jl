@@ -28,14 +28,24 @@ end
 ispathtype(::Type{PosixPath}, str::AbstractString) = Sys.isunix()
 isabs(fp::PosixPath) = !isempty(fp.root)
 
-function Base.expanduser(fp::PosixPath)
+function Base.expanduser(fp::PosixPath)::PosixPath
     p = fp.segments
 
     if p[1] == "~"
-        if length(p) > 1
-            return PosixPath(tuple(homedir(), p[2:end]...))
+        return length(p) > 1 ? joinpath(home(), p[2:end]...) : home()
+    end
+
+    return fp
+end
+
+function Base.Filesystem.contractuser(fp::PosixPath)
+    h = home()
+    if isdescendant(fp, h)
+        if fp == h
+            return PosixPath("~")
         else
-            return PosixPath(tuple(homedir()))
+            n = length(h.segments)
+            return PosixPath(("~", fp.segments[n+1:end]...))
         end
     end
 
