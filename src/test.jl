@@ -74,6 +74,7 @@ module TestPaths
         test_convert,
         test_components,
         test_parents,
+        test_descendants_and_ascendants,
         test_join,
         test_splitext,
         test_basename,
@@ -290,6 +291,7 @@ module TestPaths
         @testset "parents" begin
             @test parent(ps.foo) == ps.root
             @test parent(ps.qux) == ps.bar
+            @test dirname(ps.foo) == ps.root
 
             @test hasparent(ps.qux)
             _parents = parents(ps.qux)
@@ -327,19 +329,53 @@ module TestPaths
         end
     end
 
+    function test_descendants_and_ascendants(ps::PathSet)
+        @testset "descendants and ascendants" begin
+            # Test base cases
+            @test isdescendant(p"/a/b", p"/")
+            @test isdescendant(p"/a/b", p"/a")
+            @test isdescendant(p"/a/b/c", p"/a")
+            @test isdescendant(p"/a/b", p"/a/b")
+            @test !isdescendant(p"/a/b", p"/a/b/c")
+            @test !isdescendant(p"/a/b", p"/c")
+            @test isascendant(p"/a", p"/a/b")
+            @test !isascendant(p"/a/b", p"/a")
+
+            # Test without our path types
+            @test isdescendant(ps.foo, ps.root)
+            @test isdescendant(ps.qux, ps.root)
+            @test isdescendant(ps.foo, ps.foo)
+            @test !isdescendant(ps.root, ps.foo)
+            @test !isdescendant(ps.root, ps.qux)
+            @test isascendant(ps.root, ps.foo)
+            @test isascendant(ps.root, ps.quux)
+            @test !isascendant(ps.qux, ps.root)
+        end
+    end
+
     function test_join(ps::PathSet)
         @testset "join" begin
             @test join(ps.root, "bar") == ps.bar
             @test ps.root / "foo" / "baz.txt" == ps.baz
             @test ps.root / "foobaz.txt" == ps.root / "foo" * "baz.txt"
             @test ps.root ./ ["foo", "bar"] == [ps.foo, ps.bar]
+            @test ps.root / "foo/baz.txt" == ps.baz
+            @test ps.root / p"foo/baz.txt" == ps.baz
+            @test ps.root / p"foo" / p"baz.txt" == ps.baz
+            @test ps.root / p"foo" / "baz.txt" == ps.baz
+
+            # TODO: Maybe normalize this case for the user? {ps.root}/foo/./baz.txt
+            @test norm(ps.root / p"foo" / "" / "baz.txt") == ps.baz
+
+            # TODO: Do we want to allow joining absolute paths?
+            @test ps.root / p"/foo/baz.txt" == ps.baz
         end
     end
 
     function test_splitext(ps::PathSet)
         @testset "splitext" begin
             @test splitext(ps.foo) == (ps.foo, "")
-            @test splitext(ps.baz) == (ps.root / "baz", ".txt")
+            @test splitext(ps.baz) == (ps.foo / "baz", ".txt")
             @test splitext(ps.quux) == (ps.qux / "quux.tar", ".gz")
         end
     end
@@ -355,7 +391,7 @@ module TestPaths
         @testset "filename" begin
             @test filename(ps.foo) == "foo"
             @test filename(ps.baz) == "baz"
-            @test filename(ps.quux) == "quux"
+            @test filename(ps.quux) == "quux.tar"
         end
     end
 
@@ -381,6 +417,7 @@ module TestPaths
         @testset "norm" begin
             @test norm(ps.bar / ".." / "foo") == ps.foo
             @test norm(ps.bar / ".") == ps.bar
+            @test normpath(ps.bar / ".") == ps.bar
         end
     end
 
@@ -390,6 +427,7 @@ module TestPaths
             # macOS the temp directory may include a symlink.
             @test real(ps.bar / ".." / "foo") == norm(real(ps.bar) / ".." / "foo")
             @test real(ps.bar / ".") == norm(real(ps.bar) / ".")
+            @test realpath(ps.bar / ".") == real(ps.bar / ".")
 
             if ps.plugh !== nothing
                 if isa(ps.plugh, WindowsPath) && VERSION < v"1.2"
@@ -410,6 +448,7 @@ module TestPaths
     function test_abs(ps::PathSet)
         @testset "abs" begin
             @test isabs(ps.root) || isabs(abs(ps.root))
+            @test abs(ps.root) == abspath(ps.root)
         end
     end
 
@@ -782,6 +821,7 @@ module TestPaths
             newfile = ps.root / "newfile"
             touch(newfile)
             @test exists(newfile)
+            @test ispath(newfile)
             rm(newfile)
         end
     end
@@ -901,7 +941,9 @@ module TestPaths
         test_convert,
         test_components,
         test_parents,
+        test_descendants_and_ascendants,
         test_join,
+        test_splitext,
         test_basename,
         test_filename,
         test_extensions,

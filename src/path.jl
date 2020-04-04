@@ -264,18 +264,18 @@ Base.basename(fp::AbstractPath) = fp.segments[end]
 """
     filename(fp::AbstractPath) -> AbstractString
 
-Extracts the `basename` without any extensions.
+Extracts the `basename` without the extension.
 
 # Example
 ```jldoctest
 julia> filename(p"~/repos/FilePathsBase.jl/src/FilePathsBase.jl")
 "FilePathsBase"
+
+julia> filename(p"~/Downloads/julia-1.4.0-linux-x86_64.tar.gz")
+"julia-1.4.0-linux-x86_64.tar"
 ```
 """
-function filename(fp::AbstractPath)
-    name = basename(fp)
-    return split(name, '.')[1]
-end
+filename(fp::AbstractPath) = rsplit(basename(fp), "."; limit=2)[1]
 
 """
     extension(fp::AbstractPath) -> AbstractString
@@ -781,9 +781,10 @@ remove(fp::AbstractPath; kwargs...) = rm(fp; kwargs...)
 Returns `true` if `fp` is within the directory tree of the `asc`.
 """
 isdescendant(fp::P, asc::P) where {P <: AbstractPath} = fp == asc || asc in parents(fp)
+
 """
 	isascendant(fp::P, desc::P) where {P <: AbstractPath} -> Bool
 
 Returns `true` if `fp` is a directory containing `desc`.
 """
-isascendant(fp::P, desc::P) where {P <: AbstractPath} = isdescendant(fp, desc)
+isascendant(fp::P, desc::P) where {P <: AbstractPath} = isdescendant(desc, fp)

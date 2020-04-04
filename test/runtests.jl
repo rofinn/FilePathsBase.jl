@@ -1,4 +1,5 @@
 using FilePathsBase
+using Base.Filesystem
 using JLSO
 using LinearAlgebra
 using Test
@@ -11,7 +12,6 @@ include("testpkg.jl")
     include("mode.jl")
     include("buffer.jl")
     include("system.jl")
-    # include("path.jl")
 
     @static if Sys.isunix()
         # Test that our weird registered path works
@@ -26,7 +26,9 @@ include("testpkg.jl")
                 test_convert,
                 test_components,
                 test_parents,
+                test_descendants_and_ascendants,
                 test_join,
+                test_splitext,
                 test_basename,
                 test_filename,
                 test_extensions,
@@ -72,8 +74,6 @@ include("testpkg.jl")
 
             # Run all of the automated tests
             test(ps, testsets)
-
-            # TODO: Copy over specific tests that can't be tested reliably from the general case.
         end
     end
 end

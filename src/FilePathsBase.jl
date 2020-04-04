@@ -24,6 +24,8 @@ export
     home,
     hasparent,
     parents,
+    isascendant,
+    isdescendant,
     filename,
     extension,
     extensions,
