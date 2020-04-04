@@ -10,14 +10,13 @@ struct PosixPath <: AbstractPath
 end
 
 PosixPath() = PosixPath(tuple(), "")
+PosixPath(segments::Tuple; root="") = PosixPath(segments, root)
 
 function PosixPath(str::AbstractString)
     str = string(str)
     root = ""
 
-    if isempty(str)
-        return PosixPath(tuple("."))
-    end
+    isempty(str) && return PosixPath(tuple("."))
 
     tokenized = split(str, POSIX_PATH_SEPARATOR)
     if isempty(tokenized[1])

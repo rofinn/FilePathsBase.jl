@@ -360,14 +360,14 @@ module TestPaths
             @test ps.root ./ ["foo", "bar"] == [ps.foo, ps.bar]
             @test ps.root / "foo/baz.txt" == ps.baz
             @test ps.root / p"foo/baz.txt" == ps.baz
-            @test ps.root / p"/foo/baz.txt" == ps.baz
             @test ps.root / p"foo" / p"baz.txt" == ps.baz
             @test ps.root / p"foo" / "baz.txt" == ps.baz
-            if !isa(ps.root, WindowsPath)
-                @test_throws MethodError ps.root / p"foo" / "" / "baz.txt"
-            else
-                @test_broken ps.root / p"foo" / "" / "baz.txt" == ps.baz
-            end
+
+            # TODO: Maybe normalize this case for the user? {ps.root}/foo/./baz.txt
+            @test norm(ps.root / p"foo" / "" / "baz.txt") == ps.baz
+
+            # TODO: Do we want to allow joining absolute paths?
+            @test ps.root / p"/foo/baz.txt" == ps.baz
         end
     end
 

@@ -29,9 +29,7 @@ function WindowsPath(segments::Tuple; root="", drive="", separator="\\")
 end
 
 function WindowsPath(str::AbstractString)
-    if isempty(str)
-        return WindowsPath(tuple("."), "", "")
-    end
+    isempty(str) && WindowsPath(tuple("."), "", "")
 
     if startswith(str, "\\\\?\\")
         error("The \\\\?\\ prefix is currently not supported.")
