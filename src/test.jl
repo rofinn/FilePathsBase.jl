@@ -390,7 +390,7 @@ module TestPaths
         @testset "filename" begin
             @test filename(ps.foo) == "foo"
             @test filename(ps.baz) == "baz"
-            @test filename(ps.quux) == "quux"
+            @test filename(ps.quux) == "quux.tar"
         end
     end
 
