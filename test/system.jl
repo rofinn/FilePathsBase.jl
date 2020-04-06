@@ -8,6 +8,8 @@ ps = PathSet(; symlink=true)
         test_parse,
         test_convert,
         test_components,
+        test_indexing,
+        test_iteration,
         test_parents,
         test_descendants_and_ascendants,
         test_join,

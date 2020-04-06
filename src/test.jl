@@ -73,6 +73,8 @@ module TestPaths
         test_parse,
         test_convert,
         test_components,
+        test_indexing,
+        test_iteration,
         test_parents,
         test_descendants_and_ascendants,
         test_join,
@@ -118,61 +120,6 @@ module TestPaths
         test_chmod,
         test_download
 
-    # foo, bar, baz, qux, quux, quuz, corge, grault, garply, waldo, fred, plugh, xyzzy, and thud
-    #=
-    To Test:
-
-    - [X] Construction (T, Path, p"...")
-    - [X] show, parse, convert
-    - [X] anchor, drive, root
-    - [X] hasparent
-    - [X] parent
-    - [X] parents
-    - [X] *, /, join
-    - [X] basename
-    - [X] filename
-    - [X] isempty
-    - [X] norm
-    - [X] abs?
-    - [X] relative?
-    - [X] exists
-    - [X] real
-    - [X] stat/lstat
-    - [X] size (could this default to using a FileBuffer?)
-    - [X] modified
-    - [X] created
-    - [X] modified
-    - [X] created
-    - [X] issocket
-    - [X] isfifo
-    - [X] ischardev
-    - [X] isblockdev
-    - [X] ismount
-    - [X] isdir
-    - [X] isfile
-    - [X] isexecutable
-    - [X] iswritable
-    - [X] isreadable
-    - [X] cd?
-    - [X] mkdir
-    - [X] rm
-    - [X] read
-    - [X] write
-    - [X] cp
-    - [X] mv
-    - [X] symlink
-    - [X] touch
-    - [X] tmpname
-    - [X] tmpdir
-    - [X] mktmp
-    - [X] mktmpdir
-    - [X] readpath
-    - [X] walkpath
-    - [X] open
-    - [X] chmod
-    - [X] chown
-    - [X] download
-    =#
     """
         PathSet(root::AbstractPath=tmpdir(); symlink=false)
 
@@ -285,6 +232,23 @@ module TestPaths
             @test ps.bar < ps.foo
             @test sort([ps.foo, ps.bar, ps.fred]) == [ps.bar, ps.foo, ps.fred]
         end
+    end
+
+    function test_indexing(ps::PathSet)
+        @test firstindex(ps.root) == 1
+        @test lastindex(ps.root) == length(ps.root.segments)
+        # `begin` indexing was only added in 1.4, so we'll leave this test commented
+        # out for now as there isn't a compat for that syntax.
+        # @test ps.root[begin] == ps.root.segments[1]
+        @test ps.baz[end] == "baz.txt"
+        @test ps.quux[end-2:end] == ("bar", "qux", "quux.tar.gz")
+        @test ps.quux[:] == ps.quux.segments[:]
+    end
+
+    function test_iteration(ps::PathSet)
+        @test eltype(ps.root) == String
+        @test tuple(ps.quux...) == ps.quux.segments
+        @test all(in(ps.quux), ("bar", "qux", "quux.tar.gz"))
     end
 
     function test_parents(ps::PathSet)
@@ -940,6 +904,8 @@ module TestPaths
         test_parse,
         test_convert,
         test_components,
+        test_indexing,
+        test_iteration,
         test_parents,
         test_descendants_and_ascendants,
         test_join,
