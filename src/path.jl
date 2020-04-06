@@ -114,6 +114,16 @@ Returns true if `fp.root` is empty, indicating that it is a relative path.
 """
 isrelative(fp::AbstractPath) = isempty(fp.root)
 
+# Support immutable indexing API
+Base.getindex(fp::AbstractPath, idx) = fp.segments[idx]
+Base.firstindex(::AbstractPath) = 1
+Base.lastindex(fp::AbstractPath) = length(fp)
+
+# Support iteration protocol
+Base.eltype(::AbstractPath) = String
+Base.length(fp::AbstractPath) = length(fp.segments)
+Base.iterate(fp::AbstractPath, state=1) = iterate(fp.segments, state)
+
 #=
 Path Modifiers
 ===============================================
