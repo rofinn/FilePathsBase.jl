@@ -26,7 +26,7 @@ testsets = [
     test_filename,
     test_extensions,
     test_isempty,
-    test_norm,
+    test_normalise,
     test_real,
     test_relative,
     test_abs,
@@ -61,7 +61,6 @@ test(ps, testsets)
 module TestPaths
     using Dates
     using FilePathsBase
-    using LinearAlgebra: norm
     using Test
 
     export PathSet,
@@ -83,7 +82,7 @@ module TestPaths
         test_filename,
         test_extensions,
         test_isempty,
-        test_norm,
+        test_normalise,
         test_real,
         test_relative,
         test_abs,
@@ -328,8 +327,8 @@ module TestPaths
             @test ps.root / p"foo" / p"baz.txt" == ps.baz
             @test ps.root / p"foo" / "baz.txt" == ps.baz
 
-            # TODO: Maybe normalize this case for the user? {ps.root}/foo/./baz.txt
-            @test norm(ps.root / p"foo" / "" / "baz.txt") == ps.baz
+            # TODO: Maybe normalise this case for the user? {ps.root}/foo/./baz.txt
+            @test normalise(ps.root / p"foo" / "" / "baz.txt") == ps.baz
 
             # TODO: Do we want to allow joining absolute paths?
             @test ps.root / p"/foo/baz.txt" == ps.baz
@@ -377,20 +376,20 @@ module TestPaths
         end
     end
 
-    function test_norm(ps::PathSet)
-        @testset "norm" begin
-            @test norm(ps.bar / ".." / "foo") == ps.foo
-            @test norm(ps.bar / ".") == ps.bar
+    function test_normalise(ps::PathSet)
+        @testset "normalise" begin
+            @test normalise(ps.bar / ".." / "foo") == ps.foo
+            @test normalise(ps.bar / ".") == ps.bar
             @test normpath(ps.bar / ".") == ps.bar
         end
     end
 
     function test_real(ps::PathSet)
         @testset "real" begin
-            # NOTE: We call `real` on ps.bar in the `norm` case because on
+            # NOTE: We call `real` on ps.bar in the `normalise` case because on
             # macOS the temp directory may include a symlink.
-            @test real(ps.bar / ".." / "foo") == norm(real(ps.bar) / ".." / "foo")
-            @test real(ps.bar / ".") == norm(real(ps.bar) / ".")
+            @test real(ps.bar / ".." / "foo") == normalise(real(ps.bar) / ".." / "foo")
+            @test real(ps.bar / ".") == normalise(real(ps.bar) / ".")
             @test realpath(ps.bar / ".") == real(ps.bar / ".")
 
             if ps.plugh !== nothing
@@ -914,7 +913,7 @@ module TestPaths
         test_filename,
         test_extensions,
         test_isempty,
-        test_norm,
+        test_normalise,
         test_real,
         test_relative,
         test_abs,

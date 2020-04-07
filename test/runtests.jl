@@ -1,7 +1,6 @@
 using FilePathsBase
 using Base.Filesystem
 using JLSO
-using LinearAlgebra
 using Test
 
 using FilePathsBase.TestPaths
@@ -35,7 +34,7 @@ include("testpkg.jl")
                 test_filename,
                 test_extensions,
                 test_isempty,
-                test_norm,
+                test_normalise,
                 test_real,
                 test_relative,
                 test_abs,

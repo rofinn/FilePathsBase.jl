@@ -3,7 +3,6 @@ __precompile__()
 module FilePathsBase
 
 using Dates
-using LinearAlgebra
 using Printf
 using UUIDs
 
@@ -34,6 +33,7 @@ export
     mode,
     created,
     modified,
+    normalise,
     relative,
     isrelative,
     ismount,
