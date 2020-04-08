@@ -114,6 +114,13 @@ Returns true if `fp.root` is empty, indicating that it is a relative path.
 """
 isrelative(fp::AbstractPath) = isempty(fp.root)
 
+"""
+    isabsolute(fp::AbstractPath) -> Bool
+
+Returns true if `fp.root` is not empty, indicating that it is an absolute path.
+"""
+isabsolute(fp::AbstractPath) = !isempty(fp.root)
+
 # Support immutable indexing API
 Base.getindex(fp::AbstractPath, idx) = fp.segments[idx]
 Base.firstindex(::AbstractPath) = 1
@@ -346,7 +353,7 @@ Base.isempty(fp::AbstractPath) = isempty(fp.segments)
 """
     normalise(fp::AbstractPath) -> AbstractPath
 
-Normalises a path by removing "." and ".." entries.
+normalises a path by removing "." and ".." entries.
 """
 function normalise(fp::T) where {T <: AbstractPath}
     p = fp.segments
@@ -376,22 +383,18 @@ function normalise(fp::T) where {T <: AbstractPath}
 end
 
 """
-    abs(fp::AbstractPath) -> AbstractPath
+    absolute(fp::AbstractPath) -> AbstractPath
 
 Creates an absolute path by adding the current working directory if necessary.
 """
-function Base.abs(fp::AbstractPath)
+function absolute(fp::AbstractPath)
     result = expanduser(fp)
 
-    if isabs(result)
+    if isabsolute(result)
         return normalise(result)
     else
         return normalise(join(cwd(), result))
     end
-end
-
-function isabs(fp::AbstractPath)
-    return !isempty(fp.drive) && !isempty(fp.root)
 end
 
 """
@@ -403,8 +406,8 @@ function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
     curdir = "."
     pardir = ".."
 
-    p = abs(fp).segments
-    s = abs(start).segments
+    p = absolute(fp).segments
+    s = absolute(start).segments
 
     p == s && return T(curdir)
 
@@ -775,10 +778,10 @@ Base.dirname(fp::AbstractPath) = parent(fp)
 Base.ispath(fp::AbstractPath) = exists(fp)
 Base.realpath(fp::AbstractPath) = real(fp)
 Base.normpath(fp::AbstractPath) = normalise(fp)
-Base.abspath(fp::AbstractPath) = abs(fp)
+Base.abspath(fp::AbstractPath) = absolute(fp)
 Base.relpath(fp::AbstractPath) = relative(fp)
 Base.filemode(fp::AbstractPath) = mode(fp)
-Base.isabspath(fp::AbstractPath) = isabs(fp)
+Base.isabspath(fp::AbstractPath) = isabsolute(fp)
 Base.mkpath(fp::AbstractPath) = mkdir(fp; recursive=true)
 
 # ALIASES for now old FilePaths API

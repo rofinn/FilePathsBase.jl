@@ -26,7 +26,6 @@ function PosixPath(str::AbstractString)
 end
 
 ispathtype(::Type{PosixPath}, str::AbstractString) = Sys.isunix()
-isabs(fp::PosixPath) = !isempty(fp.root)
 
 function Base.expanduser(fp::PosixPath)::PosixPath
     p = fp.segments

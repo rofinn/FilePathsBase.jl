@@ -21,7 +21,7 @@ using FilePathsBase: FileBuffer
 
     @testset "write" begin
         mktmpdir() do d
-            p1 = abs(p"../README.md")
+            p1 = absolute(p"../README.md")
 
             cd(d) do
                 p2 = p"README.md"

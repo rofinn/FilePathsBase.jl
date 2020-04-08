@@ -29,7 +29,7 @@ testsets = [
     test_normalise,
     test_real,
     test_relative,
-    test_abs,
+    test_absolute,
     test_isdir,
     test_isfile,
     test_stat,
@@ -85,7 +85,7 @@ module TestPaths
         test_normalise,
         test_real,
         test_relative,
-        test_abs,
+        test_absolute,
         test_isdir,
         test_isfile,
         test_stat,
@@ -150,7 +150,7 @@ module TestPaths
     end
 
     function PathSet(root=tmpdir() / "pathset_root"; symlink=false)
-        root = abs(root)
+        root = absolute(root)
 
         PathSet(
             root,
@@ -408,10 +408,10 @@ module TestPaths
         end
     end
 
-    function test_abs(ps::PathSet)
-        @testset "abs" begin
-            @test isabs(ps.root) || isabs(abs(ps.root))
-            @test abs(ps.root) == abspath(ps.root)
+    function test_absolute(ps::PathSet)
+        @testset "absolute" begin
+            @test isabsolute(ps.root) || isabsolute(absolute(ps.root))
+            @test absolute(ps.root) == abspath(ps.root)
         end
     end
 
@@ -916,7 +916,7 @@ module TestPaths
         test_normalise,
         test_real,
         test_relative,
-        test_abs,
+        test_absolute,
         test_isdir,
         test_isfile,
         test_stat,
