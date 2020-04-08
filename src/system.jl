@@ -66,7 +66,7 @@ julia> mode(p"src/FilePathsBase.jl")
 ```
 """
 mode(fp::SystemPath) = stat(fp).mode
-Base.size(fp::SystemPath) = stat(fp).size
+Base.filesize(fp::SystemPath) = stat(fp).size
 
 """
     modified(fp::SystemPath) -> DateTime

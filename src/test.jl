@@ -33,7 +33,7 @@ testsets = [
     test_isdir,
     test_isfile,
     test_stat,
-    test_size,
+    test_filesize,
     test_modified,
     test_created,
     test_cd,
@@ -90,7 +90,7 @@ module TestPaths
         test_isdir,
         test_isfile,
         test_stat,
-        test_size,
+        test_filesize,
         test_modified,
         test_created,
         test_issocket,
@@ -471,9 +471,9 @@ module TestPaths
         @test !ismount(ps.root)
     end
 
-    function test_size(ps::PathSet)
-        @testset "size" begin
-            @test size(ps.baz) > 0
+    function test_filesize(ps::PathSet)
+        @testset "filesize" begin
+            @test filesize(ps.baz) > 0
         end
     end
 
@@ -921,7 +921,7 @@ module TestPaths
         test_isdir,
         test_isfile,
         test_stat,
-        test_size,
+        test_filesize,
         test_modified,
         test_created,
         test_issocket,
