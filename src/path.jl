@@ -238,9 +238,8 @@ julia> p"foo" / "bar" / "baz"
 p"foo/bar/baz"
 ```
 """
-function Base.:(/)(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
-    join(root, pieces...)
-end
+/(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...) = joinpath(root, pieces...)
+
 
 """
     join(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...) -> AbstractPath
@@ -253,7 +252,7 @@ julia> join(p"~/.julia/v0.6", "REQUIRE")
 p"~/.julia/v0.6/REQUIRE"
 ```
 """
-function Base.join(prefix::T, pieces::Union{AbstractPath, AbstractString}...) where T <: AbstractPath
+function join(prefix::T, pieces::Union{AbstractPath, AbstractString}...) where T <: AbstractPath
     segments = String[prefix.segments...]
 
     for p in pieces
@@ -265,10 +264,6 @@ function Base.join(prefix::T, pieces::Union{AbstractPath, AbstractString}...) wh
     end
 
     return Path(prefix, tuple(segments...))
-end
-
-function Base.joinpath(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
-    return join(root, pieces...)
 end
 
 function Base.splitext(fp::AbstractPath)
@@ -776,21 +771,6 @@ end
 
 mktmp(arg1, args...) = mktemp(arg1, args...)
 mktmpdir(arg1, args...) = mktempdir(arg1, args...)
-
-# ALIASES for base filesystem API
-Base.dirname(fp::AbstractPath) = parent(fp)
-Base.ispath(fp::AbstractPath) = exists(fp)
-Base.realpath(fp::AbstractPath) = canonicalize(fp)
-Base.normpath(fp::AbstractPath) = normalize(fp)
-Base.abspath(fp::AbstractPath) = absolute(fp)
-Base.relpath(fp::AbstractPath) = relative(fp)
-Base.filemode(fp::AbstractPath) = mode(fp)
-Base.isabspath(fp::AbstractPath) = isabsolute(fp)
-Base.mkpath(fp::AbstractPath) = mkdir(fp; recursive=true)
-
-# ALIASES for now old FilePaths API
-move(src::AbstractPath, dest::AbstractPath; kwargs...) = mv(src, dest; kwargs...)
-remove(fp::AbstractPath; kwargs...) = rm(fp; kwargs...)
 
 """
 	isdescendant(fp::P, asc::P) where {P <: AbstractPath} -> Bool
