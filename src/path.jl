@@ -351,11 +351,11 @@ default to using the current directory (or `p"."`).
 Base.isempty(fp::AbstractPath) = isempty(fp.segments)
 
 """
-    normalise(fp::AbstractPath) -> AbstractPath
+    normalize(fp::AbstractPath) -> AbstractPath
 
-normalises a path by removing "." and ".." entries.
+normalizes a path by removing "." and ".." entries.
 """
-function normalise(fp::T) where {T <: AbstractPath}
+function normalize(fp::T) where {T <: AbstractPath}
     p = fp.segments
     result = String[]
     rem = length(p)
@@ -391,9 +391,9 @@ function absolute(fp::AbstractPath)
     result = expanduser(fp)
 
     if isabsolute(result)
-        return normalise(result)
+        return normalize(result)
     else
-        return normalise(join(cwd(), result))
+        return normalize(join(cwd(), result))
     end
 end
 
@@ -777,7 +777,7 @@ mktmpdir(arg1, args...) = mktempdir(arg1, args...)
 Base.dirname(fp::AbstractPath) = parent(fp)
 Base.ispath(fp::AbstractPath) = exists(fp)
 Base.realpath(fp::AbstractPath) = real(fp)
-Base.normpath(fp::AbstractPath) = normalise(fp)
+Base.normpath(fp::AbstractPath) = normalize(fp)
 Base.abspath(fp::AbstractPath) = absolute(fp)
 Base.relpath(fp::AbstractPath) = relative(fp)
 Base.filemode(fp::AbstractPath) = mode(fp)

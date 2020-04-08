@@ -18,7 +18,7 @@ ps = PathSet(; symlink=true)
         test_filename,
         test_extensions,
         test_isempty,
-        test_normalise,
+        test_normalize,
         test_real,
         test_relative,
         test_absolute,
@@ -101,7 +101,7 @@ ps = PathSet(; symlink=true)
 
             @test exists(p)
             @test !isabsolute(p)
-            @test string(normalise(p"../src/../src/FilePathsBase.jl")) == normpath("../src/../src/FilePathsBase.jl")
+            @test string(normalize(p"../src/../src/FilePathsBase.jl")) == normpath("../src/../src/FilePathsBase.jl")
             @test string(absolute(p)) == abspath(string(p))
             @test sprint(show, p"../README.md") == "p\"../README.md\""
 

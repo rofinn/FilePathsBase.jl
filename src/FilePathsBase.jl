@@ -34,7 +34,7 @@ export
     mode,
     created,
     modified,
-    normalise,
+    normalize,
     relative,
     isrelative,
     ismount,

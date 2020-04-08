@@ -17,7 +17,7 @@ import Base:
 @deprecate dirname(fp::AbstractPath) parent(fp)
 @deprecate ispath(fp::AbstractPath) exists(fp)
 @deprecate realpath(fp::AbstractPath) real(fp)
-@deprecate normpath(fp::AbstractPath) normalise(fp)
+@deprecate normpath(fp::AbstractPath) normalize(fp)
 @deprecate abspath(fp::AbstractPath) absolute(fp)
 @deprecate relpath(fp::AbstractPath) relative(fp)
 @deprecate filemode(fp::AbstractPath) mode(fp)

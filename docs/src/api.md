@@ -18,7 +18,7 @@ N/A | extension
 N/A | extensions
 ispath | exists
 realpath | real
-normpath | normalise
+normpath | normalize
 abspath | absolute
 relpath | relative
 stat | stat
@@ -94,7 +94,7 @@ FilePathsBase.filename(::AbstractPath)
 FilePathsBase.extension(::AbstractPath)
 FilePathsBase.extensions(::AbstractPath)
 Base.isempty(::AbstractPath)
-normalise(::T) where {T <: AbstractPath}
+normalize(::T) where {T <: AbstractPath}
 absolute(::AbstractPath)
 FilePathsBase.isabsolute(::AbstractPath)
 FilePathsBase.relative(::T, ::T) where {T <: AbstractPath}
