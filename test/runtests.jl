@@ -1,4 +1,5 @@
 using FilePathsBase
+using FilePathsBase: /, join
 using Base.Filesystem
 using JLSO
 using Test

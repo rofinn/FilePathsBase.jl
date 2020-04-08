@@ -61,6 +61,7 @@ test(ps, testsets)
 module TestPaths
     using Dates: Dates
     using FilePathsBase
+    using FilePathsBase: /, join
     using Test
 
     export PathSet,
