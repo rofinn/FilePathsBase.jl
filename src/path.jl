@@ -440,11 +440,15 @@ function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
 end
 
 """
-    real(path::AbstractPath) -> AbstractPath
+    canonicalize(path::AbstractPath) -> AbstractPath
 
-Canonicalize a path by expanding symbolic links and removing "." and ".." entries.
+Canonicalize a path by making it absolute, `.` or `..` segments and resolving any symlinks
+if applicable.
+
+WARNING: Fallback behaviour ignores symlinks and should be extended for paths where
+symlinks are permitted (e.g., `SystemPath`s).
 """
-Base.real(fp::AbstractPath) = fp
+canonicalize(fp::AbstractPath) = normalize(absolute(fp))
 
 Base.lstat(fp::AbstractPath) = stat(fp)
 
@@ -776,7 +780,7 @@ mktmpdir(arg1, args...) = mktempdir(arg1, args...)
 # ALIASES for base filesystem API
 Base.dirname(fp::AbstractPath) = parent(fp)
 Base.ispath(fp::AbstractPath) = exists(fp)
-Base.realpath(fp::AbstractPath) = real(fp)
+Base.realpath(fp::AbstractPath) = canonicalize(fp)
 Base.normpath(fp::AbstractPath) = normalize(fp)
 Base.abspath(fp::AbstractPath) = absolute(fp)
 Base.relpath(fp::AbstractPath) = relative(fp)

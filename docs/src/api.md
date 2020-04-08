@@ -98,7 +98,8 @@ normalize(::T) where {T <: AbstractPath}
 absolute(::AbstractPath)
 FilePathsBase.isabsolute(::AbstractPath)
 FilePathsBase.relative(::T, ::T) where {T <: AbstractPath}
-Base.real(::AbstractPath)
+Base.readlink(::AbstractPath)
+FilePathsBase.canonicalize(::AbstractPath)
 FilePathsBase.mode(::AbstractPath)
 FilePathsBase.modified(::AbstractPath)
 FilePathsBase.created(::AbstractPath)

@@ -27,7 +27,7 @@ testsets = [
     test_extensions,
     test_isempty,
     test_normalize,
-    test_real,
+    test_canonicalize,
     test_relative,
     test_absolute,
     test_isdir,
@@ -59,7 +59,7 @@ test(ps, testsets)
 ```
 """
 module TestPaths
-    using Dates
+    using Dates: Dates
     using FilePathsBase
     using Test
 
@@ -83,7 +83,7 @@ module TestPaths
         test_extensions,
         test_isempty,
         test_normalize,
-        test_real,
+        test_canonicalize,
         test_relative,
         test_absolute,
         test_isdir,
@@ -384,19 +384,19 @@ module TestPaths
         end
     end
 
-    function test_real(ps::PathSet)
-        @testset "real" begin
-            # NOTE: We call `real` on ps.bar in the `normalize` case because on
+    function test_canonicalize(ps::PathSet)
+        @testset "canonicalize" begin
+            # NOTE: We call `canonicalize` on ps.bar in the `normalize` case because on
             # macOS the temp directory may include a symlink.
-            @test real(ps.bar / ".." / "foo") == normalize(real(ps.bar) / ".." / "foo")
-            @test real(ps.bar / ".") == normalize(real(ps.bar) / ".")
-            @test realpath(ps.bar / ".") == real(ps.bar / ".")
+            @test canonicalize(ps.bar / ".." / "foo") == normalize(canonicalize(ps.bar) / ".." / "foo")
+            @test canonicalize(ps.bar / ".") == normalize(canonicalize(ps.bar) / ".")
+            @test realpath(ps.bar / ".") == canonicalize(ps.bar / ".")
 
             if ps.plugh !== nothing
                 if isa(ps.plugh, WindowsPath) && VERSION < v"1.2"
-                    @test_broken real(ps.plugh) == real(ps.foo)
+                    @test_broken canonicalize(ps.plugh) == canonicalize(ps.foo)
                 else
-                    @test real(ps.plugh) == real(ps.foo)
+                    @test canonicalize(ps.plugh) == canonicalize(ps.foo)
                 end
             end
         end
@@ -532,17 +532,17 @@ module TestPaths
                 init_path = cwd()
 
                 cd(ps.foo) do
-                    @test cwd() != real(init_path)
-                    @test cwd() == real(ps.foo)
+                    @test cwd() != canonicalize(init_path)
+                    @test cwd() == canonicalize(ps.foo)
                 end
 
-                @test cwd() == real(init_path)
+                @test cwd() == canonicalize(init_path)
 
                 cd(ps.qux)
-                @test cwd() != real(init_path)
-                @test cwd() == real(ps.qux)
+                @test cwd() != canonicalize(init_path)
+                @test cwd() == canonicalize(ps.qux)
                 cd(init_path)
-                @test cwd() == real(init_path)
+                @test cwd() == canonicalize(init_path)
             end
         end
     end
@@ -914,7 +914,7 @@ module TestPaths
         test_extensions,
         test_isempty,
         test_normalize,
-        test_real,
+        test_canonicalize,
         test_relative,
         test_absolute,
         test_isdir,

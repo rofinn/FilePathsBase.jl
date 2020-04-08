@@ -35,6 +35,7 @@ export
     created,
     modified,
     normalize,
+    canonicalize,
     relative,
     isrelative,
     ismount,

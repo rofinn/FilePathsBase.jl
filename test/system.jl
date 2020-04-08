@@ -19,7 +19,7 @@ ps = PathSet(; symlink=true)
         test_extensions,
         test_isempty,
         test_normalize,
-        test_real,
+        test_canonicalize,
         test_relative,
         test_absolute,
         test_isdir,
@@ -123,7 +123,7 @@ ps = PathSet(; symlink=true)
             @test isa(relative(Path(".")), AbstractPath)
             @test relative(Path(".")) == Path(".")
 
-            @test real(p"../test/mode.jl") == Path(realpath("../test/mode.jl"))
+            @test canonicalize(p"../test/mode.jl") == Path(realpath("../test/mode.jl"))
 
             s = stat(p)
             lstat(p)

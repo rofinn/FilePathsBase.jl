@@ -35,7 +35,7 @@ include("testpkg.jl")
                 test_extensions,
                 test_isempty,
                 test_normalize,
-                test_real,
+                test_canonicalize,
                 test_relative,
                 test_absolute,
                 test_isdir,
