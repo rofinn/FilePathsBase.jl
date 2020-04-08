@@ -238,7 +238,7 @@ julia> p"foo" / "bar" / "baz"
 p"foo/bar/baz"
 ```
 """
-/(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...) = joinpath(root, pieces...)
+/(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...) = join(root, pieces...)
 
 
 """
