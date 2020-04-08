@@ -131,5 +131,6 @@ include("posix.jl")
 include("windows.jl")
 include("system.jl")
 include("test.jl")
+include("deprecates.jl")
 
 end # end of module
