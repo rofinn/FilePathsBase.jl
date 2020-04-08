@@ -114,6 +114,13 @@ Returns true if `fp.root` is empty, indicating that it is a relative path.
 """
 isrelative(fp::AbstractPath) = isempty(fp.root)
 
+"""
+    isabsolute(fp::AbstractPath) -> Bool
+
+Returns true if `fp.root` is not empty, indicating that it is an absolute path.
+"""
+isabsolute(fp::AbstractPath) = !isempty(fp.root)
+
 # Support immutable indexing API
 Base.getindex(fp::AbstractPath, idx) = fp.segments[idx]
 Base.firstindex(::AbstractPath) = 1
@@ -344,11 +351,11 @@ default to using the current directory (or `p"."`).
 Base.isempty(fp::AbstractPath) = isempty(fp.segments)
 
 """
-    norm(fp::AbstractPath) -> AbstractPath
+    normalize(fp::AbstractPath) -> AbstractPath
 
-Normalizes a path by removing "." and ".." entries.
+normalizes a path by removing "." and ".." entries.
 """
-function LinearAlgebra.norm(fp::T) where {T <: AbstractPath}
+function normalize(fp::T) where {T <: AbstractPath}
     p = fp.segments
     result = String[]
     rem = length(p)
@@ -376,22 +383,18 @@ function LinearAlgebra.norm(fp::T) where {T <: AbstractPath}
 end
 
 """
-    abs(fp::AbstractPath) -> AbstractPath
+    absolute(fp::AbstractPath) -> AbstractPath
 
 Creates an absolute path by adding the current working directory if necessary.
 """
-function Base.abs(fp::AbstractPath)
+function absolute(fp::AbstractPath)
     result = expanduser(fp)
 
-    if isabs(result)
-        return norm(result)
+    if isabsolute(result)
+        return normalize(result)
     else
-        return norm(join(cwd(), result))
+        return normalize(join(cwd(), result))
     end
-end
-
-function isabs(fp::AbstractPath)
-    return !isempty(fp.drive) && !isempty(fp.root)
 end
 
 """
@@ -403,8 +406,8 @@ function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
     curdir = "."
     pardir = ".."
 
-    p = abs(fp).segments
-    s = abs(start).segments
+    p = absolute(fp).segments
+    s = absolute(start).segments
 
     p == s && return T(curdir)
 
@@ -437,11 +440,15 @@ function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
 end
 
 """
-    real(path::AbstractPath) -> AbstractPath
+    canonicalize(path::AbstractPath) -> AbstractPath
 
-Canonicalize a path by expanding symbolic links and removing "." and ".." entries.
+Canonicalize a path by making it absolute, `.` or `..` segments and resolving any symlinks
+if applicable.
+
+WARNING: Fallback behaviour ignores symlinks and should be extended for paths where
+symlinks are permitted (e.g., `SystemPath`s).
 """
-Base.real(fp::AbstractPath) = fp
+canonicalize(fp::AbstractPath) = normalize(absolute(fp))
 
 Base.lstat(fp::AbstractPath) = stat(fp)
 
@@ -773,12 +780,12 @@ mktmpdir(arg1, args...) = mktempdir(arg1, args...)
 # ALIASES for base filesystem API
 Base.dirname(fp::AbstractPath) = parent(fp)
 Base.ispath(fp::AbstractPath) = exists(fp)
-Base.realpath(fp::AbstractPath) = real(fp)
-Base.normpath(fp::AbstractPath) = norm(fp)
-Base.abspath(fp::AbstractPath) = abs(fp)
+Base.realpath(fp::AbstractPath) = canonicalize(fp)
+Base.normpath(fp::AbstractPath) = normalize(fp)
+Base.abspath(fp::AbstractPath) = absolute(fp)
 Base.relpath(fp::AbstractPath) = relative(fp)
 Base.filemode(fp::AbstractPath) = mode(fp)
-Base.isabspath(fp::AbstractPath) = isabs(fp)
+Base.isabspath(fp::AbstractPath) = isabsolute(fp)
 Base.mkpath(fp::AbstractPath) = mkdir(fp; recursive=true)
 
 # ALIASES for now old FilePaths API

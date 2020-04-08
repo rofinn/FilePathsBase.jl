@@ -46,7 +46,6 @@ macro LOCAL(filespec)
 end
 
 exists(fp::SystemPath) = ispath(string(fp))
-Base.real(fp::P) where {P <: SystemPath} = P(realpath(string(fp)))
 
 #=
 The following a descriptive methods for paths
@@ -379,3 +378,4 @@ end
 Base.readdir(fp::SystemPath) = readdir(string(fp))
 Base.download(url::AbstractString, dest::SystemPath) = download(url, string(dest))
 Base.readlink(fp::SystemPath) = Path(readlink(string(fp)))
+canonicalize(fp::SystemPath) = Path(realpath(string(fp)))

@@ -76,13 +76,11 @@ ispathtype(::Type{WindowsPath}, str::AbstractString) = Sys.iswindows()
 
 function Base.show(io::IO, fp::WindowsPath)
     print(io, "p\"")
-    if isabs(fp)
+    if isabsolute(fp)
         print(io, replace(fp.anchor, "\\" => "/"))
     end
     print(io, join(fp.segments, "/"))
     print(io, "\"")
 end
 
-function isabs(fp::WindowsPath)
-    return !isempty(fp.drive) || !isempty(fp.root)
-end
+isabsolute(fp::WindowsPath) = (!isempty(fp.drive) || !isempty(fp.root))

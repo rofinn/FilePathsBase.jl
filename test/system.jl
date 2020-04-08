@@ -18,10 +18,10 @@ ps = PathSet(; symlink=true)
         test_filename,
         test_extensions,
         test_isempty,
-        test_norm,
-        test_real,
+        test_normalize,
+        test_canonicalize,
         test_relative,
-        test_abs,
+        test_absolute,
         test_isdir,
         test_isfile,
         test_stat,
@@ -68,7 +68,7 @@ ps = PathSet(; symlink=true)
     test(ps, testsets)
 
     # Test the system path specific macros, behaviour and properties
-    cd(abs(parent(Path(@__FILE__)))) do
+    cd(absolute(parent(Path(@__FILE__)))) do
         @testset "Simple System Path Usage" begin
             reg = Sys.iswindows() ? "..\\src\\FilePathsBase.jl" : "../src/FilePathsBase.jl"
             @test ispath(reg)
@@ -100,9 +100,9 @@ ps = PathSet(; symlink=true)
             @test length(extensions(p"../REQUIRE")) == 0
 
             @test exists(p)
-            @test !isabs(p)
-            @test string(norm(p"../src/../src/FilePathsBase.jl")) == normpath("../src/../src/FilePathsBase.jl")
-            @test string(abs(p)) == abspath(string(p))
+            @test !isabsolute(p)
+            @test string(normalize(p"../src/../src/FilePathsBase.jl")) == normpath("../src/../src/FilePathsBase.jl")
+            @test string(absolute(p)) == abspath(string(p))
             @test sprint(show, p"../README.md") == "p\"../README.md\""
 
             # This works around an issue with Base.relpath: that function does not take
@@ -123,7 +123,7 @@ ps = PathSet(; symlink=true)
             @test isa(relative(Path(".")), AbstractPath)
             @test relative(Path(".")) == Path(".")
 
-            @test real(p"../test/mode.jl") == Path(realpath("../test/mode.jl"))
+            @test canonicalize(p"../test/mode.jl") == Path(realpath("../test/mode.jl"))
 
             s = stat(p)
             lstat(p)

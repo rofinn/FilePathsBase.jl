@@ -26,10 +26,10 @@ testsets = [
     test_filename,
     test_extensions,
     test_isempty,
-    test_norm,
-    test_real,
+    test_normalize,
+    test_canonicalize,
     test_relative,
-    test_abs,
+    test_absolute,
     test_isdir,
     test_isfile,
     test_stat,
@@ -59,9 +59,8 @@ test(ps, testsets)
 ```
 """
 module TestPaths
-    using Dates
+    using Dates: Dates
     using FilePathsBase
-    using LinearAlgebra: norm
     using Test
 
     export PathSet,
@@ -83,10 +82,10 @@ module TestPaths
         test_filename,
         test_extensions,
         test_isempty,
-        test_norm,
-        test_real,
+        test_normalize,
+        test_canonicalize,
         test_relative,
-        test_abs,
+        test_absolute,
         test_isdir,
         test_isfile,
         test_stat,
@@ -151,7 +150,7 @@ module TestPaths
     end
 
     function PathSet(root=tmpdir() / "pathset_root"; symlink=false)
-        root = abs(root)
+        root = absolute(root)
 
         PathSet(
             root,
@@ -329,7 +328,7 @@ module TestPaths
             @test ps.root / p"foo" / "baz.txt" == ps.baz
 
             # TODO: Maybe normalize this case for the user? {ps.root}/foo/./baz.txt
-            @test norm(ps.root / p"foo" / "" / "baz.txt") == ps.baz
+            @test normalize(ps.root / p"foo" / "" / "baz.txt") == ps.baz
 
             # TODO: Do we want to allow joining absolute paths?
             @test ps.root / p"/foo/baz.txt" == ps.baz
@@ -377,27 +376,27 @@ module TestPaths
         end
     end
 
-    function test_norm(ps::PathSet)
-        @testset "norm" begin
-            @test norm(ps.bar / ".." / "foo") == ps.foo
-            @test norm(ps.bar / ".") == ps.bar
+    function test_normalize(ps::PathSet)
+        @testset "normalize" begin
+            @test normalize(ps.bar / ".." / "foo") == ps.foo
+            @test normalize(ps.bar / ".") == ps.bar
             @test normpath(ps.bar / ".") == ps.bar
         end
     end
 
-    function test_real(ps::PathSet)
-        @testset "real" begin
-            # NOTE: We call `real` on ps.bar in the `norm` case because on
+    function test_canonicalize(ps::PathSet)
+        @testset "canonicalize" begin
+            # NOTE: We call `canonicalize` on ps.bar in the `normalize` case because on
             # macOS the temp directory may include a symlink.
-            @test real(ps.bar / ".." / "foo") == norm(real(ps.bar) / ".." / "foo")
-            @test real(ps.bar / ".") == norm(real(ps.bar) / ".")
-            @test realpath(ps.bar / ".") == real(ps.bar / ".")
+            @test canonicalize(ps.bar / ".." / "foo") == normalize(canonicalize(ps.bar) / ".." / "foo")
+            @test canonicalize(ps.bar / ".") == normalize(canonicalize(ps.bar) / ".")
+            @test realpath(ps.bar / ".") == canonicalize(ps.bar / ".")
 
             if ps.plugh !== nothing
                 if isa(ps.plugh, WindowsPath) && VERSION < v"1.2"
-                    @test_broken real(ps.plugh) == real(ps.foo)
+                    @test_broken canonicalize(ps.plugh) == canonicalize(ps.foo)
                 else
-                    @test real(ps.plugh) == real(ps.foo)
+                    @test canonicalize(ps.plugh) == canonicalize(ps.foo)
                 end
             end
         end
@@ -409,10 +408,10 @@ module TestPaths
         end
     end
 
-    function test_abs(ps::PathSet)
-        @testset "abs" begin
-            @test isabs(ps.root) || isabs(abs(ps.root))
-            @test abs(ps.root) == abspath(ps.root)
+    function test_absolute(ps::PathSet)
+        @testset "absolute" begin
+            @test isabsolute(ps.root) || isabsolute(absolute(ps.root))
+            @test absolute(ps.root) == abspath(ps.root)
         end
     end
 
@@ -533,17 +532,17 @@ module TestPaths
                 init_path = cwd()
 
                 cd(ps.foo) do
-                    @test cwd() != real(init_path)
-                    @test cwd() == real(ps.foo)
+                    @test cwd() != canonicalize(init_path)
+                    @test cwd() == canonicalize(ps.foo)
                 end
 
-                @test cwd() == real(init_path)
+                @test cwd() == canonicalize(init_path)
 
                 cd(ps.qux)
-                @test cwd() != real(init_path)
-                @test cwd() == real(ps.qux)
+                @test cwd() != canonicalize(init_path)
+                @test cwd() == canonicalize(ps.qux)
                 cd(init_path)
-                @test cwd() == real(init_path)
+                @test cwd() == canonicalize(init_path)
             end
         end
     end
@@ -914,10 +913,10 @@ module TestPaths
         test_filename,
         test_extensions,
         test_isempty,
-        test_norm,
-        test_real,
+        test_normalize,
+        test_canonicalize,
         test_relative,
-        test_abs,
+        test_absolute,
         test_isdir,
         test_isfile,
         test_stat,

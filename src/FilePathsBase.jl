@@ -3,7 +3,6 @@ __precompile__()
 module FilePathsBase
 
 using Dates
-using LinearAlgebra
 using Printf
 using UUIDs
 
@@ -30,10 +29,13 @@ export
     extension,
     extensions,
     exists,
-    isabs,
+    absolute,
+    isabsolute,
     mode,
     created,
     modified,
+    normalize,
+    canonicalize,
     relative,
     isrelative,
     ismount,
@@ -129,5 +131,6 @@ include("posix.jl")
 include("windows.jl")
 include("system.jl")
 include("test.jl")
+include("deprecates.jl")
 
 end # end of module

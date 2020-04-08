@@ -48,7 +48,8 @@ end
 
 # We're going to implement most of the posix API, but this won't make sense for many path types
 FilePathsBase.exists(fp::TestPath) = exists(test2posix(fp))
-Base.real(fp::TestPath) = posix2test(real(test2posix(fp)))
+Base.readlink(fp::TestPath) = posix2test(readlink(test2posix(fp)))
+FilePathsBase.canonicalize(fp::TestPath) = posix2test(canonicalize(test2posix(fp)))
 FilePathsBase.stat(fp::TestPath) = stat(test2posix(fp))
 FilePathsBase.lstat(fp::TestPath) = lstat(test2posix(fp))
 FilePathsBase.mode(fp::TestPath) = stat(fp).mode

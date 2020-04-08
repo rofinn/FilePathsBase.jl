@@ -18,8 +18,8 @@ N/A | extension
 N/A | extensions
 ispath | exists
 realpath | real
-normpath | norm
-abspath | abs
+normpath | normalize
+abspath | absolute
 relpath | relative
 stat | stat
 lstat | lstat
@@ -37,7 +37,7 @@ isexecutable (deprecated) | isexecutable
 iswritable (deprecated) | iswritable
 isreadable (deprecated) | isreadable
 ismount | ismount
-isabspath | isabs
+isabspath | isabsolute
 splitdrive()[1] | drive
 N/A | root (property)
 split(p, "/") | segments (property)
@@ -94,11 +94,12 @@ FilePathsBase.filename(::AbstractPath)
 FilePathsBase.extension(::AbstractPath)
 FilePathsBase.extensions(::AbstractPath)
 Base.isempty(::AbstractPath)
-LinearAlgebra.norm(::T) where {T <: AbstractPath}
-Base.abs(::AbstractPath)
-FilePathsBase.isabs(::AbstractPath)
+normalize(::T) where {T <: AbstractPath}
+absolute(::AbstractPath)
+FilePathsBase.isabsolute(::AbstractPath)
 FilePathsBase.relative(::T, ::T) where {T <: AbstractPath}
-Base.real(::AbstractPath)
+Base.readlink(::AbstractPath)
+FilePathsBase.canonicalize(::AbstractPath)
 FilePathsBase.mode(::AbstractPath)
 FilePathsBase.modified(::AbstractPath)
 FilePathsBase.created(::AbstractPath)

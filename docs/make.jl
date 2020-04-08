@@ -1,4 +1,4 @@
-using Documenter, FilePathsBase, FilePathsBase.TestPaths, LinearAlgebra
+using Documenter, FilePathsBase, FilePathsBase.TestPaths
 
 makedocs(
     modules=[FilePathsBase],
