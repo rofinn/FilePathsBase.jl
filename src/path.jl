@@ -252,7 +252,7 @@ julia> join(p"~/.julia/v0.6", "REQUIRE")
 p"~/.julia/v0.6/REQUIRE"
 ```
 """
-function join(prefix::T, pieces::Union{AbstractPath, AbstractString}...) where T <: AbstractPath
+function join(prefix::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
     segments = String[prefix.segments...]
 
     for p in pieces
