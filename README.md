@@ -15,7 +15,7 @@ julia> Pkg.add("FilePathsBase")
 
 ## Usage
 ```julia-repl
-julia> using FilePathsBase; using FilePathsBase: /
+julia> using FilePathsBase; import FilePathsBase: /
 ```
 
 The first important difference about working with paths in FilePathsBase.jl is that path

@@ -68,7 +68,7 @@ write | write
 ```@meta
 DocTestSetup = quote
     using FilePathsBase
-    using FilePathsBase: /
+    import FilePathsBase: /
 end
 ```
 
