@@ -42,7 +42,7 @@ include("testpkg.jl")
                 test_isdir,
                 test_isfile,
                 test_stat,
-                test_size,
+                test_filesize,
                 test_modified,
                 test_created,
                 test_cd,

@@ -25,7 +25,7 @@ ps = PathSet(; symlink=true)
         test_isdir,
         test_isfile,
         test_stat,
-        test_size,
+        test_filesize,
         test_modified,
         test_created,
         test_cd,
@@ -132,7 +132,7 @@ ps = PathSet(; symlink=true)
             #@test "device" in show_str
             #@test "blocks" in show_str
 
-            @test size(p) == stat(p).size
+            @test filesize(p) == stat(p).size
             @test modified(p) == stat(p).mtime
             @test created(p) == stat(p).ctime
 

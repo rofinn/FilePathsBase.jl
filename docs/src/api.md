@@ -89,8 +89,8 @@ FilePathsBase.hasparent
 FilePathsBase.parents
 FilePathsBase.parent
 Base.:(*)(::P, ::Union{P, AbstractString, Char}...) where P <: AbstractPath
-Base.:(/)(::AbstractPath, ::Union{AbstractPath, AbstractString}...)
-Base.join(::T, ::Union{AbstractPath, AbstractString}...) where T <: AbstractPath
+FilePathsBase.:(/)(::AbstractPath, ::Union{AbstractPath, AbstractString}...)
+FilePathsBase.join(::T, ::Union{AbstractPath, AbstractString}...) where T <: AbstractPath
 FilePathsBase.filename(::AbstractPath)
 FilePathsBase.extension(::AbstractPath)
 FilePathsBase.extensions(::AbstractPath)
