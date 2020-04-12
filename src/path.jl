@@ -18,20 +18,77 @@ function Path end
 
 Path(fp::AbstractPath) = fp
 
+Path() = @static Sys.isunix() ? PosixPath() : WindowsPath()
+Path(pieces::Tuple{Vararg{String}}) =
+    @static Sys.isunix() ? PosixPath(pieces) : WindowsPath(pieces)
+
+"""
+    @__PATH__ -> SystemPath
+
+@__PATH__ expands to a path with the directory part of the absolute path
+of the file containing the macro. Returns an empty Path if run from a REPL or
+if evaluated by julia -e <expr>.
+"""
+macro __PATH__()
+    p = Path(dirname(string(__source__.file)))
+    return p === nothing ? :(Path()) : :($p)
+end
+
+"""
+    @__FILEPATH__ -> SystemPath
+
+@__FILEPATH__ expands to a path with the absolute file path of the file
+containing the macro. Returns an empty Path if run from a REPL or if
+evaluated by julia -e <expr>.
+"""
+macro __FILEPATH__()
+    p = Path(string(__source__.file))
+    return p === nothing ? :(Path()) : :($p)
+end
+
+"""
+    @LOCAL(filespec)
+
+Construct an absolute path to `filespec` relative to the source file
+containing the macro call.
+"""
+macro LOCAL(filespec)
+    p = join(Path(dirname(string(__source__.file))), Path(filespec))
+    return :($p)
+end
+
 # May want to support using the registry for other constructors as well
 function Path(str::AbstractString; debug=false)
-    types = filter(t -> ispathtype(t, str), PATH_TYPES)
+    result = nothing
+    types = Vector{eltype(PATH_TYPES)}()
+
+    for P in PATH_TYPES
+        r = tryparse(P, str)
+
+        # If we successfully parsed the path then save that result
+        # and break if we aren't in debug mode, otherwise record how many
+        if r !== nothing
+            result = r
+            if debug
+                push!(types, P)
+            else
+                break
+            end
+        end
+    end
 
     if length(types) > 1
         @debug(
             string(
                 "Found multiple path types that match the string specified ($types). ",
-                "Please use a specific constructor if $(first(types)) is not the correct type."
+                "Please use a specific `parse` method if $(first(types)) is not the correct type."
             )
         )
+    elseif result === nothing
+        throw(ArgumentError("Unable to parse $str as a path type."))
+    else
+        return result
     end
-
-    return first(types)(str)
 end
 
 function Path(fp::T, segments::Tuple{Vararg{String}}) where T <: AbstractPath
@@ -70,15 +127,24 @@ end
 We only want to print the macro string syntax when compact is true and
 we want print to just return the string (this allows `string` to work normally)
 =#
-function Base.print(io::IO, fp::AbstractPath)
+function Base.print(io::IO, fp::FilePath)
     print(io, fp.anchor * join(fp.segments, fp.separator))
+end
+
+function Base.print(io::IO, fp::DirectoryPath)
+    print(io, fp.anchor * join(fp.segments, fp.separator) * fp.separator)
 end
 
 function Base.show(io::IO, fp::AbstractPath)
     get(io, :compact, false) ? print(io, fp) : print(io, "p\"$fp\"")
 end
 
-Base.parse(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
+function Base.parse(::Type{P}, str::AbstractString) where P<:AbstractPath
+    result = tryparse(P, str)
+    result === nothing && throw(ArgumentError("$str cannot be parsed as $P"))
+    return result
+end
+
 Base.convert(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
 Base.convert(::Type{String}, x::AbstractPath) = string(x)
 Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String

@@ -1,49 +1,10 @@
 """
-    SystemPath
+    SystemPath{F<:Form, K<:Kind} <: AbstractPath{F, K}
 
 A union of `PosixPath` and `WindowsPath` which is used for writing
 methods that wrap base functionality.
 """
-const SystemPath = Union{PosixPath, WindowsPath}
-
-Path() = @static Sys.isunix() ? PosixPath() : WindowsPath()
-Path(pieces::Tuple{Vararg{String}}) =
-    @static Sys.isunix() ? PosixPath(pieces) : WindowsPath(pieces)
-
-"""
-    @__PATH__ -> SystemPath
-
-@__PATH__ expands to a path with the directory part of the absolute path
-of the file containing the macro. Returns an empty Path if run from a REPL or
-if evaluated by julia -e <expr>.
-"""
-macro __PATH__()
-    p = Path(dirname(string(__source__.file)))
-    return p === nothing ? :(Path()) : :($p)
-end
-
-"""
-    @__FILEPATH__ -> SystemPath
-
-@__FILEPATH__ expands to a path with the absolute file path of the file
-containing the macro. Returns an empty Path if run from a REPL or if
-evaluated by julia -e <expr>.
-"""
-macro __FILEPATH__()
-    p = Path(string(__source__.file))
-    return p === nothing ? :(Path()) : :($p)
-end
-
-"""
-    @LOCAL(filespec)
-
-Construct an absolute path to `filespec` relative to the source file
-containing the macro call.
-"""
-macro LOCAL(filespec)
-    p = join(Path(dirname(string(__source__.file))), Path(filespec))
-    return :($p)
-end
+abstract type SystemPath{F<:Form, K<:Kind} <: AbstractPath{F, K} end
 
 exists(fp::SystemPath) = ispath(string(fp))
 
