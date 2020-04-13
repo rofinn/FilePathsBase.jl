@@ -16,6 +16,14 @@ PosixPath(segments::Tuple; root="") = PosixPath{Rel, Kind}(segments, root)
 
 PosixPath(str::AbstractString) = parse(PosixPath, str)
 
+if Sys.isunix()
+    Path() = PosixPath()
+    Path(pieces::Tuple) = PosixPath(pieces)
+    cwd() = parse(PosixPath{Abs, Dir}, pwd() * POSIX_PATH_SEPARATOR)
+    home() = parse(PosixPath{Abs, Dir}, homedir() * POSIX_PATH_SEPARATOR)
+end
+
+######### Parsing ###########
 # High level tryparse for the entire type
 function Base.tryparse(::Type{PosixPath}, str::AbstractString)
     # Only bother with `tryparse` if we're on a posix system.
@@ -41,7 +49,10 @@ end
 
 function Base.tryparse(::Type{PosixPath{Rel, Dir}}, str::AbstractString)
     str = normpath(str)
-    isempty(str) && return PosixPath{Rel, Dir}(tuple("."), "")
+    # normpath will remove trailing separator from "./" and "../" which will break our assumption
+    # that directories must end with the separator.
+    isempty(str) || str == "." && return PosixPath{Rel, Dir}(tuple("."), "")
+    str == ".." && return PosixPath{Rel, Dir}(tuple("..", ""))
 
     tokenized = split(str, POSIX_PATH_SEPARATOR)
     # `str` does not start but ends with separator or we don't have a valid relative directory.
@@ -72,16 +83,6 @@ function Base.tryparse(::Type{PosixPath{Abs, Dir}}, str::AbstractString)
     isempty(first(tokenized)) && isempty(last(tokenized)) || return nothing
 
     return PosixPath{Abs, Dir}(tuple(String.(tokenized[2:end-1])...), POSIX_PATH_SEPARATOR)
-end
-
-function Base.expanduser(fp::PosixPath)::PosixPath
-    p = fp.segments
-
-    if p[1] == "~"
-        return length(p) > 1 ? joinpath(home(), p[2:end]...) : home()
-    end
-
-    return fp
 end
 
 function Base.Filesystem.contractuser(fp::PosixPath)

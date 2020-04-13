@@ -34,6 +34,13 @@ end
 
 WindowsPath(str::AbstractString) = parse(WindowsPath, str)
 
+if Sys.iswindows()
+    Path() = WindowsPath()
+    Path(pieces::Tuple) = WindowsPath(pieces)
+    cwd() = parse(WindowsPath{Abs, Dir}, pwd() * WIN_PATH_SEPARATOR)
+    home() = parse(WindowsPath{Abs, Dir}, homedir() * WIN_PATH_SEPARATOR)
+end
+
 # High level tryparse for the entire type
 function Base.tryparse(::Type{WindowsPath}, str::AbstractString)
     # Only bother with `tryparse` if we're on a windows system.

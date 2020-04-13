@@ -113,6 +113,14 @@ Defines an abstract filesystem path.
 """
 abstract type AbstractPath{F<:Form, K<:Kind} end  # Define the AbstractPath here to avoid circular include dependencies
 
+# A couple utility methods to extract the form and kind from a type.
+form(fp::AbstractPath{F}) where {F<:Form} = F
+kind(fp::AbstractPath{F, K}) where {F<:Form, K<:Kind} = K
+function fptype(fp::AbstractPath)
+    i = findfirst(T -> fp isa T, PATH_TYPES)
+    return PATH_TYPES[i]
+end
+
 """
     register(::Type{<:AbstractPath})
 

@@ -18,10 +18,6 @@ function Path end
 
 Path(fp::AbstractPath) = fp
 
-Path() = @static Sys.isunix() ? PosixPath() : WindowsPath()
-Path(pieces::Tuple{Vararg{String}}) =
-    @static Sys.isunix() ? PosixPath(pieces) : WindowsPath(pieces)
-
 """
     @__PATH__ -> SystemPath
 
@@ -91,8 +87,24 @@ function Path(str::AbstractString; debug=false)
     end
 end
 
-function Path(fp::T, segments::Tuple{Vararg{String}}) where T <: AbstractPath
+Path(fp::T, segments::Tuple{Vararg{String}}) where {T<:AbstractPath} = Path(T, fp, segments)
+
+function Path(::Type{T}, fp::AbstractPath, segments::Tuple{Vararg{String}}) where T<:AbstractPath
     T((s === :segments ? segments : getfield(fp, s) for s in fieldnames(T))...)
+end
+
+function Path(::Type{T}, fp::AbstractPath, segments::Tuple{Vararg{String}}) where T<:RelativePath
+    args = map(fieldnames(T)) do s
+        if s === :segments
+            return segments
+        elseif s === :root
+            return ""  # By default relative means the root is empty.
+        else
+            return getfield(fp, s)
+        end
+    end
+
+    return T(args...)
 end
 
 """
@@ -149,26 +161,6 @@ Base.convert(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
 Base.convert(::Type{String}, x::AbstractPath) = string(x)
 Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String
 Base.isless(a::P, b::P) where P<:AbstractPath = isless(a.segments, b.segments)
-
-"""
-      cwd() -> SystemPath
-
-Get the current working directory.
-
-# Examples
-```julia-repl
-julia> cwd()
-p"/home/JuliaUser"
-
-julia> cd(p"/home/JuliaUser/Projects/julia")
-
-julia> cwd()
-p"/home/JuliaUser/Projects/julia"
-```
-"""
-cwd() = Path(pwd())
-home() = Path(homedir())
-Base.expanduser(fp::AbstractPath) = fp
 Base.broadcastable(fp::AbstractPath) = Ref(fp)
 
 # components(fp::AbstractPath) = tuple(drive(fp), root(fp), path(fp)...)
@@ -261,15 +253,18 @@ julia> parents(p".")
  p"."
  ```
 """
-function parents(fp::T) where {T <: AbstractPath}
+function parents(fp::AbstractPath)
+    # Return type should match the input, but We always want to produce directories
+    T = fptype(fp){form(fp), Dir}
+
     if hasparent(fp)
         # Iterate from 1:n-1 or 0:n-1 for relative and absolute paths respectively.
         # (i.e., include fp.root when applicable)
-        return [Path(fp, fp.segments[1:i]) for i in isrelative(fp):length(fp.segments) - 1]
+        return [Path(T, fp, fp.segments[1:i]) for i in isrelative(fp):length(fp.segments) - 1]
     elseif fp.segments == tuple(".") || !isempty(fp.root)
         return [fp]
     else
-        return [Path(fp, tuple("."))]
+        return [Path(T, fp, tuple("."))]
     end
 end
 
@@ -286,8 +281,8 @@ julia> p"foo" * "bar"
 p"foobar"
 ```
 """
-function Base.:(*)(a::T, b::Union{T, AbstractString, AbstractChar}...) where T <: AbstractPath
-    T(*(string(a), string.(b)...))
+function Base.:(*)(a::AbstractPath, b::Union{AbstractPath, AbstractString, AbstractChar}...)
+    parse(fptype(a), *(string(a), string.(b)...))
 end
 
 """
@@ -306,7 +301,6 @@ p"foo/bar/baz"
 """
 /(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...) = join(root, pieces...)
 
-
 """
     join(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...) -> AbstractPath
 
@@ -318,19 +312,24 @@ julia> join(p"~/.julia/v0.6", "REQUIRE")
 p"~/.julia/v0.6/REQUIRE"
 ```
 """
-function join(prefix::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
+function join(prefix::AbstractPath, pieces::RelativePath...)
     segments = String[prefix.segments...]
 
     for p in pieces
-        if isa(p, AbstractPath)
-            push!(segments, p.segments...)
-        else
-            push!(segments, Path(p).segments...)
-        end
+        push!(segments, p.segments...)
     end
 
-    return Path(prefix, tuple(segments...))
+    # Return type should be the source prefix path with the same form, but the kind should
+    # match the last piece.
+    T = fptype(prefix){form(prefix), kind(last(pieces))}
+    return Path(T, prefix, tuple(segments...))
 end
+
+# Fallback for string pieces
+join(prefix::AbstractPath, pieces::AbstractString...) = join(prefix, Path.(pieces)...)
+
+# Fallback for incorrect path version, so we don't accidentally call `Base.join`
+join(prefix::AbstractPath, args...) = throw(MethodError(join, (prefix, args...)))
 
 function Base.splitext(fp::AbstractPath)
     new_fp, ext = splitext(string(fp))
@@ -411,6 +410,8 @@ default to using the current directory (or `p"."`).
 """
 Base.isempty(fp::AbstractPath) = isempty(fp.segments)
 
+Base.expanduser(fp::AbstractPath) = fp
+
 """
     normalize(fp::AbstractPath) -> AbstractPath
 
@@ -463,14 +464,18 @@ end
 
 Creates a relative path from either the current directory or an arbitrary start directory.
 """
-function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
+function relative(fp::AbstractPath, start::AbstractPath)
+    if fptype(fp) != fptype(start)
+        throw(ArgumentError("$fp and $start must be of the same type."))
+    end
     curdir = "."
     pardir = ".."
 
     p = absolute(fp).segments
     s = absolute(start).segments
+    T = fptype(fp){Rel, kind(fp)}
 
-    p == s && return T(curdir)
+    p == s && return parse(T, curdir)
 
     i = 0
     while i < min(length(p), length(s))
@@ -497,7 +502,7 @@ function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
     else
         relpath_ = tuple(pathpart...)
     end
-    return isempty(relpath_) ? T(curdir) : Path(fp, relpath_)
+    return isempty(relpath_) ? parse(T, curdir) : Path(T, fp, relpath_)
 end
 
 """
@@ -568,6 +573,8 @@ if `force=true`. If the path types support symlinks then `follow_symlinks=true` 
 copy the contents of the symlink to the destination.
 """
 function Base.cp(src::AbstractPath, dst::AbstractPath; force=false)
+    exists(src) || throw(ArgumentError("Source path does not exist: $src"))
+
     if exists(dst)
         if force
             rm(dst; force=force, recursive=true)
@@ -576,22 +583,24 @@ function Base.cp(src::AbstractPath, dst::AbstractPath; force=false)
         end
     end
 
-    if !exists(src)
-        throw(ArgumentError("Source path does not exist: $src"))
-    elseif isdir(src)
-        mkdir(dst)
-
-        for fp in readdir(src)
-            cp(src / fp, dst / fp; force=force)
-        end
-    elseif isfile(src)
-        write(dst, read(src))
-    else
-        throw(ArgumentError("Source path is not a file or directory: $src"))
-    end
-
-    return dst
+    return _cp(src, dst)
 end
+
+# Internal `_cp` calls don't need to do existence checks and can dispatch by dir or file.
+_cp(src::FilePath, dst::FilePath) = write(dst, read(src))
+
+function _cp(src::DirectoryPath, dst::DirectoryPath)
+    mkdir(dst)
+
+    for fp in readdir(src)
+        _cp(src / fp, dst / fp)
+    end
+end
+
+# Handle some failure cases.
+_cp(src::FilePath, dst::DirectoryPath) = throw(ArgumentError("$dst is not a FilePath."))
+_cp(src::DirectoryPath, dst::FilePath) = throw(ArgumentError("$dst is not a DirectoryPath."))
+_cp(src::AbstractPath, dst::AbstractPath) = throw(ArgumentError("$src is not a file or directory."))
 
 """
     mv(src::AbstractPath, dst::AbstractPath; force=false)
@@ -620,62 +629,61 @@ function sync(src::AbstractPath, dst::AbstractPath; kwargs...)
     sync(should_sync, src, dst; kwargs...)
 end
 
-function sync(f::Function, src::AbstractPath, dst::AbstractPath; delete=false, overwrite=true)
+function sync(f::Function, src::AbstractPath, dst::AbstractPath; kwargs...)
     # Throw an error if the source path doesn't exist at all
     exists(src) || throw(ArgumentError("$src does not exist"))
+    return _sync(f, src, dst; kwargs...)
+end
 
-    # If the top level source is just a file then try to just sync that
-    # without calling walkpath
-    if isfile(src)
-        # If the destination exists then we should make sure it is a file and check
-        # if we should copy the source over.
-        if exists(dst)
-            isfile(dst) || throw(ArgumentError("$dst is not a file"))
-            if overwrite && f(src, dst)
-                cp(src, dst; force=true)
-            end
-        else
-            cp(src, dst)
+# If the top level source is just a file then try to just sync that
+# without calling walkpath
+function _sync(f::Function, src::FilePath, dst::FilePath; delete=false, overwrite=true)
+    # If the destination exists then we should make sure it is a file and check
+    # if we should copy the source over.
+    if exists(dst)
+        if overwrite && f(src, dst)
+            cp(src, dst; force=true)
         end
     else
-        isdir(src) || throw(ArgumentError("$src is neither a file or directory."))
-        if exists(dst) && !isdir(dst)
-            throw(ArgumentError("$dst is not a directory while $src is"))
-        end
+        cp(src, dst)
+    end
+end
 
-        # Create an index of all of the source files
-        src_paths = collect(walkpath(src))
-        index = Dict(
-            Tuple(setdiff(p.segments, src.segments)) => i for (i, p) in enumerate(src_paths)
-        )
+function _sync(f::Function, src::DirectoryPath, dst::DirectoryPath; delete=false, overwrite=true)
+    # Create an index of all of the source files
+    src_paths = collect(walkpath(src))
+    index = Dict(
+        Tuple(setdiff(p.segments, src.segments)) => i for (i, p) in enumerate(src_paths)
+    )
 
-        if exists(dst)
-            for p in walkpath(dst)
-                k = Tuple(setdiff(p.segments, dst.segments))
+    if exists(dst)
+        for p in walkpath(dst)
+            k = Tuple(setdiff(p.segments, dst.segments))
 
-                if haskey(index, k)
-                    src_path = src_paths[index[k]]
-                    if overwrite && f(src_path, p)
-                        cp(src_path, p; force=true)
-                    end
-
-                    delete!(index, k)
-                elseif delete
-                    rm(p; recursive=true)
+            if haskey(index, k)
+                src_path = src_paths[index[k]]
+                if overwrite && f(src_path, p)
+                    cp(src_path, p; force=true)
                 end
-            end
 
-            # Finally, copy over files that don't exist at the destination
-            # But we need to iterate through it in a way that respects the original
-            # walkpath order otherwise we may end up trying to copy a file before its parents.
-            index_pairs = collect(pairs(index))
-            index_pairs = index_pairs[sortperm(last.(index_pairs))]
-            for (seg, i) in index_pairs
-                cp(src_paths[i], Path(dst, tuple(dst.segments..., seg...)); force=true)
+                delete!(index, k)
+            elseif delete
+                rm(p; recursive=true)
             end
-        else
-            cp(src, dst)
         end
+
+        # Finally, copy over files that don't exist at the destination
+        # But we need to iterate through it in a way that respects the original
+        # walkpath order otherwise we may end up trying to copy a file before its parents.
+        index_pairs = collect(pairs(index))
+        index_pairs = index_pairs[sortperm(last.(index_pairs))]
+        for (seg, i) in index_pairs
+            # The resulting copy type should match the original dst, but match the src `Kind`.
+            T = fptype(dst){form(dst), kind(src)}
+            cp(src_paths[i], Path(T, dst, tuple(dst.segments..., seg...)); force=true)
+        end
+    else
+        cp(src, dst)
     end
 end
 
@@ -718,11 +726,9 @@ function Base.download(url::AbstractPath, localfile::AbstractString)
 end
 
 """
-    readpath(fp::P) where {P <: AbstractPath} -> Vector{P}
+    readpath(fp::AbstractPath) -> Vector{AbstractPath}
 """
-function readpath(p::P)::Vector{P} where P <: AbstractPath
-    return P[join(p, f) for f in readdir(p)]
-end
+readpath(p::AbstractPath)  = p ./ readdir(p)
 
 """
     walkpath(fp::AbstractPath; topdown=true, follow_symlinks=false, onerror=throw)
@@ -749,15 +755,15 @@ function walkpath(fp::AbstractPath; topdown=true, follow_symlinks=false, onerror
 end
 
 """
-  open(filename::AbstractPath; keywords...) -> FileBuffer
-  open(filename::AbstractPath, mode="r) -> FileBuffer
+  open(filename::FilePath; keywords...) -> FileBuffer
+  open(filename::FilePath, mode="r) -> FileBuffer
 
 Return a default FileBuffer for `open` calls to paths which only support `read` and `write`
-methods. See base `open` docs for details on valid keywords.
+methods. See base `open` docs for details on valid keywords.0
 """
-Base.open(fp::AbstractPath; kwargs...) = FileBuffer(fp; kwargs...)
+Base.open(fp::FilePath; kwargs...) = FileBuffer(fp; kwargs...)
 
-function Base.open(fp::AbstractPath, mode)
+function Base.open(fp::FilePath, mode)
     if mode == "r"
         return FileBuffer(fp; read=true, write=false)
     elseif mode == "w"
@@ -777,11 +783,11 @@ end
 
 
 # Fallback read write methods
-Base.read(fp::AbstractPath, ::Type{T}) where {T} = open(io -> read(io, T), fp)
-Base.write(fp::AbstractPath, x) = open(io -> write(io, x), fp, "w")
+Base.read(fp::FilePath, ::Type{T}) where {T} = open(io -> read(io, T), fp)
+Base.write(fp::FilePath, x) = open(io -> write(io, x), fp, "w")
 
 # Default `touch` will just write an empty string to a file
-Base.touch(fp::AbstractPath) = write(fp, "")
+Base.touch(fp::FilePath) = write(fp, "")
 
 Base.tempname(::Type{<:AbstractPath}) = Path(tempname())
 tmpname() = tempname(SystemPath)
