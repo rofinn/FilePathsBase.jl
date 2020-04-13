@@ -14,6 +14,10 @@ export
     SystemPath,
     PosixPath,
     WindowsPath,
+    FilePath,
+    DirectoryPath,
+    RelativePath,
+    AbsolutePath,
     Mode,
     Status,
     FileBuffer,
@@ -68,15 +72,24 @@ export
 
 export isexecutable
 
-const PATH_TYPES = DataType[]
+const PATH_TYPES = Type[]
 
 function __init__()
     register(PosixPath)
     register(WindowsPath)
 end
 
+abstract type Form end
+struct Abs <: Form end
+struct Rel <: Form end
+
+abstract type Kind end
+struct Dir <: Kind end
+struct File <: Kind end
+# Could choose to extend this with Symlink?
+
 """
-    AbstractPath
+    AbstractPath{F<:Form, K<:Kind}
 
 Defines an abstract filesystem path.
 
@@ -98,7 +111,15 @@ Defines an abstract filesystem path.
 - `rm(path::T; kwags...)` - Remove a file or directory
 - `readdir(path::T)` - Scan all files and directories at a specific path level
 """
-abstract type AbstractPath end  # Define the AbstractPath here to avoid circular include dependencies
+abstract type AbstractPath{F<:Form, K<:Kind} end  # Define the AbstractPath here to avoid circular include dependencies
+
+# A couple utility methods to extract the form and kind from a type.
+form(fp::AbstractPath{F}) where {F<:Form} = F
+kind(fp::AbstractPath{F, K}) where {F<:Form, K<:Kind} = K
+function fptype(fp::AbstractPath)
+    i = findfirst(T -> fp isa T, PATH_TYPES)
+    return PATH_TYPES[i]
+end
 
 """
     register(::Type{<:AbstractPath})
@@ -120,6 +141,12 @@ Return a boolean as to whether the string `x` fits the specified the path type.
 """
 function ispathtype end
 
+# define some aliases for parameterized abstract paths
+const AbsolutePath = AbstractPath{Abs}
+const RelativePath = AbstractPath{Rel}
+const FilePath = AbstractPath{<:Form, File}
+const DirectoryPath = AbstractPath{<:Form, Dir}
+
 include("constants.jl")
 include("utils.jl")
 include("libc.jl")
@@ -128,9 +155,9 @@ include("status.jl")
 include("buffer.jl")
 include("path.jl")
 include("aliases.jl")
+include("system.jl")
 include("posix.jl")
 include("windows.jl")
-include("system.jl")
 include("test.jl")
 include("deprecates.jl")
 

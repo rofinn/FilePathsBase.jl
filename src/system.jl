@@ -1,52 +1,32 @@
 """
-    SystemPath
+    SystemPath{F<:Form, K<:Kind} <: AbstractPath{F, K}
 
 A union of `PosixPath` and `WindowsPath` which is used for writing
 methods that wrap base functionality.
 """
-const SystemPath = Union{PosixPath, WindowsPath}
-
-Path() = @static Sys.isunix() ? PosixPath() : WindowsPath()
-Path(pieces::Tuple{Vararg{String}}) =
-    @static Sys.isunix() ? PosixPath(pieces) : WindowsPath(pieces)
-
-"""
-    @__PATH__ -> SystemPath
-
-@__PATH__ expands to a path with the directory part of the absolute path
-of the file containing the macro. Returns an empty Path if run from a REPL or
-if evaluated by julia -e <expr>.
-"""
-macro __PATH__()
-    p = Path(dirname(string(__source__.file)))
-    return p === nothing ? :(Path()) : :($p)
-end
-
-"""
-    @__FILEPATH__ -> SystemPath
-
-@__FILEPATH__ expands to a path with the absolute file path of the file
-containing the macro. Returns an empty Path if run from a REPL or if
-evaluated by julia -e <expr>.
-"""
-macro __FILEPATH__()
-    p = Path(string(__source__.file))
-    return p === nothing ? :(Path()) : :($p)
-end
-
-"""
-    @LOCAL(filespec)
-
-Construct an absolute path to `filespec` relative to the source file
-containing the macro call.
-"""
-macro LOCAL(filespec)
-    p = join(Path(dirname(string(__source__.file))), Path(filespec))
-    return :($p)
-end
+abstract type SystemPath{F<:Form, K<:Kind} <: AbstractPath{F, K} end
 
 exists(fp::SystemPath) = ispath(string(fp))
 
+"""
+      cwd() -> SystemPath{Abs, Dir}
+
+Get the current working directory.
+
+# Examples
+```julia-repl
+julia> cwd()
+p"/home/JuliaUser"
+
+julia> cd(p"/home/JuliaUser/Projects/julia")
+
+julia> cwd()
+p"/home/JuliaUser/Projects/julia"
+```
+"""
+function cwd end
+
+function home end
 #=
 The following a descriptive methods for paths
 built around stat
@@ -177,9 +157,10 @@ code in the implementation instances.
 
 TODO: Document these once we're comfortable with them.
 =#
+relative(fp::SystemPath) = relative(fp, cwd())
 
-Base.cd(fp::SystemPath) = cd(string(fp))
-function Base.cd(fn::Function, dir::SystemPath)
+Base.cd(fp::SystemPath{<:Form, Dir}) = cd(string(fp))
+function Base.cd(fn::Function, dir::SystemPath{<:Form, Dir})
     old = cwd()
     try
         cd(dir)
@@ -233,7 +214,7 @@ function Base.mktemp(parent::SystemPath)
     return Path(fp), io
 end
 
-Base.mktempdir(parent::SystemPath) = Path(mktempdir(string(parent)))
+Base.mktempdir(parent::SystemPath) = Path(mktempdir(string(parent)) * parent.separator)
 
 """
     chown(fp::SystemPath, user::AbstractString, group::AbstractString; recursive=false)
@@ -363,19 +344,32 @@ function Base.chmod(fp::SystemPath, symbolic_mode::AbstractString; recursive=fal
     end
 end
 
-Base.open(fp::SystemPath, args...) = open(string(fp), args...)
-function Base.open(f::Function, fp::SystemPath, args...; kwargs...)
+Base.open(fp::SystemPath{<:Form, File}, args...) = open(string(fp), args...)
+function Base.open(f::Function, fp::SystemPath{<:Form, File}, args...; kwargs...)
     open(f, string(fp), args...; kwargs...)
 end
 
-Base.read(fp::SystemPath) = read(string(fp))
-function Base.write(fp::SystemPath, x::Union{String, Vector{UInt8}}, mode="w")
+Base.read(fp::SystemPath{<:Form, File}) = read(string(fp))
+function Base.write(fp::SystemPath{<:Form, File}, x::Union{String, Vector{UInt8}}, mode="w")
     open(fp, mode) do f
         write(f, x)
     end
 end
 
-Base.readdir(fp::SystemPath) = readdir(string(fp))
+"""
+    readdir(fp::P) where {P <: SystemPath} -> Vector{P}
+"""
+function Base.readdir(fp::SystemPath{<:Form, Dir})
+    P = fptype(fp)
+    return map(readdir(string(fp))) do x
+        if isdir(x)
+            parse(P{Rel, Dir}, x * fp.separator)
+        else
+            parse(P{Rel, File}, x)
+        end
+    end
+end
+
 Base.download(url::AbstractString, dest::SystemPath) = download(url, string(dest))
 Base.readlink(fp::SystemPath) = Path(readlink(string(fp)))
 canonicalize(fp::SystemPath) = Path(realpath(string(fp)))
