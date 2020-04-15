@@ -4,7 +4,7 @@
 A union of `PosixPath` and `WindowsPath` which is used for writing
 methods that wrap base functionality.
 """
-const SystemPath = Union{PosixPath, WindowsPath}
+abstract type SystemPath <: AbstractPath end
 
 Path() = @static Sys.isunix() ? PosixPath() : WindowsPath()
 Path(pieces::Tuple{Vararg{String}}) =

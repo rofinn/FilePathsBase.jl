@@ -4,7 +4,7 @@
 
 Represents any posix path (e.g., `/home/user/docs`)
 """
-struct PosixPath <: AbstractPath
+struct PosixPath <: SystemPath
     segments::Tuple{Vararg{String}}
     root::String
 end

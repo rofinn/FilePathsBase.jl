@@ -4,7 +4,7 @@
 
 Represents a windows path (e.g., `C:\\User\\Documents`)
 """
-struct WindowsPath <: AbstractPath
+struct WindowsPath <: SystemPath
     segments::Tuple{Vararg{String}}
     root::String
     drive::String
