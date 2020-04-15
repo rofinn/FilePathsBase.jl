@@ -28,17 +28,24 @@ function WindowsPath(segments::Tuple; root="", drive="", separator="\\")
     return WindowsPath(segments, root, drive, separator)
 end
 
-function WindowsPath(str::AbstractString)
+WindowsPath(str::AbstractString) = parse(WindowsPath, str; force=true)
+
+function Base.tryparse(::Type{WindowsPath}, str::AbstractString; debug=false, force=false)
+    # Since windows and posix paths can overlap we default to checking the host system
+    # unless force is passed in for testing purposes.
+    force || Sys.iswindows() || return nothing
     isempty(str) && WindowsPath(tuple("."), "", "")
 
     if startswith(str, "\\\\?\\")
-        error("The \\\\?\\ prefix is currently not supported.")
+        debug && @debug("The \\\\?\\ prefix is currently not supported.")
+        return nothing
     end
 
     str = replace(str, POSIX_PATH_SEPARATOR => WIN_PATH_SEPARATOR)
 
     if startswith(str, "\\\\")
-        error("UNC paths are currently not supported.")
+        debug && @debug("UNC paths are currently not supported.")
+        return nothing
     elseif startswith(str, "\\")
         tokenized = split(str, WIN_PATH_SEPARATOR)
 
@@ -71,8 +78,6 @@ function Base.:(==)(a::WindowsPath, b::WindowsPath)
         lowercase(a.root) == lowercase(b.root) &&
         lowercase(a.drive) == lowercase(b.drive)
 end
-
-ispathtype(::Type{WindowsPath}, str::AbstractString) = Sys.iswindows()
 
 function Base.show(io::IO, fp::WindowsPath)
     print(io, "p\"")

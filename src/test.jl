@@ -190,7 +190,7 @@ module TestPaths
     function test_registration(ps::PathSet{P}) where P <: AbstractPath
         @testset "Path constructor" begin
             str = string(ps.root)
-            @test FilePathsBase.ispathtype(P, str)
+            @test tryparse(P, str) !== nothing
             @test Path(str) == ps.root
             @test p"foo/bar" == Path("foo/bar")
         end

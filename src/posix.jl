@@ -11,21 +11,19 @@ end
 
 PosixPath() = PosixPath(tuple(), "")
 PosixPath(segments::Tuple; root="") = PosixPath(segments, root)
+PosixPath(str::AbstractString) = parse(PosixPath, str; force=true)
 
-function PosixPath(str::AbstractString)
+function Base.tryparse(::Type{PosixPath}, str::AbstractString; debug=false, force=false)
+    # Since windows and posix paths can overlap we default to checking the host system
+    # unless force is passed in for testing purposes.
+    force || Sys.isunix() || return nothing
     str = string(str)
-    root = ""
-
     isempty(str) && return PosixPath(tuple("."))
 
     tokenized = split(str, POSIX_PATH_SEPARATOR)
-    if isempty(tokenized[1])
-        root = POSIX_PATH_SEPARATOR
-    end
+    root = isempty(tokenized[1]) ? POSIX_PATH_SEPARATOR : ""
     return PosixPath(tuple(map(String, filter!(!isempty, tokenized))...), root)
 end
-
-ispathtype(::Type{PosixPath}, str::AbstractString) = Sys.isunix()
 
 function Base.expanduser(fp::PosixPath)::PosixPath
     p = fp.segments

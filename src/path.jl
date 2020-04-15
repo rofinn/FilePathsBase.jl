@@ -20,18 +20,36 @@ Path(fp::AbstractPath) = fp
 
 # May want to support using the registry for other constructors as well
 function Path(str::AbstractString; debug=false)
-    types = filter(t -> ispathtype(t, str), PATH_TYPES)
+    result = nothing
+    types = Vector{eltype(PATH_TYPES)}()
+
+    for P in PATH_TYPES
+        r = tryparse(P, str)
+
+        # If we successfully parsed the path then save that result
+        # and break if we aren't in debug mode, otherwise record how many
+        if r !== nothing
+            result = r
+            if debug
+                push!(types, P)
+            else
+                break
+            end
+        end
+    end
 
     if length(types) > 1
         @debug(
             string(
-                "Found multiple path types that match the string specified ($types). ",
-                "Please use a specific constructor if $(first(types)) is not the correct type."
+                "Found multiple path types that could parse the string specified ($types). ",
+                "Please use a specific `parse` method if $(first(types)) is not the correct type."
             )
         )
+    elseif result == nothing
+        throw(ArgumentError("Unable to parse $str as a path type."))
+    else
+        return result
     end
-
-    return first(types)(str)
 end
 
 function Path(fp::T, segments::Tuple{Vararg{String}}) where T <: AbstractPath
@@ -78,8 +96,27 @@ function Base.show(io::IO, fp::AbstractPath)
     get(io, :compact, false) ? print(io, fp) : print(io, "p\"$fp\"")
 end
 
-Base.parse(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
-Base.convert(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
+function Base.parse(::Type{P}, str::AbstractString; kwargs...) where P<:AbstractPath
+    result = tryparse(P, str; kwargs...)
+    result === nothing && throw(ArgumentError("$str cannot be parsed as $P"))
+    return result
+end
+
+function Base.tryparse(T::Type{P}, str::AbstractString) where P<:AbstractPath
+    Base.depwarn(
+        "$P did not implement `tryparse`. " *
+        "Attempting to fallback to old `ispathtype` and string constructor API. ",
+        :tryparse
+    )
+    ispathtype(T, str) || return nothing
+    return try
+        T(str)
+    catch
+        nothing
+    end
+end
+
+Base.convert(T::Type{<:AbstractPath}, x::AbstractString) = parse(T, x)
 Base.convert(::Type{String}, x::AbstractPath) = string(x)
 Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String
 Base.isless(a::P, b::P) where P<:AbstractPath = isless(a.segments, b.segments)
