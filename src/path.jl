@@ -258,7 +258,7 @@ p"foobar"
 ```
 """
 function Base.:(*)(a::T, b::Union{T, AbstractString, AbstractChar}...) where T <: AbstractPath
-    T(*(string(a), string.(b)...))
+    parse(T, *(string(a), string.(b)...))
 end
 
 """
@@ -430,18 +430,18 @@ function absolute(fp::AbstractPath)
 end
 
 """
-    relative{T<:AbstractPath}(fp::T, start::T=T("."))
+    relative{T<:AbstractPath}(fp::T, start::T=cwd())
 
 Creates a relative path from either the current directory or an arbitrary start directory.
 """
-function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
+function relative(fp::T, start::T=cwd()) where {T<:AbstractPath}
     curdir = "."
     pardir = ".."
 
     p = absolute(fp).segments
     s = absolute(start).segments
 
-    p == s && return T(curdir)
+    p == s && return parse(T, curdir)
 
     i = 0
     while i < min(length(p), length(s))
@@ -468,7 +468,7 @@ function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
     else
         relpath_ = tuple(pathpart...)
     end
-    return isempty(relpath_) ? T(curdir) : Path(fp, relpath_)
+    return isempty(relpath_) ? parse(T, curdir) : Path(fp, relpath_)
 end
 
 """

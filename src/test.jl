@@ -13,7 +13,6 @@ ps = PathSet(; symlink=true)
 # Select the subset of tests to run
 # Inspect TestPaths.TESTALL to see full list
 testsets = [
-    test_constructor,
     test_registration,
     test_show,
     test_parse,
@@ -67,7 +66,6 @@ module TestPaths
     export PathSet,
         TESTALL,
         test,
-        test_constructor,
         test_registration,
         test_show,
         test_parse,
@@ -180,12 +178,7 @@ module TestPaths
         end
     end
 
-    function test_constructor(ps::PathSet{P}) where P <: AbstractPath
-        @testset "Constructor" begin
-            str = string(ps.root)
-            @test P(str) == ps.root
-        end
-    end
+    # NOTE: Most paths should test their own constructors as necessary.
 
     function test_registration(ps::PathSet{P}) where P <: AbstractPath
         @testset "Path constructor" begin
@@ -211,6 +204,7 @@ module TestPaths
         @testset "parsing" begin
             str = string(ps.root)
             @test parse(P, str) == ps.root
+            @test tryparse(P, str) == ps.root
         end
     end
 
@@ -898,7 +892,6 @@ module TestPaths
     end
 
     TESTALL = [
-        test_constructor,
         test_registration,
         test_show,
         test_parse,

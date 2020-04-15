@@ -2,7 +2,6 @@ ps = PathSet(; symlink=true)
 
 @testset "$(typeof(ps.root))" begin
     testsets = [
-        test_constructor,
         test_registration,
         test_show,
         test_parse,

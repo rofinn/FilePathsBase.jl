@@ -17,27 +17,20 @@ end
 
 TestPath() = TestPath(tuple(), "", "test:", ";")
 
-function TestPath(str::AbstractString)
+function Base.tryparse(::Type{TestPath}, str::AbstractString)
+    startswith(str, "test:") || return nothing
     str = String(str)
-
-    @assert startswith(str, "test:")
     drive = "test:"
-    root = ""
     str = str[6:end]
 
-    if isempty(str)
-        return TestPath(tuple("."), "", drive)
-    end
+    isempty(str) && return TestPath(tuple("."), "", drive)
 
     tokenized = split(str, ";")
-    if isempty(tokenized[1])
-        root = ";"
-    end
+    root = isempty(tokenized[1]) ? ";" : ""
 
     return TestPath(tuple(map(String, filter!(!isempty, tokenized))...), root, drive, ";")
 end
 
-FilePathsBase.ispathtype(::Type{TestPath}, str::AbstractString) = startswith(str, "test:")
 function test2posix(fp::TestPath)
     return PosixPath(fp.segments, isempty(fp.root) ? "" : "/")
 end
