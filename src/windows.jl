@@ -30,18 +30,18 @@ end
 
 WindowsPath(str::AbstractString) = parse(WindowsPath, str)
 
-function Base.tryparse(::Type{WindowsPath}, str::AbstractString; debug=false)
+function Base.tryparse(::Type{WindowsPath}, str::AbstractString)
     isempty(str) && WindowsPath(tuple("."), "", "")
 
     if startswith(str, "\\\\?\\")
-        debug && @debug("The \\\\?\\ prefix is currently not supported.")
+        @debug("The \\\\?\\ prefix is currently not supported.")
         return nothing
     end
 
     str = replace(str, POSIX_PATH_SEPARATOR => WIN_PATH_SEPARATOR)
 
     if startswith(str, "\\\\")
-        debug && @debug("UNC paths are currently not supported.")
+        @debug("UNC paths are currently not supported.")
         return nothing
     elseif startswith(str, "\\")
         tokenized = split(str, WIN_PATH_SEPARATOR)

@@ -13,7 +13,7 @@ PosixPath() = PosixPath(tuple(), "")
 PosixPath(segments::Tuple; root="") = PosixPath(segments, root)
 PosixPath(str::AbstractString) = parse(PosixPath, str)
 
-function Base.tryparse(::Type{PosixPath}, str::AbstractString; debug=false)
+function Base.tryparse(::Type{PosixPath}, str::AbstractString)
     str = string(str)
     isempty(str) && return PosixPath(tuple("."))
 
