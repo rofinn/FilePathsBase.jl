@@ -71,8 +71,8 @@ export isexecutable
 const PATH_TYPES = DataType[]
 
 function __init__()
-    register(PosixPath)
-    register(WindowsPath)
+    # Register the default fallback path type based on the os.
+    register(Sys.iswindows() ? WindowsPath : PosixPath)
 end
 
 """

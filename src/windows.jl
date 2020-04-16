@@ -28,12 +28,9 @@ function WindowsPath(segments::Tuple; root="", drive="", separator="\\")
     return WindowsPath(segments, root, drive, separator)
 end
 
-WindowsPath(str::AbstractString) = parse(WindowsPath, str; force=true)
+WindowsPath(str::AbstractString) = parse(WindowsPath, str)
 
-function Base.tryparse(::Type{WindowsPath}, str::AbstractString; debug=false, force=false)
-    # Since windows and posix paths can overlap we default to checking the host system
-    # unless force is passed in for testing purposes.
-    force || Sys.iswindows() || return nothing
+function Base.tryparse(::Type{WindowsPath}, str::AbstractString; debug=false)
     isempty(str) && WindowsPath(tuple("."), "", "")
 
     if startswith(str, "\\\\?\\")

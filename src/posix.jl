@@ -11,12 +11,9 @@ end
 
 PosixPath() = PosixPath(tuple(), "")
 PosixPath(segments::Tuple; root="") = PosixPath(segments, root)
-PosixPath(str::AbstractString) = parse(PosixPath, str; force=true)
+PosixPath(str::AbstractString) = parse(PosixPath, str)
 
-function Base.tryparse(::Type{PosixPath}, str::AbstractString; debug=false, force=false)
-    # Since windows and posix paths can overlap we default to checking the host system
-    # unless force is passed in for testing purposes.
-    force || Sys.isunix() || return nothing
+function Base.tryparse(::Type{PosixPath}, str::AbstractString; debug=false)
     str = string(str)
     isempty(str) && return PosixPath(tuple("."))
 
