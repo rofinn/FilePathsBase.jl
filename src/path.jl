@@ -258,7 +258,7 @@ p"foobar"
 ```
 """
 function Base.:(*)(a::T, b::Union{T, AbstractString, AbstractChar}...) where T <: AbstractPath
-    parse(T, *(string(a), string.(b)...))
+    return parse(T, *(string(a), string.(b)...))
 end
 
 """
