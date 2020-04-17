@@ -17,23 +17,7 @@ NOTE: `Path(::AbstractString)` can also work for custom paths if
 function Path end
 
 Path(fp::AbstractPath) = fp
-
-# May want to support using the registry for other constructors as well
-function Path(str::AbstractString; debug=false)
-    types = filter(t -> ispathtype(t, str), PATH_TYPES)
-
-    if length(types) > 1
-        @debug(
-            string(
-                "Found multiple path types that match the string specified ($types). ",
-                "Please use a specific constructor if $(first(types)) is not the correct type."
-            )
-        )
-    end
-
-    return first(types)(str)
-end
-
+Path(str::AbstractString) = parse(AbstractPath, str)
 function Path(fp::T, segments::Tuple{Vararg{String}}) where T <: AbstractPath
     T((s === :segments ? segments : getfield(fp, s) for s in fieldnames(T))...)
 end
@@ -78,8 +62,49 @@ function Base.show(io::IO, fp::AbstractPath)
     get(io, :compact, false) ? print(io, fp) : print(io, "p\"$fp\"")
 end
 
-Base.parse(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
-Base.convert(::Type{<:AbstractPath}, x::AbstractString) = Path(x)
+# Default string constructors for AbstractPath types should fall back to calling `parse`.
+(::Type{T})(str::AbstractString) where {T<:AbstractPath} = parse(T, str)
+
+function Base.parse(::Type{P}, str::AbstractString; kwargs...) where P<:AbstractPath
+    result = tryparse(P, str; kwargs...)
+    result === nothing && throw(ArgumentError("$str cannot be parsed as $P"))
+    return result
+end
+
+function Base.tryparse(::Type{AbstractPath}, str::AbstractString; debug=false)
+    result = nothing
+    types = Vector{eltype(PATH_TYPES)}()
+
+    for P in PATH_TYPES
+        r = tryparse(P, str)
+
+        # If we successfully parsed the path then save that result
+        # and break if we aren't in debug mode, otherwise record how many
+        if r !== nothing
+            # Only assign the result if it's currently `nothing`
+            result = result === nothing ? r : result
+
+            if debug
+                push!(types, P)
+            else
+                break
+            end
+        end
+    end
+
+    if length(types) > 1
+        @debug(
+            string(
+                "Found multiple path types that could parse the string specified ($types). ",
+                "Please use a specific `parse` method if $(first(types)) is not the correct type."
+            )
+        )
+    end
+
+    return result
+end
+
+Base.convert(T::Type{<:AbstractPath}, x::AbstractString) = parse(T, x)
 Base.convert(::Type{String}, x::AbstractPath) = string(x)
 Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String
 Base.isless(a::P, b::P) where P<:AbstractPath = isless(a.segments, b.segments)
@@ -221,7 +246,7 @@ p"foobar"
 ```
 """
 function Base.:(*)(a::T, b::Union{T, AbstractString, AbstractChar}...) where T <: AbstractPath
-    T(*(string(a), string.(b)...))
+    return parse(T, *(string(a), string.(b)...))
 end
 
 """
@@ -393,18 +418,18 @@ function absolute(fp::AbstractPath)
 end
 
 """
-    relative{T<:AbstractPath}(fp::T, start::T=T("."))
+    relative{T<:AbstractPath}(fp::T, start::T=cwd())
 
 Creates a relative path from either the current directory or an arbitrary start directory.
 """
-function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
+function relative(fp::T, start::T=cwd()) where {T<:AbstractPath}
     curdir = "."
     pardir = ".."
 
     p = absolute(fp).segments
     s = absolute(start).segments
 
-    p == s && return T(curdir)
+    p == s && return parse(T, curdir)
 
     i = 0
     while i < min(length(p), length(s))
@@ -431,7 +456,7 @@ function relative(fp::T, start::T=T(".")) where {T <: AbstractPath}
     else
         relpath_ = tuple(pathpart...)
     end
-    return isempty(relpath_) ? T(curdir) : Path(fp, relpath_)
+    return isempty(relpath_) ? parse(T, curdir) : Path(fp, relpath_)
 end
 
 """

@@ -71,8 +71,8 @@ export isexecutable
 const PATH_TYPES = DataType[]
 
 function __init__()
-    register(PosixPath)
-    register(WindowsPath)
+    # Register the default fallback path type based on the os.
+    register(Sys.iswindows() ? WindowsPath : PosixPath)
 end
 
 """
@@ -88,8 +88,7 @@ Defines an abstract filesystem path.
 - `separator::String` - path separator (defaults to "/")
 
 # Required Methods
-- `T(str::String)` - A string constructor
-- `FilePathsBase.ispathtype(::Type{T}, x::AbstractString) = true`
+- `tryparse(::Type{T}, str::String)` - For parsing string representations of your path
 - `read(path::T)`
 - `write(path::T, data)`
 - `exists(path::T` - whether the path exists

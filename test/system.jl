@@ -2,7 +2,6 @@ ps = PathSet(; symlink=true)
 
 @testset "$(typeof(ps.root))" begin
     testsets = [
-        test_constructor,
         test_registration,
         test_show,
         test_parse,
@@ -74,6 +73,9 @@ ps = PathSet(; symlink=true)
             @test ispath(reg)
 
             p = Path(reg)
+
+            # Test calling the Path tryparse method with debug mode.
+            p = tryparse(AbstractPath, reg; debug=true)
 
             @test p == p"../src/FilePathsBase.jl"
             @test string(p) == reg

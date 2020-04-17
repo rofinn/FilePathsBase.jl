@@ -12,20 +12,14 @@ end
 PosixPath() = PosixPath(tuple(), "")
 PosixPath(segments::Tuple; root="") = PosixPath(segments, root)
 
-function PosixPath(str::AbstractString)
+function Base.tryparse(::Type{PosixPath}, str::AbstractString)
     str = string(str)
-    root = ""
-
     isempty(str) && return PosixPath(tuple("."))
 
     tokenized = split(str, POSIX_PATH_SEPARATOR)
-    if isempty(tokenized[1])
-        root = POSIX_PATH_SEPARATOR
-    end
+    root = isempty(tokenized[1]) ? POSIX_PATH_SEPARATOR : ""
     return PosixPath(tuple(map(String, filter!(!isempty, tokenized))...), root)
 end
-
-ispathtype(::Type{PosixPath}, str::AbstractString) = Sys.isunix()
 
 function Base.expanduser(fp::PosixPath)::PosixPath
     p = fp.segments
