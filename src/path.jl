@@ -17,41 +17,7 @@ NOTE: `Path(::AbstractString)` can also work for custom paths if
 function Path end
 
 Path(fp::AbstractPath) = fp
-
-# May want to support using the registry for other constructors as well
-function Path(str::AbstractString; debug=false)
-    result = nothing
-    types = Vector{eltype(PATH_TYPES)}()
-
-    for P in PATH_TYPES
-        r = tryparse(P, str)
-
-        # If we successfully parsed the path then save that result
-        # and break if we aren't in debug mode, otherwise record how many
-        if r !== nothing
-            result = r
-            if debug
-                push!(types, P)
-            else
-                break
-            end
-        end
-    end
-
-    if length(types) > 1
-        @debug(
-            string(
-                "Found multiple path types that could parse the string specified ($types). ",
-                "Please use a specific `parse` method if $(first(types)) is not the correct type."
-            )
-        )
-    elseif result == nothing
-        throw(ArgumentError("Unable to parse $str as a path type."))
-    else
-        return result
-    end
-end
-
+Path(str::AbstractString) = parse(AbstractPath, str)
 function Path(fp::T, segments::Tuple{Vararg{String}}) where T <: AbstractPath
     T((s === :segments ? segments : getfield(fp, s) for s in fieldnames(T))...)
 end
@@ -96,24 +62,46 @@ function Base.show(io::IO, fp::AbstractPath)
     get(io, :compact, false) ? print(io, fp) : print(io, "p\"$fp\"")
 end
 
+# Default string constructors for AbstractPath types should fall back to calling `parse`.
+(::Type{T})(str::AbstractString) where {T<:AbstractPath} = parse(T, str)
+
 function Base.parse(::Type{P}, str::AbstractString; kwargs...) where P<:AbstractPath
     result = tryparse(P, str; kwargs...)
     result === nothing && throw(ArgumentError("$str cannot be parsed as $P"))
     return result
 end
 
-function Base.tryparse(T::Type{P}, str::AbstractString) where P<:AbstractPath
-    Base.depwarn(
-        "$P did not implement `tryparse`. " *
-        "Attempting to fallback to old `ispathtype` and string constructor API. ",
-        :tryparse
-    )
-    ispathtype(T, str) || return nothing
-    return try
-        T(str)
-    catch
-        nothing
+function Base.tryparse(::Type{AbstractPath}, str::AbstractString; debug=false)
+    result = nothing
+    types = Vector{eltype(PATH_TYPES)}()
+
+    for P in PATH_TYPES
+        r = tryparse(P, str)
+
+        # If we successfully parsed the path then save that result
+        # and break if we aren't in debug mode, otherwise record how many
+        if r !== nothing
+            # Only assign the result if it's currently `nothing`
+            result = result === nothing ? r : result
+
+            if debug
+                push!(types, P)
+            else
+                break
+            end
+        end
     end
+
+    if length(types) > 1
+        @debug(
+            string(
+                "Found multiple path types that could parse the string specified ($types). ",
+                "Please use a specific `parse` method if $(first(types)) is not the correct type."
+            )
+        )
+    end
+
+    return result
 end
 
 Base.convert(T::Type{<:AbstractPath}, x::AbstractString) = parse(T, x)

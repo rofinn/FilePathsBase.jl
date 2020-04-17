@@ -74,6 +74,9 @@ ps = PathSet(; symlink=true)
 
             p = Path(reg)
 
+            # Test calling the Path tryparse method with debug mode.
+            p = tryparse(AbstractPath, reg; debug=true)
+
             @test p == p"../src/FilePathsBase.jl"
             @test string(p) == reg
             @test string(cwd()) == pwd()

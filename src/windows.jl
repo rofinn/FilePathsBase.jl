@@ -28,8 +28,6 @@ function WindowsPath(segments::Tuple; root="", drive="", separator="\\")
     return WindowsPath(segments, root, drive, separator)
 end
 
-WindowsPath(str::AbstractString) = parse(WindowsPath, str)
-
 function Base.tryparse(::Type{WindowsPath}, str::AbstractString)
     isempty(str) && WindowsPath(tuple("."), "", "")
 
