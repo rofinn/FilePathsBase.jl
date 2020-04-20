@@ -8,13 +8,14 @@
 FilePathsBase.jl provides a type based approach to working with filesystem paths in julia.
 
 ## Intallation
+
 FilePathsBase.jl is registered, so you can to use `Pkg.add` to install it.
-```julia-repl
+```julia
 julia> Pkg.add("FilePathsBase")
 ```
 
-## Usage
-```julia-repl
+## Getting Started
+```julia
 julia> using FilePathsBase; using FilePathsBase: /
 ```
 
@@ -22,18 +23,18 @@ The first important difference about working with paths in FilePathsBase.jl is t
 segments are represented as an immutable tuple of strings.
 
 Path creation:
-```julia-repl
+```julia
 julia> Path("~/repos/FilePathsBase.jl/")
 p"~/repos/FilePathsBase.jl/"
 ```
 or
-```julia-repl
+```julia
 julia> p"~/repos/FilePathsBase.jl/"
 p"~/repos/FilePathsBase.jl/"
 ```
 
 Human readable file status info:
-```julia-repl
+```julia
 julia> stat(p"README.md")
 Status(
   device = 16777220,
@@ -52,7 +53,7 @@ Status(
 ```
 
 Working with permissions:
-```julia-repl
+```julia
 julia> m = mode(p"README.md")
 -rw-r--r--
 
@@ -80,7 +81,7 @@ julia> mode(p"README.md")
 ```
 
 Reading and writing directly to file paths:
-```julia-repl
+```julia
 julia> write(p"testfile", "foobar")
 6
 
