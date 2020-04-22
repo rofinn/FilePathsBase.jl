@@ -325,8 +325,8 @@ module TestPaths
             # TODO: Maybe normalize this case for the user? {ps.root}/foo/./baz.txt
             @test normalize(ps.root / p"foo" / "" / "baz.txt") == ps.baz
 
-            # TODO: Do we want to allow joining absolute paths?
-            @test ps.root / p"/foo/baz.txt" == ps.baz
+            # Check that joining absolute paths matches base
+            @test ps.root / p"/foo/baz.txt" == p"/foo/baz.txt"
         end
     end
 

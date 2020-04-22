@@ -278,17 +278,21 @@ p"~/.julia/v0.6/REQUIRE"
 ```
 """
 function join(prefix::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
-    segments = String[prefix.segments...]
+    pre = prefix
+    segments = String[pre.segments...]
 
-    for p in pieces
-        if isa(p, AbstractPath)
-            push!(segments, p.segments...)
+    # Convert any strings to paths
+    for p in (isa(x, AbstractPath) ? x : Path(x) for x in pieces)
+        # Replace prefix if a piece is actually an absolute path.
+        if isabsolute(p)
+            pre = p
+            segments = String[pre.segments...]
         else
-            push!(segments, Path(p).segments...)
+            append!(segments, p.segments)
         end
     end
 
-    return Path(prefix, tuple(segments...))
+    return Path(pre, tuple(segments...))
 end
 
 function Base.splitext(fp::AbstractPath)
