@@ -8,82 +8,125 @@
 FilePathsBase.jl provides a type based approach to working with filesystem paths in julia.
 
 ## Intallation
+
 FilePathsBase.jl is registered, so you can to use `Pkg.add` to install it.
-```julia-repl
+```julia
 julia> Pkg.add("FilePathsBase")
 ```
 
-## Usage
-```julia-repl
+## Getting Started
+
+Here are some common operations that you may want to perform with file paths.
+
+```julia
+#=
+NOTE: We're loading our `/` operator for path concatenation into the currect scope, but non-path division operations will still fallback to the base behaviour.
+=#
 julia> using FilePathsBase; using FilePathsBase: /
-```
 
-The first important difference about working with paths in FilePathsBase.jl is that path
-segments are represented as an immutable tuple of strings.
+julia> cwd()
+p"/Users/rory/repos/FilePathsBase.jl"
 
-Path creation:
-```julia-repl
-julia> Path("~/repos/FilePathsBase.jl/")
-p"~/repos/FilePathsBase.jl/"
-```
-or
-```julia-repl
-julia> p"~/repos/FilePathsBase.jl/"
-p"~/repos/FilePathsBase.jl/"
-```
+julia> walkpath(cwd() / "docs") |> collect
+23-element Array{Any,1}:
+ p"/Users/rory/repos/FilePathsBase.jl/docs/.DS_Store"
+ p"/Users/rory/repos/FilePathsBase.jl/docs/Manifest.toml"
+ p"/Users/rory/repos/FilePathsBase.jl/docs/Project.toml"
+ p"/Users/rory/repos/FilePathsBase.jl/docs/build"
+ p"/Users/rory/repos/FilePathsBase.jl/docs/build/api.html"
+ p"/Users/rory/repos/FilePathsBase.jl/docs/build/assets"
+ p"/Users/rory/repos/FilePathsBase.jl/docs/build/assets/arrow.svg"
+ p"/Users/rory/repos/FilePathsBase.jl/docs/build/assets/documenter.css"
+ ...
 
-Human readable file status info:
-```julia-repl
-julia> stat(p"README.md")
+julia> stat(p"docs/src/index.md")
 Status(
-  device = 16777220,
-  inode = 48428965,
+  device = 16777223,
+  inode = 32240108,
   mode = -rw-r--r--,
   nlink = 1,
-  uid = 501,
-  gid = 20,
+  uid = 501 (rory),
+  gid = 20 (staff),
   rdev = 0,
-  size = 1880 (1.8K),
+  size = 2028 (2.0K),
   blksize = 4096 (4.0K),
   blocks = 8,
-  mtime = 2016-02-16T00:49:27,
-  ctime = 2016-02-16T00:49:27,
+  mtime = 2020-04-20T17:20:38.612,
+  ctime = 2020-04-20T17:20:38.612,
 )
-```
 
-Working with permissions:
-```julia-repl
-julia> m = mode(p"README.md")
--rw-r--r--
+julia> relative(p"docs/src/index.md", p"src/")
+p"../docs/src/index.md"
+
+julia> normalize(p"src/../docs/src/index.md")
+p"docs/src/index.md"
+
+julia> absolute(p"docs/src/index.md")
+p"/Users/rory/repos/FilePathsBase.jl/docs/src/index.md"
+
+julia> islink(p"docs/src/index.md")
+true
+
+julia> canonicalize(p"docs/src/index.md")
+p"/Users/rory/repos/FilePathsBase.jl/README.md"
+
+julia> parents(p"./docs/src")
+2-element Array{PosixPath,1}:
+ p"."
+ p"./docs"
+
+julia> parents(absolute(p"./docs/src"))
+6-element Array{PosixPath,1}:
+ p"/"
+ p"/Users"
+ p"/Users/rory"
+ p"/Users/rory/repos"
+ p"/Users/rory/repos/FilePathsBase.jl"
+ p"/Users/rory/repos/FilePathsBase.jl/docs"
+
+julia> absolute(p"./docs/src")[1:end-1]
+("Users", "rory", "repos", "FilePathsBase.jl", "docs")
+
+julia> tmpfp = mktempdir(SystemPath)
+p"/var/folders/vz/zx_0gsp9291dhv049t_nx37r0000gn/T/jl_1GCBFT"
+
+julia> sync(p"/Users/rory/repos/FilePathsBase.jl/docs", tmpfp / "docs")
+p"/var/folders/vz/zx_0gsp9291dhv049t_nx37r0000gn/T/jl_1GCBFT/docs"
+
+julia> exists(tmpfp / "docs" / "make.jl")
+true
+
+julia> m = mode(tmpfp / "docs" / "make.jl")
+Mode("-rw-r--r--")
 
 julia> m - readable(:ALL)
---w-------
+Mode("--w-------")
 
 julia> m + executable(:ALL)
--rwxr-xr-x
+Mode("-rwxr-xr-x")
 
-julia> chmod(p"README.md", "+x")
+julia> chmod(tmpfp / "docs" / "make.jl", "+x")
+"/var/folders/vz/zx_0gsp9291dhv049t_nx37r0000gn/T/jl_1GCBFT/docs/make.jl"
 
-julia> mode(p"README.md")
--rwxr-xr-x
+julia> mode(tmpfp / "docs" / "make.jl")
+Mode("-rwxr-xr-x")
 
-julia> chmod(p"README.md", m)
+# Count LOC
+julia> mapreduce(+, walkpath(cwd() / "src")) do x
+           extension(x) == "jl" ? count("\n", read(x, String)) : 0
+       end
+3020
 
-julia> m = mode(p"README.md")
--rw-r--r--
+# Concatenate multiple files.
+julia> str = mapreduce(*, walkpath(tmpfp / "docs" / "src")) do x
+           read(x, String)
+       end
+"# API\n\nAll the standard methods for working with paths in base julia exist in the FilePathsBase.jl. The following describes the rough mapping of method names. Use `?` at the REPL to get the documentation and arguments as they may be different than the base implementations.\n\n..."
 
-julia> chmod(p"README.md", user=(READ+WRITE+EXEC), group=(READ+WRITE), other=READ)
+# Could also write the result to a file with `write(newfile, str)`)
 
-julia> mode(p"README.md")
--rwxrw-r--
+julia> rm(tmpfp; recursive=true)
 
-```
-
-Reading and writing directly to file paths:
-```julia-repl
-julia> write(p"testfile", "foobar")
-6
-
-julia> read(p"testfile")
-"foobar"
+julia> exists(tmpfp)
+false
 ```

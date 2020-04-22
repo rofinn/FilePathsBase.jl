@@ -1,5 +1,11 @@
 using Documenter, FilePathsBase, FilePathsBase.TestPaths
 
+```@meta
+DocTestSetup = quote
+    using FilePathsBase; using FilePathsBase: /, join;
+end
+```
+
 makedocs(
     modules=[FilePathsBase],
     format=Documenter.HTML(
@@ -7,6 +13,8 @@ makedocs(
     ),
     pages=[
         "Home" => "index.md",
+        "Design" => "design.md",
+        "FAQ" => "faq.md",
         "API" => "api.md",
     ],
     repo="https://github.com/rofinn/FilePathsBase.jl/blob/{commit}{path}#L{line}",
