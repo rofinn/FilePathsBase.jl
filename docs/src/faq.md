@@ -18,7 +18,7 @@ Some cases where the path type distinction is useful include:
 - Path specific operations (e.g., `join`, `/`, `==`)
 - Dispatch on paths vs strings (e.g., `project(name::String) = project(DEFAULT_ROOT / name)`)
 
-See [background section] for more details on the advantages of path types over strings.
+See [design section](@ref design_header) for more details on the advantages of path types over strings.
 
 **Q. Why is `AbstractPath` not a subtype of `AbstractString`?
 

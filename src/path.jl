@@ -272,7 +272,7 @@ p"foo/bar/baz"
 Joins path components into a full path.
 
 # Example
-```jldoctest
+```jldoctest; setup = :(using FilePathsBase: /, join)
 julia> join(p"~/.julia/v0.6", "REQUIRE")
 p"~/.julia/v0.6/REQUIRE"
 ```

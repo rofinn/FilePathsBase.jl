@@ -1,4 +1,4 @@
-# Background
+# [Design](@id design_header)
 
 FilePaths.jl and FilePathsBase.jl have gone through several design iterations over the years.
 To help get potential contributors up-to-speed, we'll cover several background points and design choices.

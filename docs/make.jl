@@ -1,5 +1,11 @@
 using Documenter, FilePathsBase, FilePathsBase.TestPaths
 
+```@meta
+DocTestSetup = quote
+    using FilePathsBase; using FilePathsBase: /, join;
+end
+```
+
 makedocs(
     modules=[FilePathsBase],
     format=Documenter.HTML(
