@@ -20,10 +20,10 @@ Some cases where the path type distinction is useful include:
 
 See [design section](@ref design_header) for more details on the advantages of path types over strings.
 
-**Q. Why is `AbstractPath` not a subtype of `AbstractString`?
+**Q. Why is `AbstractPath` not a subtype of `AbstractString`?**
 
 A. Initially, we made `AbstractPath` a subtype of `AbstractString`, but falling back to string operations often didn't make sense (e.g., `ascii(::AbstractPath)`, `chomp(::AbstractPath)`, `match(::Regex, ::AbstractPath)`, `parse(::Type{Float64}, ::AbstractPath)`).
-Having a distinct path type results in fewer confusing error messages and more explicit code (via type conversions). [Link to issue/PR and blog post]
+Having a distinct path type results in fewer confusing error messages and more explicit code (via type conversions). See [issue #15](https://github.com/rofinn/FilePathsBase.jl/issues/15) for more info on why we dropped string subtyping.
 
 **Q. Why don't you concatenate paths with `*`?**
 
