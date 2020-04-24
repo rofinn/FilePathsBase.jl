@@ -3,24 +3,23 @@
 """
     Path() -> SystemPath
     Path(fp::Tuple) -> SystemPath
-    Path(fp::P) where P <: AbstractPath) -> P
     Path(fp::AbstractString) -> AbstractPath
-    Path(fp::P, segments::Tuple) -> P
+    Path(fp::P; overrides...) -> P
 
 Responsible for creating the appropriate platform specific path
 (e.g., [PosixPath](@ref) and [WindowsPath`](@ref) for Unix and
 Windows systems respectively)
-
-NOTE: `Path(::AbstractString)` can also work for custom paths if
-[ispathtype](@ref) is defined for that type.
 """
 function Path end
 
-Path(fp::AbstractPath) = fp
-Path(str::AbstractString) = parse(AbstractPath, str)
-function Path(fp::T, segments::Tuple{Vararg{String}}) where T <: AbstractPath
-    T((s === :segments ? segments : getfield(fp, s) for s in fieldnames(T))...)
+function Path(fp::T; overrides...) where T<:AbstractPath
+    override_fields = keys(overrides)
+    override_vals = values(overrides)
+
+    T((s in override_fields ? override_vals[s] : getfield(fp, s) for s in fieldnames(T))...)
 end
+
+Path(str::AbstractString) = parse(AbstractPath, str)
 
 """
     @p_str -> Path
@@ -224,11 +223,11 @@ function parents(fp::T) where {T <: AbstractPath}
     if hasparent(fp)
         # Iterate from 1:n-1 or 0:n-1 for relative and absolute paths respectively.
         # (i.e., include fp.root when applicable)
-        return [Path(fp, fp.segments[1:i]) for i in isrelative(fp):length(fp.segments) - 1]
+        return [Path(fp; segments=fp.segments[1:i]) for i in isrelative(fp):length(fp.segments) - 1]
     elseif fp.segments == tuple(".") || !isempty(fp.root)
         return [fp]
     else
-        return [Path(fp, tuple("."))]
+        return [Path(fp; segments=tuple("."))]
     end
 end
 
@@ -292,7 +291,7 @@ function join(prefix::AbstractPath, pieces::Union{AbstractPath, AbstractString}.
         end
     end
 
-    return Path(pre, tuple(segments...))
+    return Path(pre; segments=tuple(segments...))
 end
 
 function Base.splitext(fp::AbstractPath)
@@ -403,7 +402,7 @@ function normalize(fp::T) where {T <: AbstractPath}
         count += 1
     end
 
-    return Path(fp, tuple(fill("..", del)..., reverse(result)...))
+    return Path(fp; segments=tuple(fill("..", del)..., reverse(result)...))
 end
 
 """
@@ -460,7 +459,8 @@ function relative(fp::T, start::T=cwd()) where {T<:AbstractPath}
     else
         relpath_ = tuple(pathpart...)
     end
-    return isempty(relpath_) ? parse(T, curdir) : Path(fp, relpath_)
+
+    return isempty(relpath_) ? parse(T, curdir) : Path(fp; root="", segments=relpath_)
 end
 
 """
@@ -634,7 +634,7 @@ function sync(f::Function, src::AbstractPath, dst::AbstractPath; delete=false, o
             index_pairs = collect(pairs(index))
             index_pairs = index_pairs[sortperm(last.(index_pairs))]
             for (seg, i) in index_pairs
-                cp(src_paths[i], Path(dst, tuple(dst.segments..., seg...)); force=true)
+                cp(src_paths[i], Path(dst, segments=tuple(dst.segments..., seg...)); force=true)
             end
         else
             cp(src, dst)
