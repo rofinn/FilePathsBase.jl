@@ -460,7 +460,13 @@ function relative(fp::T, start::T=cwd()) where {T<:AbstractPath}
         relpath_ = tuple(pathpart...)
     end
 
-    return isempty(relpath_) ? parse(T, curdir) : Path(fp; root="", segments=relpath_)
+    if isempty(relpath_)
+        return parse(T, curdir)
+    else
+        # Our assumption is that relative paths shouldn't have a root or drive.
+        # This seems to be consistent with Filesystem on Posix and Windows paths.
+        return Path(fp; segments=relpath_, drive="", root="")
+    end
 end
 
 """

@@ -315,8 +315,8 @@ ps = PathSet(; symlink=true)
             @test !islink(pwd())
 
             fp = joinpath(cwd(), "..", "docs", "src", "index.md")
-            @test islink(fp)
-            @test islink(string(fp))
+            @test Sys.iswindows() ? !islink(fp) : islink(fp)
+            @test Sys.iswindows() ? !islink(string(fp)) : islink(string(fp))
         end
 
         @testset "isabspath" begin
