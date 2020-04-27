@@ -320,65 +320,150 @@ ps = PathSet(; symlink=true)
         end
 
         @testset "isabspath" begin
+            fp = joinpath(cwd(), "..", "src", "FilePathsBase.jl")
+            @test isabspath(fp)
+            @test isabspath(string(fp))
 
+            fp = joinpath("..", "src", "FilePathsBase.jl")
+            @test !isabspath(fp)
+            @test !isabspath(string(fp))
         end
 
         @testset "expanduser" begin
+            fp = joinpath(cwd(), "..", "src", "FilePathsBase.jl")
+            @test string(expanduser(fp)) == expanduser(string(fp))
 
+            fp = joinpath("~", "..", "src", "FilePathsBase.jl")
+            @test string(expanduser(fp)) == expanduser(string(fp))
         end
 
         # Remainder of tests should be run in a tmp dir.
         mktempdir(SystemPath) do fp
-            @testset "mkdir" begin
+            docsdir = joinpath(absolute(parent(parent(Path(@__FILE__)))), "docs")
 
-            end
+            cd(fp) do
+                @testset "mkdir" begin
+                    newdirpath = joinpath(fp, "newdirpath")
+                    newdirstr = joinpath(string(fp), "newdirstr")
+                    @test mkdir(newdirpath) == newdirpath
+                    @test ispath(newdirpath)
+                    @test mkdir(newdirstr) == newdirstr
+                    @test ispath(newdirstr)
+                end
 
-            @testset "mkpath" begin
+                @testset "mkpath" begin
+                    newdirpath = joinpath(fp, "new", "recursive", "dir", "path")
+                    newdirstr = joinpath(string(fp), "new", "recursive", "dir", "str")
+                    @test mkpath(newdirpath) == newdirpath
+                    @test ispath(newdirpath)
+                    @test mkpath(newdirstr) == newdirstr
+                    @test ispath(newdirstr)
+                end
 
-            end
+                @testset "symlink" begin
+                    targetpath = joinpath(fp, "new", "recursive", "dir")
+                    targetstr = joinpath(string(fp), "new", "recursive", "dir")
+                    @test symlink(targetpath, p"pathlink") == nothing
+                    @test ispath(p"pathlink")
+                    @test symlink(targetstr, "strlink") == nothing
+                    @test ispath("strlink")
+                end
 
-            @testset "symlink" begin
+                @testset "touch" begin
+                    @test touch(p"touchfp") == p"touchfp"
+                    @test ispath(p"touchfp")
+                    @test touch("touchstr") == "touchstr"
+                    @test ispath("touchstr")
+                end
 
-            end
+                @testset "cp" begin
+                    # Single file
+                    @test cp(p"touchfp", p"cpfp") == p"cpfp"
+                    @test ispath(p"cpfp")
+                    @test cp("touchstr", "cpstr") == "cpstr"
+                    @test ispath("cpstr")
 
-            @testset "cp" begin
+                    # Recursive directory
+                    @show docsdir
+                    @test cp(docsdir, p"cpdstpath"; force=true) == p"cpdstpath"
+                    @test ispath(p"cpdstpath")
+                    @test ispath(p"cpdstpath/src/api.md")
+                    @test cp(string(docsdir), "cpdststr"; force=true) == "cpdststr"
+                    @test ispath("cpdststr")
+                    @test ispath("cpdststr/src/api.md")
+                end
 
-            end
+                @testset "mv" begin
+                    # Single file
+                    @test mv(p"cpfp", p"mvfp") == p"mvfp"
+                    @test !ispath(p"cpfp")
+                    @test ispath(p"mvfp")
+                    @test mv("cpstr", "mvstr") == "mvstr"
+                    @test ispath("mvstr")
 
-            @testset "mv" begin
+                    # Recursive directory
+                    @test mv(p"cpdstpath", p"mvdstpath") == p"mvdstpath"
+                    @test ispath(p"mvdstpath")
+                    @test ispath(p"mvdstpath/src/api.md")
+                    @test !ispath(p"cpdstpath")
+                    @test mv("cpdststr", "mvdststr") == "mvdststr"
+                    @test ispath("mvdststr")
+                    @test ispath("mvdststr/src/api.md")
+                    @test !ispath("cpdststr")
+                end
 
-            end
+                @testset "download" begin
+                    url = "https://github.com/rofinn/FilePathsBase.jl/blob/master/README.md"
+                    @test download(url, p"README.md") == p"README.md"
+                    @test ispath(p"README.md")
 
-            @testset "download" begin
+                    rm(p"README.md")
+                    url = "https://github.com/rofinn/FilePathsBase.jl/blob/master/README.md"
+                    @test download(url, "README.md") == "README.md"
+                end
 
-            end
+                @testset "readdir" begin
+                    @test readdir(docsdir) == readdir(string(docsdir))
+                end
 
-            @testset "readdir" begin
+                @testset "chmod" begin
+                    @test chmod(p"touchfp", 0o755) == p"touchfp"
+                    @test chmod("touchstr", 0o755) == "touchstr"
+                    @test filemode(p"touchfp").m == filemode("touchstr")
+                end
 
-            end
+                @testset "chown" begin
+                    if get(ENV, "USER", "") == "root"
+                        @test chown(p"touchfp", -2, -1) == p"touchfp"
+                        @test chown("touchstr", -2, -1) == "touchstr"
+                        @test stat(p"touchfp").user.uid == stat("touchstr").uid
 
-            @testset "rm" begin
+                        # Non-root user cannot change ownership to another user
+                        @test_throws Base.IOError chown(p"touchfp", -2, -1)
+                        @test_throws Base.IOError chown("touchstr", -2, -1)
 
-            end
+                        # Non-root user cannot change group to a group they are not a member of (eg: nogroup)
+                        @test_throws Base.IOError chown(p"touchfp", -1, -2)
+                        @test_throws Base.IOError chown("touchstr", -1, -2)
+                    end
+                end
 
-            @testset "touch" begin
+                @testset "rm" begin
+                    @test rm(p"touchfp") == nothing
+                    @test !ispath(p"touchfp")
+                    @test rm("touchstr") == nothing
+                    @test !ispath(p"touchstr")
+                end
 
-            end
+                @testset "read" begin
+                    srcfp = joinpath(docsdir, "src", "api.md")
+                    @test read(srcfp, String) == read(string(srcfp), String)
+                end
 
-            @testset "chmod" begin
-
-            end
-
-            @testset "chown" begin
-
-            end
-
-            @testset "read" begin
-
-            end
-
-            @testset "write" begin
-
+                @testset "write" begin
+                    content = read(joinpath(docsdir, "src", "api.md"), String)
+                    @test write(p"writefp", content) == write("writestr", content)
+                end
             end
         end
     end

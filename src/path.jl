@@ -536,7 +536,7 @@ Copy the file or directory from `src` to `dst`. An existing `dst` will only be o
 if `force=true`. If the path types support symlinks then `follow_symlinks=true` will
 copy the contents of the symlink to the destination.
 """
-function Base.cp(src::AbstractPath, dst::AbstractPath; force=false)
+function Base.cp(src::AbstractPath, dst::AbstractPath; force=false, follow_symlinks=false)
     if exists(dst)
         if force
             rm(dst; force=force, recursive=true)
@@ -555,6 +555,8 @@ function Base.cp(src::AbstractPath, dst::AbstractPath; force=false)
         end
     elseif isfile(src)
         write(dst, read(src))
+    elseif islink(src)
+        follow_symlinks ? symlink(readlink(src), dst) : write(dst, read(canonicalize(src)))
     else
         throw(ArgumentError("Source path is not a file or directory: $src"))
     end
@@ -571,6 +573,7 @@ Move the file or director from `src` to `dst`. An exist `dst` will only be overw
 function Base.mv(src::AbstractPath, dst::AbstractPath; force=false)
     cp(src, dst; force=force)
     rm(src; recursive=true)
+    return dst
 end
 
 """

@@ -105,12 +105,12 @@ isabspath | Bool | Bool
 expanduser | AbstractString | AbstractPath
 mkdir | AbstractString | AbstractPath
 mkpath | AbstractString | AbstractPath
-symlink | AbstractString | AbstractPath
+symlink | Nothing | Nothing
 cp | AbstractString | AbstractPath
 mv | AbstractString | AbstractPath
 download | AbstractString | AbstractPath
 readdir | AbstractString | AbstractString
-rm | AbstractString | AbstractPath
+rm | Nothing | Nothing
 touch | AbstractString | AbstractPath
 chmod | AbstractString | AbstractPath
 chown | AbstractString | AbstractPath
