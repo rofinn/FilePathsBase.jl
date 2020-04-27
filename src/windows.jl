@@ -74,13 +74,12 @@ function Base.:(==)(a::WindowsPath, b::WindowsPath)
         lowercase(a.drive) == lowercase(b.drive)
 end
 
+function Base.print(io::IO, fp::WindowsPath)
+    print(io, replace(fp.anchor, "\\" => "/") * join(fp.segments, "/"))
+end
+
 function Base.show(io::IO, fp::WindowsPath)
-    print(io, "p\"")
-    if isabsolute(fp)
-        print(io, replace(fp.anchor, "\\" => "/"))
-    end
-    print(io, join(fp.segments, "/"))
-    print(io, "\"")
+    print(io, "p\"" * replace(fp.anchor, "\\" => "/") * join(fp.segments, "/") * "\"")
 end
 
 isabsolute(fp::WindowsPath) = (!isempty(fp.drive) || !isempty(fp.root))
