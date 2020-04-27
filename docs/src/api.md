@@ -1,15 +1,20 @@
 # API
 
-All the standard methods for working with paths in base julia exist in the FilePathsBase.jl. The following describes the rough mapping of method names. Use `?` at the REPL to get the documentation and arguments as they may be different than the base implementations.
+To compare and contrast `FilePathsBase` with `Base.Filesystem` we provide tables for common operations.
+Use `?` at the REPL to get the documentation and arguments as they may be different than the base implementations.
 
-Base | FilePathsBase.jl
+## Operations
+
+A table of common operations with Filesystem and FilePathsBase.
+
+Filesystem | FilePathsBase.jl
 --- | ---
-"/home/user/docs" | `p"/home/user/docs"`
+"/home/user/docs" | p"/home/user/docs"
 N/A | Path()
-pwd() | pwd(::Type{<:AbstractPath}) (or cwd())
-homedir() | homedir(::Type{<:AbstractPath}) (or home())
+pwd() | pwd(SystemPath) or cwd()
+homedir() | homedir(SystemPath) or home()
 cd() | cd()
-joinpath() | joinpath(), join, /
+joinpath() | /
 basename() | basename()
 N/A | hasparent, parents, parent
 splitext | splitext
@@ -17,13 +22,14 @@ N/A | filename
 N/A | extension
 N/A | extensions
 ispath | exists
-realpath | real
+realpath | canonicalize
 normpath | normalize
 abspath | absolute
 relpath | relative
 stat | stat
 lstat | lstat
 filemode | mode
+filesize | filesize
 mtime | modified
 ctime | created
 isdir | isdir
@@ -50,7 +56,7 @@ mv | mv
 download | download
 readdir | readdir
 N/A | readpath
-N/A | walkpath
+walkpath | walkpath
 rm | rm
 touch | touch
 tempname() | tempname(::Type{<:AbstractPath}) (or tmpname)
@@ -63,6 +69,53 @@ read | read
 write | write
 @__DIR__ | @__PATH__
 @__FILE__ | @__FILEPATH__
+
+## Aliases
+
+A slightly reduced list of operations/aliases that will work with both strings and path types.
+The `Filesystem` and `FilePathsBase` columns indicate what type will be returned from each
+each library. As you'd expect, most return types match the input argument(s).
+
+Function Name | Filesystem | FilePathsBase
+--- | --- | ---
+cd | AbstractString | AbstractPath
+joinpath | AbstractString | AbstractPath
+basename | AbstractString | AbstractString
+splitext | (AbstractString, AbstractString) | (AbstractPath, AbstractString)
+ispath | Bool | Bool
+realpath | AbstractString | AbstractPath
+normpath | AbstractString | AbstractPath
+abspath | AbstractString | AbstractPath
+relpath | AbstractString | AbstractPath
+stat | StatStruct | FilePathsBase.Status
+lstat | StatStruct | FilePathsBase.Status
+filemode | UInt64 | FilePathsBase.Mode
+filesize | Int64 | Int64
+mtime | Float64 | Float64
+ctime | Float64 | Float64
+isdir | Bool | Bool
+isfile | Bool | Bool
+islink | Bool | Bool
+issocket | Bool | Bool
+isfifo | Bool | Bool
+ischardev | Bool | Bool
+isblockdev | Bool | Bool
+ismount | Bool | Bool
+isabspath | Bool | Bool
+expanduser | AbstractString | AbstractPath
+mkdir | AbstractString | AbstractPath
+mkpath | AbstractString | AbstractPath
+symlink | Nothing | Nothing
+cp | AbstractString | AbstractPath
+mv | AbstractString | AbstractPath
+download | AbstractString | AbstractPath
+readdir | AbstractString | AbstractString
+rm | Nothing | Nothing
+touch | AbstractString | AbstractPath
+chmod | AbstractString | AbstractPath
+chown | AbstractString | AbstractPath
+read(fp, T) | T | T
+write | Int64 | Int64
 
 
 ```@meta

@@ -255,7 +255,7 @@ module TestPaths
             _parents = parents(ps.qux)
             @test _parents[end] == ps.bar
             @test _parents[end - 1] == ps.root
-            @test _parents[1] == Path(ps.root, ())
+            @test _parents[1] == Path(ps.root; segments=())
 
             # More abstract path tests for edge cases when no parent exists
             @test hasparent(p"/foo")
@@ -376,6 +376,7 @@ module TestPaths
             @test normalize(ps.bar / ".." / "foo") == ps.foo
             @test normalize(ps.bar / ".") == ps.bar
             @test normpath(ps.bar / ".") == ps.bar
+
         end
     end
 

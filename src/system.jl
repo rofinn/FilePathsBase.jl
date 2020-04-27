@@ -189,7 +189,7 @@ function Base.cd(fn::Function, dir::SystemPath)
     end
 end
 
-function Base.mkdir(fp::SystemPath; mode=0o777, recursive=false, exist_ok=false)
+function Base.mkdir(fp::T; mode=0o777, recursive=false, exist_ok=false) where T<:SystemPath
     if exists(fp)
         !exist_ok && error("$fp already exists.")
     else
@@ -204,7 +204,7 @@ function Base.mkdir(fp::SystemPath; mode=0o777, recursive=false, exist_ok=false)
 			end
         end
 
-		mkdir(string(fp), mode=mode)
+		return parse(T, mkdir(string(fp), mode=mode))
     end
 end
 
@@ -227,13 +227,13 @@ end
 function Base.rm(fp::SystemPath; kwargs...)
     rm(string(fp); kwargs...)
 end
-Base.touch(fp::SystemPath) = touch(string(fp))
-function Base.mktemp(parent::SystemPath)
+Base.touch(fp::T) where {T<:SystemPath} = parse(T, touch(string(fp)))
+function Base.mktemp(parent::T) where T<:SystemPath
     fp, io = mktemp(string(parent))
-    return Path(fp), io
+    return parse(T, fp), io
 end
 
-Base.mktempdir(parent::SystemPath) = Path(mktempdir(string(parent)))
+Base.mktempdir(parent::T) where {T<:SystemPath}= parse(T, mktempdir(string(parent)))
 
 """
     chown(fp::SystemPath, user::AbstractString, group::AbstractString; recursive=false)
@@ -252,7 +252,11 @@ function Base.chown(fp::SystemPath, user::AbstractString, group::AbstractString;
     else
         error("chown is currently not supported on windows.")
     end
+
+    return fp
 end
+
+Base.chown(fp::T, args...) where {T<:SystemPath} = parse(T, chown(string(fp), args...))
 
 """
     chmod(fp::SystemPath, mode::Mode; recursive=false)
@@ -291,17 +295,17 @@ julia> mode(p"newfile")
 -rw-r--r--
 ```
 """
-function Base.chmod(fp::SystemPath, mode::Mode; recursive=false)
+function Base.chmod(fp::T, mode::Mode; recursive=false) where T<:SystemPath
     chmod_path = string(fp)
     chmod_mode = raw(mode)
 
     if isdir(fp) && recursive
         for p in readdir(fp)
-            chmod(chmod_path, chmod_mode; recursive=recursive)
+            parse(T, chmod(chmod_path, chmod_mode; recursive=recursive))
         end
     end
 
-    chmod(chmod_path, chmod_mode)
+    parse(T, chmod(chmod_path, chmod_mode))
 end
 
 function Base.chmod(fp::SystemPath, mode::Integer; recursive=false)
@@ -376,6 +380,15 @@ function Base.write(fp::SystemPath, x::Union{String, Vector{UInt8}}, mode="w")
 end
 
 Base.readdir(fp::SystemPath) = readdir(string(fp))
-Base.download(url::AbstractString, dest::SystemPath) = download(url, string(dest))
-Base.readlink(fp::SystemPath) = Path(readlink(string(fp)))
-canonicalize(fp::SystemPath) = Path(realpath(string(fp)))
+
+function Base.download(url::AbstractString, dest::T) where T<:SystemPath
+    return parse(T, download(url, string(dest)))
+end
+
+function Base.readlink(fp::T) where T<:SystemPath
+    return parse(T, readlink(string(fp)))
+end
+
+function canonicalize(fp::T) where T<:SystemPath
+    return parse(T, realpath(string(fp)))
+end
