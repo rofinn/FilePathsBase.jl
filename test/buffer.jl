@@ -14,6 +14,11 @@ using FilePathsBase: FileBuffer
             @test !eof(io)
             @test read(p, String) == read(io, String)
             @test eof(io)
+            seekstart(io)
+            for b in read(p)
+                @test read(io, UInt8) == b
+            end
+            @test eof(io)
         finally
             close(io)
         end

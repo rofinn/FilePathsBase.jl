@@ -61,10 +61,18 @@ function Base.read(buffer::FileBuffer, ::Type{String})
     read(buffer.io, String)
 end
 
+function Base.read(buffer::FileBuffer, ::Type{UInt8})
+    if buffer.io.size == 0
+        write(buffer.io, read(buffer.path))
+        seekstart(buffer)
+    end
+    read(buffer.io, UInt8)
+end
+
 #=
 NOTE: We need to define multiple methods because of ambiguity error with base IO methods.
 =#
-function Base.write(buffer::FileBuffer, x::Vector{UInt8})
+function Base.write(buffer::FileBuffer, x::Union{UInt8, Vector{UInt8}})
     iswritable(buffer) || throw(ArgumentError("write failed, FileBuffer is not writeable"))
     write(buffer.io, x)
 end
