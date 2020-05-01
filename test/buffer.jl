@@ -14,7 +14,12 @@ using FilePathsBase: FileBuffer
             @test !eof(io)
             @test read(p, String) == read(io, String)
             @test eof(io)
-            seekstart(io)
+        finally
+            close(io)
+        end
+
+        io = FileBuffer(p)
+        try
             for b in read(p)
                 @test read(io, UInt8) == b
             end
@@ -47,6 +52,23 @@ using FilePathsBase: FileBuffer
                     @test txt1 != txt2
                     @test occursin(txt1, txt2)
                     @test occursin("Hello World!", txt2)
+                finally
+                    close(io)
+                end
+
+                rm(p2)
+
+                io = FileBuffer(p2; read=true,write=true)
+                try
+                    write(io, read(p1))
+                    flush(io)
+
+                    seekstart(io)
+                    for b in read(p1)
+                        write(io, b)
+                    end
+                    flush(io)
+                    @test read(p1) == read(p2)
                 finally
                     close(io)
                 end

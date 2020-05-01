@@ -384,7 +384,6 @@ ps = PathSet(; symlink=true)
                     @test ispath("cpstr")
 
                     # Recursive directory
-                    @show docsdir
                     @test cp(docsdir, p"cpdstpath"; force=true) == p"cpdstpath"
                     @test ispath(p"cpdstpath")
                     @test ispath(p"cpdstpath/src/api.md")

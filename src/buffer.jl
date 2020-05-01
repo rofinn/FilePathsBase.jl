@@ -72,12 +72,17 @@ end
 #=
 NOTE: We need to define multiple methods because of ambiguity error with base IO methods.
 =#
-function Base.write(buffer::FileBuffer, x::Union{UInt8, Vector{UInt8}})
+function Base.write(buffer::FileBuffer, x::Vector{UInt8})
     iswritable(buffer) || throw(ArgumentError("write failed, FileBuffer is not writeable"))
     write(buffer.io, x)
 end
 
 function Base.write(buffer::FileBuffer, x::String)
+    iswritable(buffer) || throw(ArgumentError("write failed, FileBuffer is not writeable"))
+    write(buffer.io, x)
+end
+
+function Base.write(buffer::FileBuffer, x::UInt8)
     iswritable(buffer) || throw(ArgumentError("write failed, FileBuffer is not writeable"))
     write(buffer.io, x)
 end
