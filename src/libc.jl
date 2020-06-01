@@ -73,6 +73,7 @@ function User(name::String)
         Cpasswd()
     end
 
+    systemerror(:getpwnam, ps == C_NULL)
     User(ps)
 end
 
@@ -83,6 +84,7 @@ function User(uid::UInt)
         Cpasswd()
     end
 
+    systemerror(:getpwuid, ps == C_NULL)
     User(ps)
 end
 
@@ -110,6 +112,7 @@ function Group(name::String)
         Cgroup()
     end
 
+    systemerror(:getgrnam, ps == C_NULL)
     Group(ps)
 end
 
@@ -120,6 +123,7 @@ function Group(gid::UInt)
         Cgroup()
     end
 
+    systemerror(:getgrgid, gr == C_NULL)
     Group(gr)
 end
 
