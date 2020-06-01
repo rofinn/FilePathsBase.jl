@@ -61,36 +61,36 @@ function User(ps::Cpasswd)
 end
 
 User(passwd::Ptr{Cpasswd}) = User(unsafe_load(passwd))
+Base.show(io::IO, user::User) = print(io, "$(user.uid) ($(user.name))")
 
-function Base.show(io::IO, user::User)
-    print(io, "$(user.uid) ($(user.name))")
-end
+@static if Sys.isunix()
+    function User(name::String)
+        Libc.errno(0)
+        ps = ccall(:getpwnam, Ptr{Cpasswd}, (Ptr{UInt8},), name)
+        ret = Libc.errno()
 
-function User(name::String)
-    ps = @static if Sys.isunix()
-        ccall(:getpwnam, Ptr{Cpasswd}, (Ptr{UInt8},), name)
-    else
-        Cpasswd()
+        systemerror(:getpwnam, !iszero(ret))
+        ps == C_NULL && throw(ArgumentError("User $name not found."))
+
+        return User(ps)
     end
 
-    systemerror(:getpwnam, ps == C_NULL)
-    User(ps)
-end
+    function User(uid::UInt)
+        Libc.errno(0)
+        ps = ccall(:getpwuid, Ptr{Cpasswd}, (UInt64,), uid)
+        ret = Libc.errno()
 
-function User(uid::UInt)
-    ps = @static if Sys.isunix()
-        ccall(:getpwuid, Ptr{Cpasswd}, (UInt64,), uid)
-    else
-        Cpasswd()
+        systemerror(:getpwuid, !iszero(ret))
+        ps == C_NULL && throw(ArgumentError("User $uid not found."))
+
+        return User(ps)
     end
 
-    systemerror(:getpwuid, ps == C_NULL)
-    User(ps)
-end
-
-function User()
-    uid = @static Sys.isunix() ? ccall(:geteuid, Cint, ()) : 0
-    User(UInt64(uid))
+    User() = User(UInt64(ccall(:geteuid, Cint, ())))
+else
+    User(name::String) = User(Cpasswd())
+    User(uid::UInt) = User(Cpasswd())
+    User() = User(UInt64(0))
 end
 
 struct Group
@@ -100,34 +100,32 @@ end
 
 Group(gr::Cgroup) = Group(unsafe_string(gr.gr_name), UInt64(gr.gr_gid))
 Group(group::Ptr{Cgroup}) = Group(unsafe_load(group))
+Base.show(io::IO, group::Group) = print(io, "$(group.gid) ($(group.name))")
 
-function Base.show(io::IO, group::Group)
-    print(io, "$(group.gid) ($(group.name))")
-end
+@static if Sys.isunix()
+    function Group(name::String)
+        Libc.errno(0)
+        gr = ccall(:getgrnam, Ptr{Cgroup}, (Ptr{UInt8},), name)
+        ret = Libc.errno()
 
-function Group(name::String)
-    ps = @static if Sys.isunix()
-        ccall(:getgrnam, Ptr{Cgroup}, (Ptr{UInt8},), name)
-    else
-        Cgroup()
+        systemerror(:getgrnam, !iszero(ret))
+        gr == C_NULL && throw(ArgumentError("Group $name not found."))
+        return Group(gr)
     end
 
-    systemerror(:getgrnam, ps == C_NULL)
-    Group(ps)
-end
+    function Group(gid::UInt)
+        Libc.errno(0)
+        gr = ccall(:getgrgid, Ptr{Cgroup}, (UInt64,), gid)
+        ret = Libc.errno()
 
-function Group(gid::UInt)
-    gr = @static if Sys.isunix()
-        ccall(:getgrgid, Ptr{Cgroup}, (UInt64,), gid)
-    else
-        Cgroup()
+        systemerror(:getgrgid, !iszero(ret))
+        gr == C_NULL && throw(ArgumentError("Group $gid not found."))
+        return Group(gr)
     end
 
-    systemerror(:getgrgid, gr == C_NULL)
-    Group(gr)
-end
-
-function Group()
-    gid = @static Sys.isunix() ? ccall(:getegid, Cint, ()) : 0
-    Group(UInt64(gid))
+    Group() = Group(UInt64(ccall(:getegid, Cint, ())))
+else
+    Group(name::String) = Group(Cgroup())
+    Group(uid::UInt) = Group(Cgroup())
+    Group() = Group(UInt64(0))
 end
