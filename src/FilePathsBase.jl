@@ -3,6 +3,7 @@ __precompile__()
 module FilePathsBase
 
 using Dates
+using Mmap
 using Printf
 using UUIDs
 

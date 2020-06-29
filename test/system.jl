@@ -463,6 +463,10 @@ ps = PathSet(; symlink=true)
                     content = read(joinpath(docsdir, "src", "api.md"), String)
                     @test write(p"writefp", content) == write("writestr", content)
                 end
+
+                @testset "Mmap.mmap" begin
+                    @test Mmap.mmap(p"README.md") == Mmap.mmap("README.md")
+                end
             end
         end
     end
