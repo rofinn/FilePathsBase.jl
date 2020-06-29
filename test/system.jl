@@ -465,7 +465,10 @@ ps = PathSet(; symlink=true)
                 end
 
                 @testset "Mmap.mmap" begin
-                    @test Mmap.mmap(p"README.md") == Mmap.mmap("README.md")
+                    fpmap, strmap = Mmap.mmap(p"README.md"), Mmap.mmap("README.md")
+                    @test fpmap == strmap
+                    # Ensure that the mmap objects get finalized before we cleanup our working directory.
+                    finalize.([fpmap, strmap])
                 end
             end
         end
