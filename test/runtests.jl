@@ -3,6 +3,7 @@ using FilePathsBase: /, join
 using Base.Filesystem
 using Dates: datetime2unix
 using JLSO
+using Mmap
 using Test
 
 using FilePathsBase.TestPaths

@@ -392,3 +392,5 @@ end
 function canonicalize(fp::T) where T<:SystemPath
     return parse(T, realpath(string(fp)))
 end
+
+Mmap.mmap(fp::SystemPath, args...; kwargs...) = Mmap.mmap(string(fp), args...; kwargs...)
