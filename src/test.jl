@@ -610,10 +610,10 @@ module TestPaths
         @testset "mkdir" begin
             garply = ps.root / "corge" / "grault" / "garply"
             @test_throws ErrorException mkdir(garply)
-            mkdir(garply; recursive=true)
+            @test mkdir(garply; recursive=true) == garply
             @test exists(garply)
             @test_throws ErrorException mkdir(garply; recursive=true)
-            mkdir(garply; recursive=true, exist_ok=true)
+            @test mkdir(garply; recursive=true, exist_ok=true) == garply
             rm(ps.root / "corge"; recursive=true)
             @test !exists(garply)
         end

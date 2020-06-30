@@ -191,7 +191,11 @@ end
 
 function Base.mkdir(fp::T; mode=0o777, recursive=false, exist_ok=false) where T<:SystemPath
     if exists(fp)
-        !exist_ok && error("$fp already exists.")
+        if exist_ok
+            return fp
+        else
+            error("$fp already exists.")
+        end
     else
         if hasparent(fp) && !exists(parent(fp))
 			if recursive
