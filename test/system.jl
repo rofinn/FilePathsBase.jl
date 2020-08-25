@@ -4,6 +4,7 @@ ps = PathSet(; symlink=true)
     testsets = [
         test_registration,
         test_show,
+        test_cmd,
         test_parse,
         test_convert,
         test_components,
