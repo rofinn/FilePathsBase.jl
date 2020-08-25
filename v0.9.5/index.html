@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · FilePathsBase.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link href="assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>FilePathsBase.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li class="current"><a class="toctext" href>Home</a><ul class="internal"><li><a class="toctext" href="#Intallation-1">Intallation</a></li><li><a class="toctext" href="#Getting-Started-1">Getting Started</a></li></ul></li><li><a class="toctext" href="design/">Design</a></li><li><a class="toctext" href="faq/">FAQ</a></li><li><a class="toctext" href="api/">API</a></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Home</a></li></ul><a class="edit-page" href="https://github.com/rofinn/FilePathsBase.jl/blob/master/README.md#L"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Home</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="FilePathsBase.jl-1" href="#FilePathsBase.jl-1">FilePathsBase.jl</a></h1><p><a href="https://travis-ci.com/rofinn/FilePathsBase.jl"><img src="https://travis-ci.com/rofinn/FilePathsBase.jl.svg?branch=master" alt="Build Status"/></a> <a href="https://codecov.io/rofinn/FilePathsBase.jl?branch=master"><img src="https://codecov.io/github/rofinn/FilePathsBase.jl/coverage.svg?branch=master" alt="codecov.io"/></a> <a href="https://rofinn.github.io/FilePathsBase.jl/stable"><img src="https://img.shields.io/badge/docs-stable-blue.svg" alt/></a> <a href="https://rofinn.github.io/FilePathsBase.jl/dev"><img src="https://img.shields.io/badge/docs-dev-blue.svg" alt/></a></p><p>FilePathsBase.jl provides a type based approach to working with filesystem paths in julia.</p><h2><a class="nav-anchor" id="Intallation-1" href="#Intallation-1">Intallation</a></h2><p>FilePathsBase.jl is registered, so you can to use <code>Pkg.add</code> to install it.</p><pre><code class="language-julia">julia&gt; Pkg.add(&quot;FilePathsBase&quot;)</code></pre><h2><a class="nav-anchor" id="Getting-Started-1" href="#Getting-Started-1">Getting Started</a></h2><p>Here are some common operations that you may want to perform with file paths.</p><pre><code class="language-julia">#=
+NOTE: We&#39;re loading our `/` operator for path concatenation into the currect scope, but non-path division operations will still fallback to the base behaviour.
+=#
+julia&gt; using FilePathsBase; using FilePathsBase: /
+
+julia&gt; cwd()
+p&quot;/Users/rory/repos/FilePathsBase.jl&quot;
+
+julia&gt; walkpath(cwd() / &quot;docs&quot;) |&gt; collect
+23-element Array{Any,1}:
+ p&quot;/Users/rory/repos/FilePathsBase.jl/docs/.DS_Store&quot;
+ p&quot;/Users/rory/repos/FilePathsBase.jl/docs/Manifest.toml&quot;
+ p&quot;/Users/rory/repos/FilePathsBase.jl/docs/Project.toml&quot;
+ p&quot;/Users/rory/repos/FilePathsBase.jl/docs/build&quot;
+ p&quot;/Users/rory/repos/FilePathsBase.jl/docs/build/api.html&quot;
+ p&quot;/Users/rory/repos/FilePathsBase.jl/docs/build/assets&quot;
+ p&quot;/Users/rory/repos/FilePathsBase.jl/docs/build/assets/arrow.svg&quot;
+ p&quot;/Users/rory/repos/FilePathsBase.jl/docs/build/assets/documenter.css&quot;
+ ...
+
+julia&gt; stat(p&quot;docs/src/index.md&quot;)
+Status(
+  device = 16777223,
+  inode = 32240108,
+  mode = -rw-r--r--,
+  nlink = 1,
+  uid = 501 (rory),
+  gid = 20 (staff),
+  rdev = 0,
+  size = 2028 (2.0K),
+  blksize = 4096 (4.0K),
+  blocks = 8,
+  mtime = 2020-04-20T17:20:38.612,
+  ctime = 2020-04-20T17:20:38.612,
+)
+
+julia&gt; relative(p&quot;docs/src/index.md&quot;, p&quot;src/&quot;)
+p&quot;../docs/src/index.md&quot;
+
+julia&gt; normalize(p&quot;src/../docs/src/index.md&quot;)
+p&quot;docs/src/index.md&quot;
+
+julia&gt; absolute(p&quot;docs/src/index.md&quot;)
+p&quot;/Users/rory/repos/FilePathsBase.jl/docs/src/index.md&quot;
+
+julia&gt; islink(p&quot;docs/src/index.md&quot;)
+true
+
+julia&gt; canonicalize(p&quot;docs/src/index.md&quot;)
+p&quot;/Users/rory/repos/FilePathsBase.jl/README.md&quot;
+
+julia&gt; parents(p&quot;./docs/src&quot;)
+2-element Array{PosixPath,1}:
+ p&quot;.&quot;
+ p&quot;./docs&quot;
+
+julia&gt; parents(absolute(p&quot;./docs/src&quot;))
+6-element Array{PosixPath,1}:
+ p&quot;/&quot;
+ p&quot;/Users&quot;
+ p&quot;/Users/rory&quot;
+ p&quot;/Users/rory/repos&quot;
+ p&quot;/Users/rory/repos/FilePathsBase.jl&quot;
+ p&quot;/Users/rory/repos/FilePathsBase.jl/docs&quot;
+
+julia&gt; absolute(p&quot;./docs/src&quot;)[1:end-1]
+(&quot;Users&quot;, &quot;rory&quot;, &quot;repos&quot;, &quot;FilePathsBase.jl&quot;, &quot;docs&quot;)
+
+julia&gt; tmpfp = mktempdir(SystemPath)
+p&quot;/var/folders/vz/zx_0gsp9291dhv049t_nx37r0000gn/T/jl_1GCBFT&quot;
+
+julia&gt; sync(p&quot;/Users/rory/repos/FilePathsBase.jl/docs&quot;, tmpfp / &quot;docs&quot;)
+p&quot;/var/folders/vz/zx_0gsp9291dhv049t_nx37r0000gn/T/jl_1GCBFT/docs&quot;
+
+julia&gt; exists(tmpfp / &quot;docs&quot; / &quot;make.jl&quot;)
+true
+
+julia&gt; m = mode(tmpfp / &quot;docs&quot; / &quot;make.jl&quot;)
+Mode(&quot;-rw-r--r--&quot;)
+
+julia&gt; m - readable(:ALL)
+Mode(&quot;--w-------&quot;)
+
+julia&gt; m + executable(:ALL)
+Mode(&quot;-rwxr-xr-x&quot;)
+
+julia&gt; chmod(tmpfp / &quot;docs&quot; / &quot;make.jl&quot;, &quot;+x&quot;)
+&quot;/var/folders/vz/zx_0gsp9291dhv049t_nx37r0000gn/T/jl_1GCBFT/docs/make.jl&quot;
+
+julia&gt; mode(tmpfp / &quot;docs&quot; / &quot;make.jl&quot;)
+Mode(&quot;-rwxr-xr-x&quot;)
+
+# Count LOC
+julia&gt; mapreduce(+, walkpath(cwd() / &quot;src&quot;)) do x
+           extension(x) == &quot;jl&quot; ? count(&quot;\n&quot;, read(x, String)) : 0
+       end
+3020
+
+# Concatenate multiple files.
+julia&gt; str = mapreduce(*, walkpath(tmpfp / &quot;docs&quot; / &quot;src&quot;)) do x
+           read(x, String)
+       end
+&quot;# API\n\nAll the standard methods for working with paths in base julia exist in the FilePathsBase.jl. The following describes the rough mapping of method names. Use `?` at the REPL to get the documentation and arguments as they may be different than the base implementations.\n\n...&quot;
+
+# Could also write the result to a file with `write(newfile, str)`)
+
+julia&gt; rm(tmpfp; recursive=true)
+
+julia&gt; exists(tmpfp)
+false</code></pre><footer><hr/><a class="next" href="design/"><span class="direction">Next</span><span class="title">Design</span></a></footer></article></body></html>
