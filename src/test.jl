@@ -15,6 +15,7 @@ ps = PathSet(; symlink=true)
 testsets = [
     test_registration,
     test_show,
+    test_cmd,
     test_parse,
     test_convert,
     test_components,
@@ -68,6 +69,7 @@ module TestPaths
         test,
         test_registration,
         test_show,
+        test_cmd,
         test_parse,
         test_convert,
         test_components,
@@ -197,6 +199,13 @@ module TestPaths
             @test sprint(show, ps.root; context=:compat => true) == "p\"$str\""
             # TODO: Figure out why this is broken.
             @test_broken sprint(show, ps.root; context=:compat => false) == str
+        end
+    end
+
+    function test_cmd(ps::PathSet)
+        @testset "cmd" begin
+            str = string(ps.root)
+            @test `echo $str` == `echo $(ps.root)`
         end
     end
 
@@ -895,6 +904,7 @@ module TestPaths
     TESTALL = [
         test_registration,
         test_show,
+        test_cmd,
         test_parse,
         test_convert,
         test_components,

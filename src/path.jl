@@ -61,6 +61,11 @@ function Base.show(io::IO, fp::AbstractPath)
     get(io, :compact, false) ? print(io, fp) : print(io, "p\"$fp\"")
 end
 
+# Needed for path Cmd interpolation to work correctly.
+# If this isn't defined the fact that a path is iterable will result in each segment being
+# treated as a separate argument.
+Base.arg_gen(fp::AbstractPath) = Base.arg_gen(string(fp))
+
 # Default string constructors for AbstractPath types should fall back to calling `parse`.
 (::Type{T})(str::AbstractString) where {T<:AbstractPath} = parse(T, str)
 
