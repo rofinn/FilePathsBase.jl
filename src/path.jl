@@ -706,8 +706,8 @@ end
 
 Performs a depth first search through the directory structure
 """
-function walkpath(fp::AbstractPath; topdown=true, follow_symlinks=false, onerror=throw)
-    return Channel() do chnl
+function walkpath(fp::P; topdown=true, follow_symlinks=false, onerror=throw)  where P <: AbstractPath
+    return Channel(ctype=P) do chnl
         for p in readpath(fp)
             topdown && put!(chnl, p)
             if isdir(p) && (follow_symlinks || !islink(p))
