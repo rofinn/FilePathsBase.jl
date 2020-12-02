@@ -561,13 +561,15 @@ module TestPaths
         end
     end
 
-    function test_walkpath(ps::PathSet)
+    function test_walkpath(ps::PathSet{P}) where P
         @testset "walkpath" begin
             topdown = [ps.bar, ps.qux, ps.quux, ps.foo, ps.baz, ps.fred, ps.plugh]
             bottomup = [ps.quux, ps.qux, ps.bar, ps.baz, ps.foo, ps.plugh, ps.fred]
 
             @test collect(walkpath(ps.root; topdown=true)) == topdown
             @test collect(walkpath(ps.root; topdown=false)) == bottomup
+
+            @test eltype(walkpath(ps.root)) == P  # should return a typed collection
         end
     end
 
