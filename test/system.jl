@@ -359,6 +359,10 @@ ps = PathSet(; symlink=true)
                     @test ispath(newdirpath)
                     @test mkpath(newdirstr) == newdirstr
                     @test ispath(newdirstr)
+
+                    # should not throw if path exists
+                    @test mkpath(newdirpath) == newdirpath
+                    @test mkpath(newdirstr) == newdirstr
                 end
 
                 @testset "symlink" begin
