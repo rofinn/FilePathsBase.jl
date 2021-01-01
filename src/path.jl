@@ -206,7 +206,7 @@ will be returned depending on whether the path is absolute.
 # Example
 ```jldoctest
 julia> parents(p"~/.julia/v0.6/REQUIRE")
-3-element Array{FilePathsBase.PosixPath,1}:
+3-element Array{PosixPath,1}:
  p"~"
  p"~/.julia"
  p"~/.julia/v0.6"
