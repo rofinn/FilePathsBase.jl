@@ -1,10 +1,12 @@
 using Documenter, FilePathsBase, FilePathsBase.TestPaths
 
-```@meta
-DocTestSetup = quote
-    using FilePathsBase; using FilePathsBase: /, join;
+
+const SETUP_CODE = quote
+    using FilePathsBase
+    using FilePathsBase: /, join
 end
-```
+
+DocMeta.setdocmeta!(FilePathsBase, :DocTestSetup, SETUP_CODE; recursive=true)
 
 makedocs(
     modules=[FilePathsBase],
@@ -20,7 +22,7 @@ makedocs(
     repo="https://github.com/rofinn/FilePathsBase.jl/blob/{commit}{path}#L{line}",
     sitename="FilePathsBase.jl",
     authors="Rory Finnegan",
-    checkdocs = :exports,
+    # checkdocs = :exports,
     # strict = true,
 )
 

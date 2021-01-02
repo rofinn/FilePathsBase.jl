@@ -534,20 +534,22 @@ module TestPaths
     function test_cd(ps::PathSet{P}) where P <: AbstractPath
         if P <: SystemPath
             @testset "cd" begin
-                init_path = cwd()
+                init_path = canonicalize(cwd())
 
                 cd(ps.foo) do
-                    @test cwd() != canonicalize(init_path)
-                    @test cwd() == canonicalize(ps.foo)
+                    cd_path = canonicalize(cwd())
+                    @test cd_path != init_path
+                    @test cd_path == canonicalize(ps.foo)
                 end
 
-                @test cwd() == canonicalize(init_path)
+                @test canonicalize(cwd()) == init_path
 
                 cd(ps.qux)
-                @test cwd() != canonicalize(init_path)
-                @test cwd() == canonicalize(ps.qux)
+                cd_path = canonicalize(cwd())
+                @test cd_path != init_path
+                @test cd_path == canonicalize(ps.qux)
                 cd(init_path)
-                @test cwd() == canonicalize(init_path)
+                @test canonicalize(cwd()) == init_path
             end
         end
     end

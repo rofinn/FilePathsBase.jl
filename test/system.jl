@@ -119,9 +119,11 @@ ps = PathSet(; symlink=true)
                 expanded_path = joinpath(home(), "opt/foo/bar.jl")
                 @test expanduser(contracted_path) == expanded_path
                 @test contractuser(expanded_path) == contracted_path
-            end
 
-            @test string(relative(p, home())) == relpath(string(p), homedir_patched)
+                # relpath isn't entirely consistent for windows on julia 1.5
+                # https://github.com/rofinn/FilePathsBase.jl/issues/107
+                @test string(relative(p, home())) == relpath(string(p), homedir_patched)
+            end
 
             @test isa(relative(Path(".")), AbstractPath)
             @test relative(Path(".")) == Path(".")
@@ -316,8 +318,8 @@ ps = PathSet(; symlink=true)
             @test !islink(pwd())
 
             fp = joinpath(cwd(), "..", "docs", "src", "index.md")
-            @test Sys.iswindows() ? !islink(fp) : islink(fp)
-            @test Sys.iswindows() ? !islink(string(fp)) : islink(string(fp))
+            @test islink(fp)
+            @test islink(string(fp))
         end
 
         @testset "isabspath" begin

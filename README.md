@@ -1,6 +1,6 @@
 # FilePathsBase.jl
 
-[![Build Status](https://travis-ci.com/rofinn/FilePathsBase.jl.svg?branch=master)](https://travis-ci.com/rofinn/FilePathsBase.jl)
+[![Build Status](https://github.com/rofinn/FilePathsBase.jl/workflows/CI/badge.svg)](https://github.com/rofinn/FilePathsBase.jl/actions)
 [![codecov.io](https://codecov.io/github/rofinn/FilePathsBase.jl/coverage.svg?branch=master)](https://codecov.io/rofinn/FilePathsBase.jl?branch=master)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://rofinn.github.io/FilePathsBase.jl/stable)
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://rofinn.github.io/FilePathsBase.jl/dev)

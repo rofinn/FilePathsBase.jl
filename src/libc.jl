@@ -86,7 +86,7 @@ Base.show(io::IO, user::User) = print(io, "$(user.uid) ($(user.name))")
         return User(ps)
     end
 
-    User() = User(UInt64(ccall(:geteuid, Cint, ())))
+    User() = User(UInt(ccall(:geteuid, Cint, ())))
 else
     User(name::String) = User(Cpasswd())
     User(uid::UInt) = User(Cpasswd())
