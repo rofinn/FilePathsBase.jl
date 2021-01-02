@@ -20,4 +20,3 @@ Base.normpath(fp::AbstractPath) = normalize(fp)
 Base.realpath(fp::AbstractPath) = canonicalize(fp)
 Base.relpath(fp::AbstractPath) = relative(fp)
 Base.relpath(fp::AbstractPath, src::AbstractPath) = relative(fp, src)
-Base.splitpath(fp::AbstractPath) = isempty(fp.root) ? collect(fp.segments) : String[fp.root, fp.segments...]
