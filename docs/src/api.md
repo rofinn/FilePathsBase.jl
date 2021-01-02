@@ -47,6 +47,7 @@ isabspath | isabsolute
 splitdrive()[1] | drive
 N/A | root (property)
 split(p, "/") | segments (property)
+splitpath | splitpath
 expanduser | expanduser
 mkdir | mkdir
 mkpath | N/A (use mkdir)
@@ -87,6 +88,7 @@ realpath | AbstractString | AbstractPath
 normpath | AbstractString | AbstractPath
 abspath | AbstractString | AbstractPath
 relpath | AbstractString | AbstractPath
+splitpath | AbstractString | AbstractPath
 stat | StatStruct | FilePathsBase.Status
 lstat | StatStruct | FilePathsBase.Status
 filemode | UInt64 | FilePathsBase.Mode

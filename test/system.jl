@@ -205,6 +205,16 @@ ps = PathSet(; symlink=true)
                 @test (string(pathname), ext) == splitext(string(fp))
             end
 
+            @testset "splitpath" begin
+                fp = joinpath(cwd(), "..", "src", "FilePathsBase.jl")
+                res = splitpath(fp)
+                @test res == splitpath(string(fp))
+
+                rel_fp = joinpath(Path(".."), "src", "FilePathsBase.jl")
+                rel_res = splitpath(rel_fp)
+                @test rel_res == splitpath(string(rel_fp))
+            end
+
             @testset "ispath" begin
                 fp = joinpath(cwd(), "..", "src", "FilePathsBase.jl")
                 @test ispath(fp)
