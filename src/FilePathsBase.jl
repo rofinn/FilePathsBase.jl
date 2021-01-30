@@ -1,5 +1,3 @@
-__precompile__()
-
 module FilePathsBase
 
 using Dates
@@ -69,7 +67,7 @@ export
 
 export isexecutable
 
-const PATH_TYPES = DataType[]
+const PATH_TYPES = Type[]
 
 function __init__()
     # Register the default fallback path type based on the os.
