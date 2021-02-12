@@ -287,8 +287,10 @@ ps = PathSet(; symlink=true)
                 u_int = FilePathsBase.User(UInt(my_user.uid))
                 g_int = FilePathsBase.Group(UInt(my_group.gid))
             
-                @test u_int.uid isa UInt
-                @test g_int.gid isa UInt
+                @test u_int isa FilePathsBase.User
+                @test g_int isa FilePathsBase.Group
+                @test u_int.uid isa Unsigned
+                @test g_int.gid isa Unsigned
             end
         end
 
