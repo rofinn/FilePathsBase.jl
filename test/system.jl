@@ -279,6 +279,21 @@ ps = PathSet(; symlink=true)
                 compare_stats(stat(fp), stat(string(fp)))
                 compare_stats(lstat(fp), lstat(string(fp)))
             end
+
+            @testset "User/Group constructors" begin
+                my_user = FilePathsBase.User()
+                my_group = FilePathsBase.Group()
+            
+                u_int = FilePathsBase.User(UInt(my_user.uid))
+                u_int64 = FilePathsBase.User(UInt64(my_user.uid))
+                g_int = FilePathsBase.Group(UInt(my_group.gid))
+                g_int64 = FilePathsBase.Group(UInt64(my_group.gid))
+            
+                @test u_int.uid isa UInt
+                @test u_int64.uid isa UInt64
+                @test g_int.gid isa UInt
+                @test g_int64.gid isa UInt64
+            end
         end
 
         # We aren't going to do all the `isfifo`, `ischardev`, etc.
