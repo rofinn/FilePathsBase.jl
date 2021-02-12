@@ -123,7 +123,7 @@ Base.show(io::IO, group::Group) = print(io, "$(group.gid) ($(group.name))")
         return Group(gr)
     end
 
-    Group() = Group(UInt64(ccall(:getegid, Cint, ())))
+    Group() = Group(UInt(ccall(:getegid, Cint, ())))
 else
     Group(name::String) = Group(Cgroup())
     Group(uid::UInt) = Group(Cgroup())
