@@ -8,9 +8,12 @@ using FilePathsBase: FileBuffer
             @test isreadable(io)
             @test !iswritable(io)
             @test eof(io)
+            @test position(io) == 0
             @test read(p) == read(io)
             @test eof(io)
+            @test position(io) == length(read(p))
             seekstart(io)
+            @test position(io) == 0
             @test !eof(io)
             @test read(p, String) == read(io, String)
             @test eof(io)
@@ -42,11 +45,13 @@ using FilePathsBase: FileBuffer
                     @test isreadable(io)
                     @test iswritable(io)
                     @test eof(io)
+                    @test position(io) == 0
                     @test read(p1) == read(io)
                     write(io, "\nHello")
                     write(io, " World!\n")
                     flush(io)
 
+                    @test position(io) == length(read(p1)) + 14
                     txt1 = read(p1, String)
                     txt2 = read(p2, String)
                     @test txt1 != txt2
@@ -63,7 +68,9 @@ using FilePathsBase: FileBuffer
                     write(io, read(p1))
                     flush(io)
 
+                    @test position(io) == length(read(p1))
                     seekstart(io)
+                    @test position(io) == 0
                     for b in read(p1)
                         write(io, b)
                     end
