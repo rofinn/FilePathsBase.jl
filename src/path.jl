@@ -839,5 +839,5 @@ node block sizes.
 This is the preferred method for computing file or directory sizes for remote file
 systems as it should limit the number of remote calls where possible.
 """
-diskusage(fp::AbstractPath) = diskusage(walkpath(fp))
-diskusage(itr) = sum(filesize.(walkpath(fp)))
+diskusage(fp::AbstractPath) = isfile(fp) ? filesize(fp) : diskusage(walkpath(fp))
+diskusage(itr) = sum(map(filesize, itr))

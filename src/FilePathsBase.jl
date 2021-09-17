@@ -53,6 +53,7 @@ export
     raw,
     readpath,
     walkpath,
+    diskusage,
 
     # Macros
     @p_str,

@@ -572,6 +572,9 @@ module TestPaths
             @test collect(walkpath(ps.root; topdown=false)) == bottomup
 
             @test eltype(walkpath(ps.root)) == P  # should return a typed collection
+
+            # tests consistency of definition, assume network usage acceptable
+            @test diskusage(ps.root) == sum(filesize.(walkpath(ps.root)))
         end
     end
 
