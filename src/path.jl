@@ -828,3 +828,16 @@ isdescendant(fp::P, asc::P) where {P <: AbstractPath} = fp == asc || asc in pare
 Returns `true` if `fp` is a directory containing `desc`.
 """
 isascendant(fp::P, desc::P) where {P <: AbstractPath} = isdescendant(desc, fp)
+
+"""
+    diskusage(fp::AbstractPath)
+
+Returns the total size in bytes of the `AbstractPath`.  This is guaranteed to give the same
+result as summing the `filesize` of all nodes in `walkpath(fp)` including directory
+node block sizes.
+
+This is the preferred method for computing file or directory sizes for remote file
+systems as it should limit the number of remote calls where possible.
+"""
+diskusage(fp::AbstractPath) = isfile(fp) ? filesize(fp) : diskusage(walkpath(fp))
+diskusage(itr) = mapreduce(filesize, +, itr)

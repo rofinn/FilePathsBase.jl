@@ -165,6 +165,7 @@ Base.mv(::AbstractPath, ::AbstractPath)
 Base.download(::AbstractString, ::AbstractPath)
 FilePathsBase.readpath
 FilePathsBase.walkpath
+FilePathsBase.diskusage
 Base.open(::AbstractPath)
 FilePathsBase.tmpname
 FilePathsBase.tmpdir
