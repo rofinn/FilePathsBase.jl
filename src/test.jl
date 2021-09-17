@@ -574,7 +574,8 @@ module TestPaths
             @test eltype(walkpath(ps.root)) == P  # should return a typed collection
 
             # tests consistency of definition, assume network usage acceptable
-            @test diskusage(ps.root) == sum(filesize.(walkpath(ps.root)))
+            @test diskusage(ps.root) == mapreduce(filesize, +, walkpath(ps.root))
+            @test diskusage(ps.baz) == ncodeunits("Hello World!")
         end
     end
 

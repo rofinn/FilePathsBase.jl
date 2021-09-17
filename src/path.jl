@@ -840,4 +840,4 @@ This is the preferred method for computing file or directory sizes for remote fi
 systems as it should limit the number of remote calls where possible.
 """
 diskusage(fp::AbstractPath) = isfile(fp) ? filesize(fp) : diskusage(walkpath(fp))
-diskusage(itr) = sum(map(filesize, itr))
+diskusage(itr) = mapreduce(filesize, +, itr)
