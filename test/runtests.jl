@@ -19,6 +19,11 @@ include("testpkg.jl")
         # Test that our weird registered path works
         ps = PathSet(TestPkg.posix2test(tmpdir()) / "pathset_root"; symlink=true)
 
+        @testset "`propertynames`" begin
+            @test propertynames(ps.root) == (:drive, :root, :anchor, :separator)
+            @test propertynames(ps.root, true) == (:drive, :root, :anchor, :separator, :segments)
+        end
+        
         @testset "$(typeof(ps.root))" begin
             testsets = [
                 test_registration,
