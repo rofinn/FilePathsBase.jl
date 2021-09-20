@@ -34,6 +34,7 @@ include("testpkg.jl")
                 test_join,
                 test_splitext,
                 test_basename,
+                test_splitdir,
                 test_filename,
                 test_extensions,
                 test_isempty,
