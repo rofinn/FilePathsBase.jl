@@ -84,6 +84,21 @@ using FilePathsBase: FileBuffer
         end
     end
 
+    @testset "eof" begin
+        mktempdir(SystemPath) do d
+            p, _ = mktemp(d)
+            io = FileBuffer(p; write=true)
+            @test eof(io)
+            write(io, "Hey")
+            flush(io)
+            @test eof(io)
+            seekstart(io)
+            @test !eof(io)
+            read(io)
+            @test eof(io)
+        end
+    end
+
     @testset "Custom Types" begin
         jlso = JLSOFile(:msg => "Hello World!")
         mktmpdir() do d
