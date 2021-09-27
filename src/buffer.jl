@@ -38,7 +38,13 @@ Base.seek(buffer::FileBuffer, n::Integer) = seek(buffer.io, n)
 Base.seekstart(buffer::FileBuffer) = seekstart(buffer.io)
 Base.seekend(buffer::FileBuffer) = seekend(buffer.io)
 Base.position(buffer::FileBuffer) = position(buffer.io)
-Base.eof(buffer::FileBuffer) = eof(buffer.io)
+function Base.eof(buffer::FileBuffer)
+    if position(buffer) == 0
+        _read(buffer)
+        seekstart(buffer)
+    end
+    return eof(buffer.io)
+end
 
 function _read(buffer::FileBuffer)
     # If our IOBuffer is empty then populate it with the
