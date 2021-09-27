@@ -7,7 +7,7 @@ using FilePathsBase: FileBuffer
         try
             @test isreadable(io)
             @test !iswritable(io)
-            @test eof(io)
+            @test !eof(io)
             @test position(io) == 0
             @test read(p) == read(io)
             @test eof(io)
@@ -44,9 +44,10 @@ using FilePathsBase: FileBuffer
                 try
                     @test isreadable(io)
                     @test iswritable(io)
-                    @test eof(io)
+                    @test !eof(io)
                     @test position(io) == 0
                     @test read(p1) == read(io)
+                    @test eof(io)
                     write(io, "\nHello")
                     write(io, " World!\n")
                     flush(io)
