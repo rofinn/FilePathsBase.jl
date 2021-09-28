@@ -32,8 +32,7 @@ using FilePathsBase: FileBuffer
         end
 
         # issue #126: data on first read
-        mktempdir(SystemPath) do d
-            p = joinpath(d, "foo.txt")
+        mktemp(SystemPath) do p, _
             write(p, "testing")
             io = FilePathsBase.FileBuffer(p)
             @test read(io, 4) == UInt8['t', 'e', 's', 't']
@@ -93,8 +92,7 @@ using FilePathsBase: FileBuffer
     end
 
     @testset "eof" begin
-        mktempdir(SystemPath) do d
-            p, _ = mktemp(d)
+        mktemp(SystemPath) do p, _
             io = FileBuffer(p; write=true)
             @test eof(io)
             write(io, "Hey")
