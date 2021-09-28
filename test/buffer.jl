@@ -30,6 +30,14 @@ using FilePathsBase: FileBuffer
         finally
             close(io)
         end
+
+        # issue #126: data on first read
+        mktempdir(SystemPath) do d
+            p = joinpath(d, "foo.txt")
+            write(p, "testing")
+            io = FilePathsBase.FileBuffer(p)
+            @test read(io, 4) == UInt8['t', 'e', 's', 't']
+        end
     end
 
     @testset "write" begin
