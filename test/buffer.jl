@@ -7,7 +7,7 @@ using FilePathsBase: FileBuffer
         try
             @test isreadable(io)
             @test !iswritable(io)
-            @test eof(io)
+            @test !eof(io)
             @test position(io) == 0
             @test read(p) == read(io)
             @test eof(io)
@@ -30,6 +30,13 @@ using FilePathsBase: FileBuffer
         finally
             close(io)
         end
+
+        # issue #126: data on first read
+        mktemp(SystemPath) do p, _
+            write(p, "testing")
+            io = FilePathsBase.FileBuffer(p)
+            @test read(io, 4) == UInt8['t', 'e', 's', 't']
+        end
     end
 
     @testset "write" begin
@@ -44,9 +51,10 @@ using FilePathsBase: FileBuffer
                 try
                     @test isreadable(io)
                     @test iswritable(io)
-                    @test eof(io)
+                    @test !eof(io)
                     @test position(io) == 0
                     @test read(p1) == read(io)
+                    @test eof(io)
                     write(io, "\nHello")
                     write(io, " World!\n")
                     flush(io)
@@ -80,6 +88,20 @@ using FilePathsBase: FileBuffer
                     close(io)
                 end
             end
+        end
+    end
+
+    @testset "eof" begin
+        mktemp(SystemPath) do p, _
+            io = FileBuffer(p; write=true)
+            @test eof(io)
+            write(io, "Hey")
+            flush(io)
+            @test eof(io)
+            seekstart(io)
+            @test !eof(io)
+            read(io)
+            @test eof(io)
         end
     end
 
