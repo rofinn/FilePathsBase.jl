@@ -34,23 +34,18 @@ end
 
 Base.isreadable(buffer::FileBuffer) = buffer.read
 Base.iswritable(buffer::FileBuffer) = buffer.write
-Base.seek(buffer::FileBuffer, n::Integer) = seek(buffer.io, n)
+Base.seek(buffer::FileBuffer, n::Integer) = (_read(buffer); seek(buffer.io, n))
 Base.seekstart(buffer::FileBuffer) = seekstart(buffer.io)
-Base.seekend(buffer::FileBuffer) = seekend(buffer.io)
+Base.seekend(buffer::FileBuffer) = (_read(buffer); seekend(buffer.io))
 Base.position(buffer::FileBuffer) = position(buffer.io)
-function Base.eof(buffer::FileBuffer)
-    if position(buffer) == 0
-        _read(buffer)
-        seekstart(buffer)
-    end
-    return eof(buffer.io)
-end
+Base.eof(buffer::FileBuffer) = (_read(buffer); eof(buffer.io))
 
 function _read(buffer::FileBuffer)
     # If our IOBuffer is empty then populate it with the
     # filepath contents
     if buffer.io.size == 0
         write(buffer.io, read(buffer.path))
+        seekstart(buffer.io)
     end
 end
 
