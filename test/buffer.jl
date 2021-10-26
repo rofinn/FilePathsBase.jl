@@ -47,6 +47,7 @@ using FilePathsBase: FileBuffer
             @test position(seekend(io)) > 0
             @test position(seekstart(io)) == 0
             @test position(seek(io, 5)) == 5
+            @test position(skip(io, 10)) == 15
         finally
             close(io)
         end
@@ -55,6 +56,7 @@ using FilePathsBase: FileBuffer
     @testset "populate" begin
         funcs = (
             :seek => io -> seek(io, 1),
+            :skip => io -> skip(io, 1),
             :seekend => seekend,
             :eof => eof,
         )
