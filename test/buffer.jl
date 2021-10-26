@@ -39,6 +39,40 @@ using FilePathsBase: FileBuffer
         end
     end
 
+    @testset "seek" begin
+        p = p"../README.md"
+        io = FileBuffer(p)
+        try
+            @test position(io) == 0
+            @test position(seekend(io)) > 0
+            @test position(seekstart(io)) == 0
+            @test position(seek(io, 5)) == 5
+            @test position(skip(io, 10)) == 15
+        finally
+            close(io)
+        end
+    end
+
+    @testset "populate" begin
+        funcs = (
+            :seek => io -> seek(io, 1),
+            :skip => io -> skip(io, 1),
+            :seekend => seekend,
+            :eof => eof,
+        )
+
+        @testset "$name" for (name, f) in funcs
+            p = p"../README.md"
+            buffer = FileBuffer(p)
+            try
+                f(buffer)
+                @test buffer.io.size > 0
+            finally
+                close(buffer)
+            end
+        end
+    end
+
     @testset "write" begin
         mktmpdir() do d
             p1 = absolute(p"../README.md")
