@@ -5,6 +5,7 @@ using FilePathsBase: FileBuffer
         p = p"../README.md"
         io = FileBuffer(p)
         try
+            @test isopen(io)
             @test isreadable(io)
             @test !iswritable(io)
             @test !eof(io)
@@ -19,6 +20,7 @@ using FilePathsBase: FileBuffer
             @test eof(io)
         finally
             close(io)
+            @test !isopen(io)
         end
 
         io = FileBuffer(p)
@@ -83,6 +85,7 @@ using FilePathsBase: FileBuffer
 
                 io = FileBuffer(p2; read=true,write=true)
                 try
+                    @test isopen(io)
                     @test isreadable(io)
                     @test iswritable(io)
                     @test !eof(io)
@@ -101,6 +104,7 @@ using FilePathsBase: FileBuffer
                     @test occursin("Hello World!", txt2)
                 finally
                     close(io)
+                    @test !isopen(io)
                 end
 
                 rm(p2)
