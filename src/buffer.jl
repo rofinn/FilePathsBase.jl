@@ -32,6 +32,7 @@ function FileBuffer(
     return buffer
 end
 
+Base.isopen(buffer::FileBuffer) = isopen(buffer.io)
 Base.isreadable(buffer::FileBuffer) = buffer.read
 Base.iswritable(buffer::FileBuffer) = buffer.write
 Base.seek(buffer::FileBuffer, n::Integer) = (_read(buffer); seek(buffer.io, n))
