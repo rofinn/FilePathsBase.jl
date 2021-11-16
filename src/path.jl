@@ -49,6 +49,11 @@ function Base.getproperty(fp::T, attr::Symbol) where T <: AbstractPath
     end
 end
 
+function Base.propertynames(::T, private::Bool=false) where T <: AbstractPath
+    public_names = (:drive, :root, :anchor, :separator)
+    return private ? Base.merge_names(public_names, fieldnames(T)) : public_names
+end
+
 #=
 We only want to print the macro string syntax when compact is true and
 we want print to just return the string (this allows `string` to work normally)
