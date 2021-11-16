@@ -23,6 +23,7 @@ testsets = [
     test_join,
     test_splitext,
     test_basename,
+    test_splitdir,
     test_filename,
     test_extensions,
     test_isempty,
@@ -80,6 +81,7 @@ module TestPaths
         test_join,
         test_splitext,
         test_basename,
+        test_splitdir,
         test_filename,
         test_extensions,
         test_isempty,
@@ -351,6 +353,13 @@ module TestPaths
             @test basename(ps.foo) == "foo"
             @test basename(ps.baz) == "baz.txt"
             @test basename(ps.quux) == "quux.tar.gz"
+        end
+    end
+    function test_splitdir(ps::PathSet)
+        @testset "splitdir" begin
+            @test splitdir(ps.foo) == (ps.root, "foo")
+            @test splitdir(ps.baz) == (ps.root / "foo", "baz.txt")
+            @test splitdir(ps.quux) == (ps.root / "bar" / "qux", "quux.tar.gz")
         end
     end
 

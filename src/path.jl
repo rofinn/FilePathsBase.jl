@@ -306,6 +306,8 @@ end
 
 Base.basename(fp::AbstractPath) = fp.segments[end]
 
+Base.splitdir(path::AbstractPath) = (dirname(path), basename(path))
+
 """
     filename(fp::AbstractPath) -> AbstractString
 
