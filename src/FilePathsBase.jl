@@ -3,6 +3,7 @@ module FilePathsBase
 using Dates
 using Mmap
 using Printf
+using Random
 using UUIDs
 
 import Base: ==
@@ -69,6 +70,7 @@ export
 export isexecutable
 
 const PATH_TYPES = Type[]
+const RNG = MersenneTwister(314159)
 
 function __init__()
     # Register the default fallback path type based on the os.

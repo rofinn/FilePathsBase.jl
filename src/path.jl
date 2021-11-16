@@ -786,7 +786,7 @@ Base.mktempdir(fn::Function, P::Type{<:AbstractPath}) = mktempdir(fn, tempdir(P)
 mktmpdir(fn::Function) = mktempdir(fn, SystemPath)
 
 function Base.mktemp(parent::AbstractPath)
-    fp = parent / string(uuid4())
+    fp = _find_temp(parent)
     # touch the file in case `open` isn't implement for the path and
     # we're buffering locally.
     touch(fp)
@@ -795,7 +795,7 @@ function Base.mktemp(parent::AbstractPath)
 end
 
 function Base.mktempdir(parent::AbstractPath)
-    fp = parent / string(uuid4())
+    fp = _find_temp(parent)
     mkdir(fp)
     return fp
 end
@@ -821,6 +821,28 @@ end
 
 mktmp(arg1, args...) = mktemp(arg1, args...)
 mktmpdir(arg1, args...) = mktempdir(arg1, args...)
+
+# A kind of ugly utility function to ensure that we handle uuid4 collisions.
+# https://github.com/rofinn/FilePathsBase.jl/issues/142
+function _find_temp(parent)
+    attempts = 1
+    max_attempts = 3
+    fp = parent / string(uuid4(RNG))
+
+    while true
+        @show fp
+        exists(fp) || break
+
+        if attempts >= max_attempts
+            error("Failed to find a unique temp path after $attempts attempts")
+        end
+
+        attempts += 1
+        fp = parent / string(uuid4(RNG))
+    end
+
+    return fp
+end
 
 """
 	isdescendant(fp::P, asc::P) where {P <: AbstractPath} -> Bool
