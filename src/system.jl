@@ -113,8 +113,8 @@ function isexecutable(fp::SystemPath)
     return (
         isexecutable(s.mode, :ALL) ||
         isexecutable(s.mode, :OTHER) ||
-        ( usr.uid == s.user.uid && isexecutable(s.mode, :USER) ) ||
-        ( usr.gid == s.group.gid && isexecutable(s.mode, :GROUP) )
+        (usr.uid == s.user.uid && isexecutable(s.mode, :USER)) ||
+        (usr.gid == s.group.gid && isexecutable(s.mode, :GROUP))
     )
 end
 
@@ -130,8 +130,8 @@ function Base.iswritable(fp::SystemPath)
     return (
         iswritable(s.mode, :ALL) ||
         iswritable(s.mode, :OTHER) ||
-        ( usr.uid == s.user.uid && iswritable(s.mode, :USER) ) ||
-        ( usr.gid == s.group.gid && iswritable(s.mode, :GROUP) )
+        (usr.uid == s.user.uid && iswritable(s.mode, :USER)) ||
+        (usr.gid == s.group.gid && iswritable(s.mode, :GROUP))
     )
 end
 
@@ -147,8 +147,8 @@ function Base.isreadable(fp::SystemPath)
     return (
         isreadable(s.mode, :ALL) ||
         isreadable(s.mode, :OTHER) ||
-        ( usr.uid == s.user.uid && isreadable(s.mode, :USER) ) ||
-        ( usr.gid == s.group.gid && isreadable(s.mode, :GROUP) )
+        (usr.uid == s.user.uid && isreadable(s.mode, :USER)) ||
+        (usr.gid == s.group.gid && isreadable(s.mode, :GROUP))
     )
 end
 
@@ -184,7 +184,7 @@ function Base.cd(fn::Function, dir::SystemPath)
     try
         cd(dir)
         fn()
-   finally
+    finally
         cd(old)
     end
 end
@@ -198,17 +198,17 @@ function Base.mkdir(fp::T; mode=0o777, recursive=false, exist_ok=false) where T<
         end
     else
         if hasparent(fp) && !exists(parent(fp))
-			if recursive
-				mkdir(parent(fp); mode=mode, recursive=recursive, exist_ok=exist_ok)
-			else
-				error(
-					"The parent of $fp does not exist. " *
-					"Pass recursive=true to create it."
-				)
-			end
+            if recursive
+                mkdir(parent(fp); mode=mode, recursive=recursive, exist_ok=exist_ok)
+            else
+                error(
+                    "The parent of $fp does not exist. " *
+                    "Pass recursive=true to create it."
+                )
+            end
         end
 
-		return parse(T, mkdir(string(fp), mode=mode))
+        return parse(T, mkdir(string(fp), mode=mode))
     end
 end
 
@@ -231,13 +231,31 @@ end
 function Base.rm(fp::SystemPath; kwargs...)
     rm(string(fp); kwargs...)
 end
+
 Base.touch(fp::T) where {T<:SystemPath} = parse(T, touch(string(fp)))
-function Base.mktemp(parent::T) where T<:SystemPath
-    fp, io = mktemp(string(parent))
+
+Base.tempdir(::Type{<:SystemPath}) = Path(tempdir())
+
+function Base.tempname(parent::T; kwargs...) where {T<:SystemPath}
+    return parse(T, tempname(string(parent); kwargs...))
+end
+
+function Base.mktemp(parent::T; kwargs...) where {T<:SystemPath}
+    fp, io = mktemp(string(parent); kwargs...)
     return parse(T, fp), io
 end
 
-Base.mktempdir(parent::T) where {T<:SystemPath}= parse(T, mktempdir(string(parent)))
+function Base.mktempdir(parent::T; kwargs...) where {T<:SystemPath}
+    return parse(T, mktempdir(string(parent); kwargs...))
+end
+
+# Some extra default/utilityy functions
+tmpdir() = tempdir(SystemPath)
+tmpname(; kwargs...) = tempname(SystemPath; kwargs...)
+mktmp() = mktemp(SystemPath)
+mktmp(fn::Function) = mktemp(fn, SystemPath)
+mktmpdir() = mktempdir(SystemPath)
+mktmpdir(fn::Function) = mktempdir(fn, SystemPath)
 
 """
     chown(fp::SystemPath, user::AbstractString, group::AbstractString; recursive=false)

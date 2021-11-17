@@ -70,5 +70,6 @@ Base.read(fp::TestPath) = read(test2posix(fp))
 Base.write(fp::TestPath, x) = write(test2posix(fp), x)
 Base.chown(fp::TestPath, args...; kwargs...) = chown(test2posix(fp), args...; kwargs...)
 Base.chmod(fp::TestPath, args...; kwargs...) = chmod(test2posix(fp), args...; kwargs...)
+Base.tempdir(::Type{TestPath}) = posix2test(tempdir(PosixPath))
 
 end
