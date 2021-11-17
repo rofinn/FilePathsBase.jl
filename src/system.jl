@@ -235,12 +235,7 @@ end
 Base.touch(fp::T) where {T<:SystemPath} = parse(T, touch(string(fp)))
 
 Base.tempdir(::Type{<:SystemPath}) = Path(tempdir())
-
-# Pre-1.4 tempname didn't take any arguments.
-# We provide a system path dispatch for backward compatibility in these cases
-@static if VERSION < v"1.4"
-    Base.tempname(::Type{<:SystemtPath}; kwargs...) = Path(tempname())
-end
+Base.tempname(::Type{<:SystemPath}) = Path(tempname())
 
 function Base.tempname(parent::T; kwargs...) where {T<:SystemPath}
     return parse(T, tempname(string(parent); kwargs...))
