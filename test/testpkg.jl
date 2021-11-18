@@ -72,10 +72,14 @@ Base.chmod(fp::TestPath, args...; kwargs...) = chmod(test2posix(fp), args...; kw
 
 function Base.readdir(fp::TestPath; join=false, sort=true)
     p = test2posix(fp)
-    results = readdir(p; join=join, sort=sort)
-    join || return results
-    # Awkward wrapper that converts the readdir output back to a TestPath string.
-    return string.(posix2test.(parse.(PosixPath, results)))
+    @static if VERSION < v"1.4"
+        return readdir(p)
+    else
+        results = readdir(p; join=join, sort=sort)
+        join || return results
+        # Awkward wrapper that converts the readdir output back to a TestPath string.
+        return string.(posix2test.(parse.(PosixPath, results)))
+    end
 end
 
 end
