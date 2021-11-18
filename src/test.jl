@@ -53,6 +53,7 @@ testsets = [
     test_mktmp,
     test_mktmpdir,
     test_download,
+    test_include,
 ]
 
 # Run all the tests
@@ -120,7 +121,8 @@ module TestPaths
         test_mktmpdir,
         test_chown,
         test_chmod,
-        test_download
+        test_download,
+        test_include
 
     """
         PathSet(root::AbstractPath=tmpdir(); symlink=false)
@@ -918,6 +920,14 @@ module TestPaths
         end
     end
 
+    function test_include(ps::PathSet)
+        @testset "include" begin
+            write(ps.quux, "2 + 2\n")
+            res = include(ps.quux)
+            @test res == 4
+        end
+    end
+
     TESTALL = [
         test_registration,
         test_show,
@@ -970,6 +980,7 @@ module TestPaths
         test_chown,
         test_chmod,
         test_download,
+        test_include,
     ]
 
     function test(ps::PathSet, test_sets=TESTALL)

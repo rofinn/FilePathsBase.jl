@@ -848,3 +848,22 @@ systems as it should limit the number of remote calls where possible.
 """
 diskusage(fp::AbstractPath) = isfile(fp) ? filesize(fp) : diskusage(walkpath(fp))
 diskusage(itr) = mapreduce(filesize, +, itr)
+
+Base.include(m::Module, path::AbstractPath) = Base.include(identity, m, path)
+function Base.include(mapexpr::Function, m::Module, path::AbstractPath)
+    tmp_file = cwd() / string(uuid4(), "-", basename(path))
+    try
+        cp(path, tmp_file; force = true)
+        Base.include(mapexpr, m, string(tmp_file))
+    finally
+        rm(tmp_file; force = true)
+    end
+end
+
+macro __INCLUDE__()
+    return quote
+        m = @__MODULE__
+        m.include(path::AbstractPath) = Base.include(identity, m, path)
+        m.include(mapexpr::Function, path::AbstractPath) = Base.include(mapexpr, m, path)
+    end
+end
