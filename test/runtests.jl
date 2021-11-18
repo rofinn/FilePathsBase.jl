@@ -8,12 +8,15 @@ using Test
 
 using FilePathsBase.TestPaths
 
-include("testpkg.jl")
+# Support including filepaths code
+FilePathsBase.@__INCLUDE__()
+
+include(p"testpkg.jl")
 
 @testset "FilePathsBase" begin
-    include("mode.jl")
-    include("buffer.jl")
-    include("system.jl")
+    include(p"mode.jl")
+    include(p"buffer.jl")
+    include(p"system.jl")
 
     @static if Sys.isunix()
         # Test that our weird registered path works
@@ -23,7 +26,7 @@ include("testpkg.jl")
             @test propertynames(ps.root) == (:drive, :root, :anchor, :separator)
             @test propertynames(ps.root, true) == (:drive, :root, :anchor, :separator, :segments)
         end
-        
+
         @testset "$(typeof(ps.root))" begin
             testsets = [
                 test_registration,
@@ -80,6 +83,7 @@ include("testpkg.jl")
                 test_iswritable,
                 test_chown,
                 test_chmod,
+                test_include,
             ]
 
             # Run all of the automated tests

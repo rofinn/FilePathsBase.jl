@@ -45,6 +45,7 @@ ps = PathSet(; symlink=true)
         test_mktmp,
         test_mktmpdir,
         test_download,
+        test_include,
     ]
 
     if isa(ps.root, PosixPath)
@@ -284,10 +285,10 @@ ps = PathSet(; symlink=true)
             @testset "User/Group constructors" begin
                 my_user = FilePathsBase.User()
                 my_group = FilePathsBase.Group()
-            
+
                 u_int = FilePathsBase.User(UInt(my_user.uid))
                 g_int = FilePathsBase.Group(UInt(my_group.gid))
-            
+
                 @test u_int isa FilePathsBase.User
                 @test g_int isa FilePathsBase.Group
                 @test u_int.uid isa Unsigned
