@@ -129,4 +129,10 @@ julia> rm(tmpfp; recursive=true)
 
 julia> exists(tmpfp)
 false
+
+# Loading code from paths (e.g., S3Path)
+julia> FilePathsBase.@__INCLUDE__()
+
+julia> include(p"test/testpkg.jl")
+Main.TestPkg
 ```
