@@ -383,7 +383,7 @@ function Base.write(fp::SystemPath, x::Union{String, Vector{UInt8}}, mode="w")
     end
 end
 
-Base.readdir(fp::SystemPath) = readdir(string(fp))
+Base.readdir(fp::SystemPath; kwargs...) = readdir(string(fp); kwargs...)
 
 function Base.download(url::AbstractString, dest::T) where T<:SystemPath
     return parse(T, download(url, string(dest)))

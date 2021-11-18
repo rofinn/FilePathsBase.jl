@@ -702,10 +702,16 @@ function Base.download(url::AbstractPath, localfile::AbstractString)
 end
 
 """
-    readpath(fp::P) where {P <: AbstractPath} -> Vector{P}
+    readpath(fp::P; join=true, sort=true) where {P <: AbstractPath} -> Vector{P}
 """
-function readpath(p::P)::Vector{P} where P <: AbstractPath
-    return P[join(p, f) for f in readdir(p)]
+function readpath(p::P; join=true, sort=true)::Vector{P} where P <: AbstractPath
+    @static if VERSION < v"1.4"
+        results = readdir(p)
+        sort && sort!(results)
+        return join ? joinpath.(p, results) : parse.(P, results)
+    else
+        return parse.(P, readdir(p; join=join, sort=sort))
+    end
 end
 
 """

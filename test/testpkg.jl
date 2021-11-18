@@ -65,10 +65,21 @@ Base.cd(f::Function, fp::TestPath) = cd(f, test2posix(fp))
 Base.mkdir(fp::TestPath; kwargs...) = posix2test(mkdir(test2posix(fp); kwargs...))
 Base.symlink(src::TestPath, dest::TestPath; kwargs...) = symlink(test2posix(src), test2posix(dest); kwargs...)
 Base.rm(fp::TestPath; kwargs...) = rm(test2posix(fp); kwargs...)
-Base.readdir(fp::TestPath) = readdir(test2posix(fp))
 Base.read(fp::TestPath) = read(test2posix(fp))
 Base.write(fp::TestPath, x) = write(test2posix(fp), x)
 Base.chown(fp::TestPath, args...; kwargs...) = chown(test2posix(fp), args...; kwargs...)
 Base.chmod(fp::TestPath, args...; kwargs...) = chmod(test2posix(fp), args...; kwargs...)
+
+function Base.readdir(fp::TestPath; join=false, sort=true)
+    p = test2posix(fp)
+    @static if VERSION < v"1.4"
+        return readdir(p)
+    else
+        results = readdir(p; join=join, sort=sort)
+        join || return results
+        # Awkward wrapper that converts the readdir output back to a TestPath string.
+        return string.(posix2test.(parse.(PosixPath, results)))
+    end
+end
 
 end
