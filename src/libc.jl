@@ -81,9 +81,13 @@ Base.show(io::IO, user::User) = print(io, "$(user.uid) ($(user.name))")
         ret = Libc.errno()
 
         systemerror(:getpwuid, !iszero(ret))
-        ps == C_NULL && throw(ArgumentError("User $uid not found."))
 
-        return User(ps)
+        if ps == C_NULL
+            @warn "User $uid not found."
+            return User("NA", uid, uid, "NA", "NA")
+        else
+            return User(ps)
+        end
     end
 
     User() = User(UInt(ccall(:geteuid, Cint, ())))
@@ -119,8 +123,12 @@ Base.show(io::IO, group::Group) = print(io, "$(group.gid) ($(group.name))")
         ret = Libc.errno()
 
         systemerror(:getgrgid, !iszero(ret))
-        gr == C_NULL && throw(ArgumentError("Group $gid not found."))
-        return Group(gr)
+        if gr == C_NULL
+            @warn "Group $gid not found."
+            return Group("NA", gid)
+        else
+            return Group(gr)
+        end
     end
 
     Group() = Group(UInt(ccall(:getegid, Cint, ())))
