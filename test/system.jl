@@ -294,15 +294,17 @@ ps = PathSet(; symlink=true)
                 @test u_int.uid isa Unsigned
                 @test g_int.gid isa Unsigned
 
-                # Non-existent user or group
-                u_int = FilePathsBase.User(UInt(9999))
-                g_int = FilePathsBase.Group(UInt(9999))
-                @test u_int isa FilePathsBase.User
-                @test g_int isa FilePathsBase.Group
-                @test u_int.uid == UInt(9999)
-                @test g_int.gid == UInt(9999)
-                @test u_int.name == "NA"
-                @test g_int.name == "NA"
+                # Non-existent user or group on unix
+                if Sys.isunix()
+                    u_int = FilePathsBase.User(UInt(9999))
+                    g_int = FilePathsBase.Group(UInt(9999))
+                    @test u_int isa FilePathsBase.User
+                    @test g_int isa FilePathsBase.Group
+                    @test u_int.uid == UInt(9999)
+                    @test g_int.gid == UInt(9999)
+                    @test u_int.name == "NA"
+                    @test g_int.name == "NA"
+                end
             end
         end
 
