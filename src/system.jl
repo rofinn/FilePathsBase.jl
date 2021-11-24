@@ -400,5 +400,10 @@ end
 Mmap.mmap(fp::SystemPath, args...; kwargs...) = Mmap.mmap(string(fp), args...; kwargs...)
 
 function Base.include(mapexpr::Function, m::Module, path::SystemPath)
-    Base.include(mapexpr, m, string(path))
+    @static if VERSION <= v"1.5"
+        mapexpr === identity || throw(MethodError(Base.include, (mapexpr, m, path)))
+        Base.include(m, string(path))
+    else
+        Base.include(mapexpr, m, string(path))
+    end
 end
