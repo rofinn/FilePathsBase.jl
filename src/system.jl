@@ -400,5 +400,5 @@ end
 Mmap.mmap(fp::SystemPath, args...; kwargs...) = Mmap.mmap(string(fp), args...; kwargs...)
 
 function Base.include(mapexpr::Function, m::Module, path::SystemPath)
-    Base.include(mapexpr, m, string(path))
+    return Base.include(mapexpr, m, string(path))
 end

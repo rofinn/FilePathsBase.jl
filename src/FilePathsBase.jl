@@ -1,5 +1,6 @@
 module FilePathsBase
 
+using Compat
 using Dates
 using Mmap
 using Printf
