@@ -6,6 +6,8 @@ methods that wrap base functionality.
 """
 abstract type SystemPath <: AbstractPath end
 
+permissionstype(::Type{<:SystemPath}) = HasPermissions()
+
 Path() = @static Sys.isunix() ? PosixPath() : WindowsPath()
 Path(pieces::Tuple{Vararg{String}}) =
     @static Sys.isunix() ? PosixPath(pieces) : WindowsPath(pieces)
