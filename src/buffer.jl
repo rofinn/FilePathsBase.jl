@@ -35,6 +35,7 @@ end
 Base.isopen(buffer::FileBuffer) = isopen(buffer.io)
 Base.isreadable(buffer::FileBuffer) = buffer.read
 Base.iswritable(buffer::FileBuffer) = buffer.write
+Base.readavailable(buffer::FileBuffer) = read(buffer)
 Base.seek(buffer::FileBuffer, n::Integer) = (_read(buffer); seek(buffer.io, n))
 Base.skip(buffer::FileBuffer, n::Integer) = (_read(buffer); skip(buffer.io, n))
 Base.seekstart(buffer::FileBuffer) = seekstart(buffer.io)
