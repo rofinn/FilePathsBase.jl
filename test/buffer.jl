@@ -33,6 +33,8 @@ using FilePathsBase: FileBuffer
             close(io)
         end
 
+        @test readavailable(FileBuffer(p)) == readavailable(IOBuffer(read(p)))
+
         # issue #126: data on first read
         mktemp(SystemPath) do p, _
             write(p, "testing")
