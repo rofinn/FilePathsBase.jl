@@ -120,6 +120,7 @@ Return a boolean as to whether the string `x` fits the specified the path type.
 """
 function ispathtype end
 
+include("aliases.jl")
 include("constants.jl")
 include("utils.jl")
 include("libc.jl")
@@ -127,7 +128,6 @@ include("mode.jl")
 include("status.jl")
 include("buffer.jl")
 include("path.jl")
-include("aliases.jl")
 include("system.jl")
 include("posix.jl")
 include("windows.jl")
