@@ -360,6 +360,8 @@ ps = PathSet(; symlink=true)
         end
 
         @testset "expanduser" begin
+            @test expanduser(p"/") == p"/"
+
             fp = joinpath(cwd(), "..", "src", "FilePathsBase.jl")
             @test string(expanduser(fp)) == expanduser(string(fp))
 

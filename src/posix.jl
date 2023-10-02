@@ -24,7 +24,7 @@ end
 function Base.expanduser(fp::PosixPath)::PosixPath
     p = fp.segments
 
-    if p[1] == "~"
+    if length(p) >= 1 && p[1] == "~"
         return length(p) > 1 ? joinpath(home(), p[2:end]...) : home()
     end
 
