@@ -533,8 +533,13 @@ julia> created(p"src/FilePathsBase.jl")
 ```
 """
 created(fp::AbstractPath) = stat(fp).ctime
-Base.isdir(fp::AbstractPath) = isdir(mode(fp))
+
+Base.isdir(fp::AbstractPath) = isdir(directoriestype(fp), fp)
+Base.isdir(::DirectoriesExplicit, fp::AbstractPath) = isdir(mode(fp))
+
 Base.isfile(fp::AbstractPath) = isfile(mode(fp))
+
+#TODO: most of these clearly only make sense on local FS, should they have traits?
 Base.islink(fp::AbstractPath) = islink(lstat(fp).mode)
 Base.issocket(fp::AbstractPath) = issocket(mode(fp))
 Base.isfifo(fp::AbstractPath) = issocket(mode(fp))
