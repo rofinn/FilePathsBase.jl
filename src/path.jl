@@ -687,8 +687,8 @@ Download a file from the remote `url` and save it to the `localfile` path.
 NOTE: Not downloading into a `localfile` directory matches the base Julia behaviour.
 https://github.com/rofinn/FilePathsBase.jl/issues/48
 """
-function Base.download(url::AbstractString, localfile::P) where P <: AbstractPath
-    mktemp(P) do fp, io
+function Base.download(url::AbstractString, localfile::AbstractPath)
+    mktmp() do fp, io
         download(url, fp)
         cp(fp, localfile; force=false)
     end
@@ -773,26 +773,22 @@ Base.write(fp::AbstractPath, x) = open(io -> write(io, x), fp, "w")
 # Default `touch` will just write an empty string to a file
 Base.touch(fp::AbstractPath) = write(fp, "")
 
-Base.tempname(::Type{<:AbstractPath}) = Path(tempname())
-tmpname() = tempname(SystemPath)
+Base.tempname(P::Type{<:AbstractPath}; kwargs...) = tempname(tempdir(P); kwargs...)
+Base.mktemp(P::Type{<:AbstractPath}; kwargs...) = mktemp(tempdir(P); kwargs...)
+Base.mktemp(fn::Function, P::Type{<:AbstractPath}; kwargs...) = mktemp(fn, tempdir(P); kwargs...)
+Base.mktempdir(P::Type{<:AbstractPath}; kwargs...) = mktempdir(tempdir(P); kwargs...)
+Base.mktempdir(fn::Function, P::Type{<:AbstractPath}; kwargs...) = mktempdir(fn, tempdir(P); kwargs...)
 
-Base.tempdir(::Type{<:AbstractPath}) = Path(tempdir())
-tmpdir() = tempdir(SystemPath)
+function Base.tempname(parent::AbstractPath; prefix="jl_", cleanup=true)
+    isdir(parent) || throw(ArgumentError("$(repr(parent)) is not a directory"))
+    fp = parent / string(prefix, uuid1())
+    @assert !exists(fp)
+    cleanup && temp_cleanup(fp)
+    return fp
+end
 
-Base.mktemp(P::Type{<:AbstractPath}) = mktemp(tempdir(P))
-mktmp() = mktemp(SystemPath)
-
-Base.mktemp(fn::Function, P::Type{<:AbstractPath}) = mktemp(fn, tempdir(P))
-mktmp(fn::Function) = mktemp(fn, SystemPath)
-
-Base.mktempdir(P::Type{<:AbstractPath}) = mktempdir(tempdir(P))
-mktmpdir() = mktempdir(SystemPath)
-
-Base.mktempdir(fn::Function, P::Type{<:AbstractPath}) = mktempdir(fn, tempdir(P))
-mktmpdir(fn::Function) = mktempdir(fn, SystemPath)
-
-function Base.mktemp(parent::AbstractPath)
-    fp = parent / string(uuid4())
+function Base.mktemp(parent::AbstractPath; kwargs...)
+    fp = tempname(parent; kwargs...)
     # touch the file in case `open` isn't implement for the path and
     # we're buffering locally.
     touch(fp)
@@ -800,14 +796,14 @@ function Base.mktemp(parent::AbstractPath)
     return fp, io
 end
 
-function Base.mktempdir(parent::AbstractPath)
-    fp = parent / string(uuid4())
+function Base.mktempdir(parent::AbstractPath; kwargs...)
+    fp = tempname(parent; kwargs...)
     mkdir(fp)
     return fp
 end
 
-function Base.mktemp(fn::Function, parent::AbstractPath)
-    (tmp_fp, tmp_io) = mktmp(parent)
+function Base.mktemp(fn::Function, parent::AbstractPath; kwargs...)
+    (tmp_fp, tmp_io) = mktemp(parent; kwargs...)
     try
         fn(tmp_fp, tmp_io)
     finally
@@ -816,8 +812,8 @@ function Base.mktemp(fn::Function, parent::AbstractPath)
     end
 end
 
-function Base.mktempdir(fn::Function, parent::AbstractPath)
-    tmpdir = mktmpdir(parent)
+function Base.mktempdir(fn::Function, parent::AbstractPath; kwargs...)
+    tmpdir = mktmpdir(parent; kwargs...)
     try
         fn(tmpdir)
     finally
@@ -825,8 +821,15 @@ function Base.mktempdir(fn::Function, parent::AbstractPath)
     end
 end
 
-mktmp(arg1, args...) = mktemp(arg1, args...)
-mktmpdir(arg1, args...) = mktempdir(arg1, args...)
+mktmp(arg1, args...; kwargs...) = mktemp(arg1, args...; kwargs...)
+mktmpdir(arg1, args...; kwargs...) = mktempdir(arg1, args...; kwargs...)
+
+function temp_cleanup(fp::AbstractPath)
+    atexit() do
+        # Might not work in all cases, but default to recursively deleting the path on exit
+        rm(fp; force=true, recursive=true)
+    end
+end
 
 """
 	isdescendant(fp::P, asc::P) where {P <: AbstractPath} -> Bool
