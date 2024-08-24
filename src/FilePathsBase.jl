@@ -1,12 +1,10 @@
 module FilePathsBase
 
-using Compat
 using Dates
-using Mmap
-using Printf
-using UUIDs
 
 import Base: ==
+import Base: UUID
+
 export
     # Types
     AbstractPath,
@@ -133,5 +131,9 @@ include("posix.jl")
 include("windows.jl")
 include("test.jl")
 include("deprecates.jl")
+
+if !isdefined(Base,:get_extension)
+    include("../ext/FilePathsBaseMmapExt.jl")
+end
 
 end # end of module
