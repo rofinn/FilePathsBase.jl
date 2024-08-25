@@ -1,5 +1,5 @@
-function uuid4(rng::AbstractRNG=Random.RandomDevice())
-    u = rand(rng, UInt128)
+function uuid4()
+    u = rand(UInt128)
     u &= 0xffffffffffff0fff3fffffffffffffff
     u |= 0x00000000000040008000000000000000
     UUID(u)

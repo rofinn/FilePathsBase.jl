@@ -5,6 +5,18 @@ using Dates
 import Base: ==
 import Base: UUID
 
+#v3 of compat overloads Base.include(mapexpr::Function, path::AbstractString)
+#on julia 1.6 afterwards this is not necessary.
+@static if Base.VERSION < v"1.6"
+    using Compat
+end
+
+#https://github.com/JuliaLang/julia/pull/53699 makes isexecutable public. 
+#we overload that method if available.
+@static if isdefined(Base,:isexecutable)
+    import Base: isexecutable
+end
+
 export
     # Types
     AbstractPath,
@@ -129,11 +141,12 @@ include("path.jl")
 include("system.jl")
 include("posix.jl")
 include("windows.jl")
-include("test.jl")
+include("test_stub.jl")
 include("deprecates.jl")
 
 if !isdefined(Base,:get_extension)
     include("../ext/FilePathsBaseMmapExt.jl")
+    include("../ext/FilePathsBaseTestExt.jl")
 end
 
 end # end of module

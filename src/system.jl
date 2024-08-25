@@ -385,6 +385,7 @@ end
 
 Base.readdir(fp::SystemPath; kwargs...) = readdir(string(fp); kwargs...)
 
+#TODO: Base.download is deprecated; use Downloads.download instead (FilePathsBase.jl#173)
 function Base.download(url::AbstractString, dest::T) where T<:SystemPath
     return parse(T, download(url, string(dest)))
 end
@@ -397,8 +398,8 @@ function canonicalize(fp::T) where T<:SystemPath
     return parse(T, realpath(string(fp)))
 end
 
-Mmap.mmap(fp::SystemPath, args...; kwargs...) = Mmap.mmap(string(fp), args...; kwargs...)
-
-function Base.include(mapexpr::Function, m::Module, path::SystemPath)
-    return Base.include(mapexpr, m, string(path))
+@static if Base.VERSION >= v"1.5"
+    function Base.include(mapexpr::Function, m::Module, path::SystemPath)
+        return Base.include(mapexpr, m, string(path))
+    end
 end

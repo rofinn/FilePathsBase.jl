@@ -22,10 +22,10 @@
     @test Mode("--wx--x--x") == m - r
     @test Mode("-r-xr-x--x") == m - w
 
-    @test isexecutable(x, :USER)
-    @test isexecutable(x, :GROUP)
-    @test isexecutable(x, :OTHER)
-    @test isexecutable(x, :ALL)
+    @test FilePathsBase.isexecutable(x, :USER)
+    @test FilePathsBase.isexecutable(x, :GROUP)
+    @test FilePathsBase.isexecutable(x, :OTHER)
+    @test FilePathsBase.isexecutable(x, :ALL)
 
     @test iswritable(w, :USER)
     @test !iswritable(w, :GROUP)
