@@ -1,192 +1,13 @@
-"""
-    TestPaths
-
-This module is intended to be used for testing new path types to
-ensure that they are adhering to the AbstractPath API.
-
-# Example
-
-```julia
-# Create a PathSet
-ps = PathSet(; symlink=true)
-
-# Select the subset of tests to run
-# Inspect TestPaths.TESTALL to see full list
-testsets = [
-    test_registration,
-    test_show,
-    test_cmd,
-    test_parse,
-    test_convert,
-    test_components,
-    test_parents,
-    test_join,
-    test_splitext,
-    test_basename,
-    test_splitdir,
-    test_filename,
-    test_extensions,
-    test_isempty,
-    test_normalize,
-    test_canonicalize,
-    test_relative,
-    test_absolute,
-    test_isdir,
-    test_isfile,
-    test_stat,
-    test_filesize,
-    test_modified,
-    test_created,
-    test_cd,
-    test_readpath,
-    test_walkpath,
-    test_read,
-    test_write,
-    test_mkdir,
-    test_cp,
-    test_mv,
-    test_sync,
-    test_symlink,
-    test_touch,
-    test_tmpname,
-    test_tmpdir,
-    test_mktmp,
-    test_mktmpdir,
-    test_download,
-    test_include,
-]
-
-# Run all the tests
-test(ps, testsets)
-```
-"""
-module TestPaths
+module FilePathsBaseTestExt
     using Dates: Dates
     using FilePathsBase
     using FilePathsBase: /, join
     using Test
-
-    export PathSet,
-        TESTALL,
-        test,
-        test_registration,
-        test_show,
-        test_cmd,
-        test_parse,
-        test_convert,
-        test_components,
-        test_indexing,
-        test_iteration,
-        test_parents,
-        test_descendants_and_ascendants,
-        test_join,
-        test_splitext,
-        test_basename,
-        test_splitdir,
-        test_filename,
-        test_extensions,
-        test_isempty,
-        test_normalize,
-        test_canonicalize,
-        test_relative,
-        test_absolute,
-        test_isdir,
-        test_isfile,
-        test_stat,
-        test_filesize,
-        test_modified,
-        test_created,
-        test_issocket,
-        test_isfifo,
-        test_ischardev,
-        test_isblockdev,
-        test_ismount,
-        test_isexecutable,
-        test_isreadable,
-        test_iswritable,
-        test_cd,
-        test_readpath,
-        test_walkpath,
-        test_read,
-        test_write,
-        test_mkdir,
-        test_cp,
-        test_mv,
-        test_sync,
-        test_symlink,
-        test_touch,
-        test_tmpname,
-        test_tmpdir,
-        test_mktmp,
-        test_mktmpdir,
-        test_chown,
-        test_chmod,
-        test_download,
-        test_include
-
-    """
-        PathSet(root::AbstractPath=tmpdir(); symlink=false)
-
-    Constructs a common test path hierarchy to running shared API tests.
-
-    Hierarchy:
-
-    ```
-    root
-    |-- foo
-    |   |-- baz.txt
-    |-- bar
-    |   |-- qux
-    |       |-- quux.tar.gz
-    |-- fred
-    |   |-- plugh
-    ```
-    """
-    struct PathSet{P<:AbstractPath}
-        root::P
-        foo::P
-        baz::P
-        bar::P
-        qux::P
-        quux::P
-        fred::P
-        plugh::P
-        link::Bool
-    end
-
-    function PathSet(root=tmpdir() / "pathset_root"; symlink=false)
-        root = absolute(root)
-
-        PathSet(
-            root,
-            root / "foo",
-            root / "foo" / "baz.txt",
-            root / "bar",
-            root / "bar" / "qux",
-            root / "bar" / "qux" / "quux.tar.gz",
-            root / "fred",
-            root / "fred" / "plugh",
-            symlink,
-        )
-    end
-
-    function initialize(ps::PathSet)
-        @info "Initializing $(typeof(ps))"
-        mkdir.([ps.foo, ps.qux, ps.fred]; recursive=true, exist_ok=true)
-        write(ps.baz, "Hello World!")
-        write(ps.quux, "Hello Again!")
-
-        # If link is true then plugh is a symlink to foo
-        if ps.link
-            symlink(ps.foo, ps.plugh)
-        else
-            touch(ps.plugh)
-        end
-    end
+    using FilePathsBase.TestPaths
 
     # NOTE: Most paths should test their own constructors as necessary.
 
-    function test_registration(ps::PathSet{P}) where P <: AbstractPath
+    function TestPaths.test_registration(ps::PathSet{P}) where P <: AbstractPath
         @testset "Path constructor" begin
             str = string(ps.root)
             @test tryparse(P, str) !== nothing
@@ -195,7 +16,7 @@ module TestPaths
         end
     end
 
-    function test_show(ps::PathSet)
+    function TestPaths.test_show(ps::PathSet)
         @testset "show" begin
             str = string(ps.root)
             # For windows paths
@@ -206,14 +27,14 @@ module TestPaths
         end
     end
 
-    function test_cmd(ps::PathSet)
+    function TestPaths.test_cmd(ps::PathSet)
         @testset "cmd" begin
             str = string(ps.root)
             @test `echo $str` == `echo $(ps.root)`
         end
     end
 
-    function test_parse(ps::PathSet{P}) where P <: AbstractPath
+    function TestPaths.test_parse(ps::PathSet{P}) where P <: AbstractPath
         @testset "parsing" begin
             str = string(ps.root)
             @test parse(P, str) == ps.root
@@ -221,7 +42,7 @@ module TestPaths
         end
     end
 
-    function test_convert(ps::PathSet{P}) where P <: AbstractPath
+    function TestPaths.test_convert(ps::PathSet{P}) where P <: AbstractPath
         @testset "convert" begin
             str = string(ps.root)
             @test convert(P, str) == ps.root
@@ -229,7 +50,7 @@ module TestPaths
         end
     end
 
-    function test_components(ps::PathSet)
+    function TestPaths.test_components(ps::PathSet)
         @testset "components" begin
             str = string(ps.root)
             @test ps.root.anchor == ps.root.drive * ps.root.root
@@ -241,7 +62,7 @@ module TestPaths
         end
     end
 
-    function test_indexing(ps::PathSet)
+    function TestPaths.test_indexing(ps::PathSet)
         @test firstindex(ps.root) == 1
         @test lastindex(ps.root) == length(ps.root.segments)
         # `begin` indexing was only added in 1.4, so we'll leave this test commented
@@ -252,13 +73,13 @@ module TestPaths
         @test ps.quux[:] == ps.quux.segments[:]
     end
 
-    function test_iteration(ps::PathSet)
+    function TestPaths.test_iteration(ps::PathSet)
         @test eltype(ps.root) == String
         @test tuple(ps.quux...) == ps.quux.segments
         @test all(in(ps.quux), ("bar", "qux", "quux.tar.gz"))
     end
 
-    function test_parents(ps::PathSet)
+    function TestPaths.test_parents(ps::PathSet)
         @testset "parents" begin
             @test parent(ps.foo) == ps.root
             @test parent(ps.qux) == ps.bar
@@ -300,7 +121,7 @@ module TestPaths
         end
     end
 
-    function test_descendants_and_ascendants(ps::PathSet)
+    function TestPaths.test_descendants_and_ascendants(ps::PathSet)
         @testset "descendants and ascendants" begin
             # Test base cases
             @test isdescendant(p"/a/b", p"/")
@@ -324,7 +145,7 @@ module TestPaths
         end
     end
 
-    function test_join(ps::PathSet)
+    function TestPaths.test_join(ps::PathSet)
         @testset "join" begin
             @test join(ps.root, "bar") == ps.bar
             @test ps.root / "foo" / "baz.txt" == ps.baz
@@ -343,21 +164,21 @@ module TestPaths
         end
     end
 
-    function test_splitext(ps::PathSet)
+    function TestPaths.test_splitext(ps::PathSet)
         @testset "splitext" begin
             @test splitext(ps.foo) == (ps.foo, "")
             @test splitext(ps.baz) == (ps.foo / "baz", ".txt")
             @test splitext(ps.quux) == (ps.qux / "quux.tar", ".gz")
         end
     end
-    function test_basename(ps::PathSet)
+    function TestPaths.test_basename(ps::PathSet)
         @testset "basename" begin
             @test basename(ps.foo) == "foo"
             @test basename(ps.baz) == "baz.txt"
             @test basename(ps.quux) == "quux.tar.gz"
         end
     end
-    function test_splitdir(ps::PathSet)
+    function TestPaths.test_splitdir(ps::PathSet)
         @testset "splitdir" begin
             @test splitdir(ps.foo) == (ps.root, "foo")
             @test splitdir(ps.baz) == (ps.root / "foo", "baz.txt")
@@ -365,7 +186,7 @@ module TestPaths
         end
     end
 
-    function test_filename(ps::PathSet)
+    function TestPaths.test_filename(ps::PathSet)
         @testset "filename" begin
             @test filename(ps.foo) == "foo"
             @test filename(ps.baz) == "baz"
@@ -373,7 +194,7 @@ module TestPaths
         end
     end
 
-    function test_extensions(ps::PathSet)
+    function TestPaths.test_extensions(ps::PathSet)
         @testset "extensions" begin
             @test extension(ps.foo) == ""
             @test extension(ps.baz) == "txt"
@@ -384,14 +205,14 @@ module TestPaths
         end
     end
 
-    function test_isempty(ps::PathSet{P}) where P <: AbstractPath
+    function TestPaths.test_isempty(ps::PathSet{P}) where P <: AbstractPath
         @testset "isempty" begin
             @test !isempty(ps.foo)
             @test isempty(P())
         end
     end
 
-    function test_normalize(ps::PathSet)
+    function TestPaths.test_normalize(ps::PathSet)
         @testset "normalize" begin
             @test normalize(ps.bar / ".." / "foo") == ps.foo
             @test normalize(ps.bar / ".") == ps.bar
@@ -400,7 +221,7 @@ module TestPaths
         end
     end
 
-    function test_canonicalize(ps::PathSet)
+    function TestPaths.test_canonicalize(ps::PathSet)
         @testset "canonicalize" begin
             # NOTE: We call `canonicalize` on ps.bar in the `normalize` case because on
             # macOS the temp directory may include a symlink.
@@ -418,34 +239,34 @@ module TestPaths
         end
     end
 
-    function test_relative(ps::PathSet)
+    function TestPaths.test_relative(ps::PathSet)
         @testset "relative" begin
             @test relative(ps.foo, ps.qux).segments == ("..", "..", "foo")
         end
     end
 
-    function test_absolute(ps::PathSet)
+    function TestPaths.test_absolute(ps::PathSet)
         @testset "absolute" begin
             @test isabsolute(ps.root) || isabsolute(absolute(ps.root))
             @test absolute(ps.root) == abspath(ps.root)
         end
     end
 
-    function test_isdir(ps::PathSet)
+    function TestPaths.test_isdir(ps::PathSet)
         @testset "isdir" begin
             @test isdir(ps.foo)
             @test !isdir(ps.baz)
         end
     end
 
-    function test_isfile(ps::PathSet)
+    function TestPaths.test_isfile(ps::PathSet)
         @testset "isfile" begin
             @test isfile(ps.baz)
             @test !isfile(ps.foo)
         end
     end
 
-    function test_stat(ps::PathSet)
+    function TestPaths.test_stat(ps::PathSet)
         @testset "stat" begin
             s = stat(ps.root)
             fields = fieldnames(typeof(s))
@@ -466,47 +287,47 @@ module TestPaths
 
     # Minimal testing of issocket, isfifo, ischardev, isblockdev and ismount which
     # people won't typically include.
-    function test_issocket(ps::PathSet)
+    function TestPaths.test_issocket(ps::PathSet)
         @test !issocket(ps.root)
     end
 
-    function test_isfifo(ps::PathSet)
+    function TestPaths.test_isfifo(ps::PathSet)
         @test !isfifo(ps.root)
     end
 
-    function test_ischardev(ps::PathSet)
+    function TestPaths.test_ischardev(ps::PathSet)
         @test !ischardev(ps.root)
     end
 
-    function test_isblockdev(ps::PathSet)
+    function TestPaths.test_isblockdev(ps::PathSet)
         @test !isblockdev(ps.root)
     end
 
-    function test_ismount(ps::PathSet)
+    function TestPaths.test_ismount(ps::PathSet)
         @test !ismount(ps.root)
     end
 
-    function test_filesize(ps::PathSet)
+    function TestPaths.test_filesize(ps::PathSet)
         @testset "filesize" begin
             @test filesize(ps.baz) > 0
         end
     end
 
-    function test_modified(ps::PathSet)
+    function TestPaths.test_modified(ps::PathSet)
         @testset "modified" begin
             @test isa(modified(ps.baz), Dates.AbstractDateTime)
             @test modified(ps.baz) >= modified(ps.root)
         end
     end
 
-    function test_created(ps::PathSet)
+    function TestPaths.test_created(ps::PathSet)
         @testset "created" begin
             @test isa(created(ps.baz), Dates.AbstractDateTime)
             @test created(ps.baz) >= created(ps.root)
         end
     end
 
-    function test_isexecutable(ps::PathSet{P}) where P <: AbstractPath
+    function TestPaths.test_isexecutable(ps::PathSet{P}) where P <: AbstractPath
         @testset "isexecutable" begin
             # I'm not entirely sure how to test this generally
             @test !isexecutable(ps.baz)
@@ -518,7 +339,7 @@ module TestPaths
         end
     end
 
-    function test_isreadable(ps::PathSet)
+    function TestPaths.test_isreadable(ps::PathSet)
         @testset "isreadable" begin
             # Our test files should be readable by default
             @test isreadable(ps.baz)
@@ -530,7 +351,7 @@ module TestPaths
         end
     end
 
-    function test_iswritable(ps::PathSet)
+    function TestPaths.test_iswritable(ps::PathSet)
         @testset "iswritable" begin
             # Our test files should be writable by default
             @test iswritable(ps.baz)
@@ -542,7 +363,7 @@ module TestPaths
         end
     end
 
-    function test_cd(ps::PathSet{P}) where P <: AbstractPath
+    function TestPaths.test_cd(ps::PathSet{P}) where P <: AbstractPath
         if P <: SystemPath
             @testset "cd" begin
                 init_path = canonicalize(cwd())
@@ -565,7 +386,7 @@ module TestPaths
         end
     end
 
-    function test_readpath(ps::PathSet)
+    function TestPaths.test_readpath(ps::PathSet)
         @testset "readpath" begin
             @test readdir(ps.root) == ["bar", "foo", "fred"]
             @test readdir(ps.qux) == ["quux.tar.gz"]
@@ -574,7 +395,7 @@ module TestPaths
         end
     end
 
-    function test_walkpath(ps::PathSet{P}) where P
+    function TestPaths.test_walkpath(ps::PathSet{P}) where P
         @testset "walkpath" begin
             topdown = [ps.bar, ps.qux, ps.quux, ps.foo, ps.baz, ps.fred, ps.plugh]
             bottomup = [ps.quux, ps.qux, ps.bar, ps.baz, ps.foo, ps.plugh, ps.fred]
@@ -590,7 +411,7 @@ module TestPaths
         end
     end
 
-    function test_read(ps::PathSet)
+    function TestPaths.test_read(ps::PathSet)
         @testset "read" begin
             @test read(ps.baz, String) == "Hello World!"
             open(ps.quux, "r") do io
@@ -599,7 +420,7 @@ module TestPaths
         end
     end
 
-    function test_write(ps::PathSet)
+    function TestPaths.test_write(ps::PathSet)
         @testset "write" begin
             write(ps.baz, "Goodbye World!")
             @test read(ps.baz, String) == "Goodbye World!"
@@ -634,7 +455,7 @@ module TestPaths
         end
     end
 
-    function test_mkdir(ps::PathSet)
+    function TestPaths.test_mkdir(ps::PathSet)
         @testset "mkdir" begin
             garply = ps.root / "corge" / "grault" / "garply"
             @test_throws ErrorException mkdir(garply)
@@ -647,7 +468,7 @@ module TestPaths
         end
     end
 
-    function test_cp(ps::PathSet)
+    function TestPaths.test_cp(ps::PathSet)
         @testset "cp" begin
             cp(ps.foo, ps.qux / "foo"; force=true)
             @test exists(ps.qux / "foo" / "baz.txt")
@@ -680,7 +501,7 @@ module TestPaths
         end
     end
 
-    function test_mv(ps::PathSet)
+    function TestPaths.test_mv(ps::PathSet)
         @testset "mv" begin
             garply = ps.root / "corge" / "grault" / "garply"
             mkdir(garply; recursive=true, exist_ok=true)
@@ -691,7 +512,7 @@ module TestPaths
         end
     end
 
-    function test_sync(ps::PathSet)
+    function TestPaths.test_sync(ps::PathSet)
         @testset "sync" begin
             @testset "empty destination" begin
                 sync(ps.foo, ps.qux / "foo")
@@ -792,7 +613,7 @@ module TestPaths
         end
     end
 
-    function test_symlink(ps::PathSet)
+    function TestPaths.test_symlink(ps::PathSet)
         if ps.link
             @testset "symlink" begin
                 @test_throws ErrorException symlink(ps.foo, ps.plugh)
@@ -803,7 +624,7 @@ module TestPaths
         end
     end
 
-    function test_touch(ps::PathSet)
+    function TestPaths.test_touch(ps::PathSet)
         @testset "touch" begin
             newfile = ps.root / "newfile"
             touch(newfile)
@@ -813,7 +634,7 @@ module TestPaths
         end
     end
 
-    function test_tmpname(ps::PathSet)
+    function TestPaths.test_tmpname(ps::PathSet)
         @testset "tmpname" begin
             @test isa(tmpname(), AbstractPath)
             @test hasparent(tmpname())
@@ -821,7 +642,7 @@ module TestPaths
         end
     end
 
-    function test_tmpdir(ps::PathSet)
+    function TestPaths.test_tmpdir(ps::PathSet)
         @testset "tmpname" begin
             @test isa(tmpdir(), AbstractPath)
             @test exists(tmpdir())
@@ -829,7 +650,7 @@ module TestPaths
         end
     end
 
-    function test_mktmp(ps::PathSet)
+    function TestPaths.test_mktmp(ps::PathSet)
         @testset "mktmp" begin
             mktmp(ps.root) do path, io
                 @test exists(path)
@@ -841,7 +662,7 @@ module TestPaths
         end
     end
 
-    function test_mktmpdir(ps::PathSet)
+    function TestPaths.test_mktmpdir(ps::PathSet)
         @testset "mktmpdir" begin
             mktmpdir(ps.root) do path
                 @test exists(path)
@@ -851,7 +672,7 @@ module TestPaths
         end
     end
 
-    function test_chown(ps::PathSet)
+    function TestPaths.test_chown(ps::PathSet)
         @testset "chown" begin
             newfile = ps.root / "newfile"
             touch(newfile)
@@ -870,7 +691,7 @@ module TestPaths
         end
     end
 
-    function test_chmod(ps::PathSet)
+    function TestPaths.test_chmod(ps::PathSet)
         @testset "chmod" begin
             newfile = ps.root / "newfile"
             newpath = ps.root / "thud"
@@ -900,7 +721,7 @@ module TestPaths
         end
     end
 
-    function test_download(ps::PathSet)
+    function TestPaths.test_download(ps::PathSet)
         @testset "download" begin
             rm(ps.foo / "README.md"; force=true)
             download(
@@ -920,78 +741,11 @@ module TestPaths
         end
     end
 
-    function test_include(ps::PathSet)
+    function TestPaths.test_include(ps::PathSet)
         @testset "include" begin
             write(ps.quux, "2 + 2\n")
             res = include(ps.quux)
             @test res == 4
-        end
-    end
-
-    TESTALL = [
-        test_registration,
-        test_show,
-        test_cmd,
-        test_parse,
-        test_convert,
-        test_components,
-        test_indexing,
-        test_iteration,
-        test_parents,
-        test_descendants_and_ascendants,
-        test_join,
-        test_splitext,
-        test_basename,
-        test_filename,
-        test_extensions,
-        test_isempty,
-        test_normalize,
-        test_canonicalize,
-        test_relative,
-        test_absolute,
-        test_isdir,
-        test_isfile,
-        test_stat,
-        test_filesize,
-        test_modified,
-        test_created,
-        test_issocket,
-        test_isfifo,
-        test_ischardev,
-        test_isblockdev,
-        test_ismount,
-        test_isexecutable,
-        test_isreadable,
-        test_iswritable,
-        test_cd,
-        test_readpath,
-        test_walkpath,
-        test_read,
-        test_write,
-        test_mkdir,
-        test_cp,
-        test_mv,
-        test_symlink,
-        test_touch,
-        test_tmpname,
-        test_tmpdir,
-        test_mktmp,
-        test_mktmpdir,
-        test_chown,
-        test_chmod,
-        test_download,
-        test_include,
-    ]
-
-    function test(ps::PathSet, test_sets=TESTALL)
-        try
-            initialize(ps)
-
-            for ts in test_sets
-                ts(ps)
-            end
-        finally
-            rm(ps.root; recursive=true, force=true)
         end
     end
 end

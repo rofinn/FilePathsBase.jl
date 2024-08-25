@@ -1,3 +1,9 @@
+function uuid4()
+    u = rand(UInt128)
+    u &= 0xffffffffffff0fff3fffffffffffffff
+    u |= 0x00000000000040008000000000000000
+    UUID(u)
+end
 # Mostly copied from https://github.com/IainNZ/Humanize.jl/blob/master/src/Humanize.jl#L27
 function _datasize(bytes::Number)
     base = 1024.0
@@ -13,6 +19,5 @@ function _datasize(bytes::Number)
             break
         end
     end
-
-    return @sprintf("%.1f%s", (base * nbytes / unit), suffix)
+    return string(round(base * nbytes / unit,digits = 1)) * suffix
 end
