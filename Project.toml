@@ -1,7 +1,7 @@
 name = "FilePathsBase"
 uuid = "48062228-2e41-5def-b9a4-89aafe57970f"
 authors = ["Rory Finnegan"]
-version = "0.9.21"
+version = "0.9.22"
 
 [deps]
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
