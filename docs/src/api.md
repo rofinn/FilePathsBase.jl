@@ -46,7 +46,7 @@ ismount | ismount
 isabspath | isabsolute
 splitdrive()[1] | drive
 N/A | root (property)
-split(p, "/") | segments (property)
+splitpath(p) | segments (property)
 expanduser | expanduser
 mkdir | mkdir
 mkpath | N/A (use mkdir)
