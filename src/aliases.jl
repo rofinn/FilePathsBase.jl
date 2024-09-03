@@ -4,7 +4,6 @@
 /(args...) = Base.:/(args...)
 join(args...) = Base.join(args...)
 
-
 # Aliases for Base.Filesystem API
 # Filesystem methods that were renamed should still have an alias for better interop.
 Base.abspath(fp::AbstractPath) = absolute(fp)
@@ -13,7 +12,9 @@ Base.dirname(fp::AbstractPath) = parent(fp)
 Base.filemode(fp::AbstractPath) = mode(fp)
 Base.isabspath(fp::AbstractPath) = isabsolute(fp)
 Base.ispath(fp::AbstractPath) = exists(fp)
-Base.joinpath(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...) = join(root, pieces...)
+function Base.joinpath(root::AbstractPath, pieces::Union{AbstractPath,AbstractString}...)
+    return join(root, pieces...)
+end
 Base.mkpath(fp::AbstractPath) = mkdir(fp; recursive=true, exist_ok=true)
 Base.mtime(fp::AbstractPath) = datetime2unix(modified(fp))
 Base.normpath(fp::AbstractPath) = normalize(fp)

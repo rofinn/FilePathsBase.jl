@@ -1,5 +1,4 @@
 
-
 """
     Path() -> SystemPath
     Path(fp::Tuple) -> SystemPath
@@ -12,11 +11,15 @@ Windows systems respectively)
 """
 function Path end
 
-function Path(fp::T; overrides...) where T<:AbstractPath
+function Path(fp::T; overrides...) where {T<:AbstractPath}
     override_fields = keys(overrides)
     override_vals = values(overrides)
 
-    T((s in override_fields ? override_vals[s] : getfield(fp, s) for s in fieldnames(T))...)
+    return T(
+        (
+            s in override_fields ? override_vals[s] : getfield(fp, s) for s in fieldnames(T)
+        )...,
+    )
 end
 
 Path(str::AbstractString) = parse(AbstractPath, str)
@@ -31,7 +34,7 @@ macro p_str(fp)
     return :(Path($fp))
 end
 
-function Base.getproperty(fp::T, attr::Symbol) where T <: AbstractPath
+function Base.getproperty(fp::T, attr::Symbol) where {T<:AbstractPath}
     if isdefined(fp, attr)
         return getfield(fp, attr)
     elseif attr === :drive
@@ -49,7 +52,7 @@ function Base.getproperty(fp::T, attr::Symbol) where T <: AbstractPath
     end
 end
 
-function Base.propertynames(::T, private::Bool=false) where T <: AbstractPath
+function Base.propertynames(::T, private::Bool=false) where {T<:AbstractPath}
     public_names = (:drive, :root, :anchor, :separator)
     return private ? Base.merge_names(public_names, fieldnames(T)) : public_names
 end
@@ -59,11 +62,11 @@ We only want to print the macro string syntax when compact is true and
 we want print to just return the string (this allows `string` to work normally)
 =#
 function Base.print(io::IO, fp::AbstractPath)
-    print(io, fp.anchor * join(fp.segments, fp.separator))
+    return print(io, fp.anchor * join(fp.segments, fp.separator))
 end
 
 function Base.show(io::IO, fp::AbstractPath)
-    get(io, :compact, false) ? print(io, fp) : print(io, "p\"$fp\"")
+    return get(io, :compact, false) ? print(io, fp) : print(io, "p\"$fp\"")
 end
 
 # Needed for path Cmd interpolation to work correctly.
@@ -74,7 +77,7 @@ Base.arg_gen(fp::AbstractPath) = Base.arg_gen(string(fp))
 # Default string constructors for AbstractPath types should fall back to calling `parse`.
 (::Type{T})(str::AbstractString) where {T<:AbstractPath} = parse(T, str)
 
-function Base.parse(::Type{P}, str::AbstractString; kwargs...) where P<:AbstractPath
+function Base.parse(::Type{P}, str::AbstractString; kwargs...) where {P<:AbstractPath}
     result = tryparse(P, str; kwargs...)
     result === nothing && throw(ArgumentError("$str cannot be parsed as $P"))
     return result
@@ -105,7 +108,7 @@ function Base.tryparse(::Type{AbstractPath}, str::AbstractString; debug=false)
         @debug(
             string(
                 "Found multiple path types that could parse the string specified ($types). ",
-                "Please use a specific `parse` method if $(first(types)) is not the correct type."
+                "Please use a specific `parse` method if $(first(types)) is not the correct type.",
             )
         )
     end
@@ -116,7 +119,7 @@ end
 Base.convert(T::Type{<:AbstractPath}, x::AbstractString) = parse(T, x)
 Base.convert(::Type{String}, x::AbstractPath) = string(x)
 Base.promote_rule(::Type{String}, ::Type{<:AbstractPath}) = String
-Base.isless(a::P, b::P) where P<:AbstractPath = isless(a.segments, b.segments)
+Base.isless(a::P, b::P) where {P<:AbstractPath} = isless(a.segments, b.segments)
 
 """
       cwd() -> SystemPath
@@ -229,11 +232,14 @@ julia> parents(p".")
  p"."
 ```
 """
-function parents(fp::T) where {T <: AbstractPath}
+function parents(fp::T) where {T<:AbstractPath}
     if hasparent(fp)
         # Iterate from 1:n-1 or 0:n-1 for relative and absolute paths respectively.
         # (i.e., include fp.root when applicable)
-        return [Path(fp; segments=fp.segments[1:i]) for i in isrelative(fp):length(fp.segments) - 1]
+        return [
+            Path(fp; segments=fp.segments[1:i]) for
+            i in isrelative(fp):(length(fp.segments) - 1)
+        ]
     elseif fp.segments == tuple(".") || !isempty(fp.root)
         return [fp]
     else
@@ -254,7 +260,7 @@ julia> p"foo" * "bar"
 p"foobar"
 ```
 """
-function Base.:(*)(a::T, b::Union{T, AbstractString, AbstractChar}...) where T <: AbstractPath
+function Base.:(*)(a::T, b::Union{T,AbstractString,AbstractChar}...) where {T<:AbstractPath}
     return parse(T, *(string(a), string.(b)...))
 end
 
@@ -272,8 +278,7 @@ julia> p"foo" / "bar" / "baz"
 p"foo/bar/baz"
 ```
 """
-/(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...) = join(root, pieces...)
-
+/(root::AbstractPath, pieces::Union{AbstractPath,AbstractString}...) = join(root, pieces...)
 
 """
     join(root::AbstractPath, pieces::Union{AbstractPath, AbstractString}...) -> AbstractPath
@@ -286,7 +291,7 @@ julia> join(p"~/.julia/v0.6", "REQUIRE")
 p"~/.julia/v0.6/REQUIRE"
 ```
 """
-function join(prefix::AbstractPath, pieces::Union{AbstractPath, AbstractString}...)
+function join(prefix::AbstractPath, pieces::Union{AbstractPath,AbstractString}...)
     pre = prefix
     segments = String[pre.segments...]
 
@@ -390,7 +395,7 @@ Base.isempty(fp::AbstractPath) = isempty(fp.segments)
 
 normalizes a path by removing "." and ".." entries.
 """
-function normalize(fp::T) where {T <: AbstractPath}
+function normalize(fp::T) where {T<:AbstractPath}
     p = fp.segments
     result = String[]
     rem = length(p)
@@ -465,9 +470,11 @@ function relative(fp::T, start::T=cwd()) where {T<:AbstractPath}
     pathpart = p[(i + 1):findlast(x -> !isempty(x), p)]
     prefix_num = findlast(x -> !isempty(x), s) - i - 1
     if prefix_num >= 0
-        relpath_ = isempty(pathpart) ?
-            tuple(fill(pardir, prefix_num + 1)...) :
+        relpath_ = if isempty(pathpart)
+            tuple(fill(pardir, prefix_num + 1)...)
+        else
             tuple(fill(pardir, prefix_num + 1)..., pathpart...)
+        end
     else
         relpath_ = tuple(pathpart...)
     end
@@ -601,10 +608,12 @@ true if the `src` should be sent. This may be useful if you'd like to use a chec
 comparison.
 """
 function sync(src::AbstractPath, dst::AbstractPath; kwargs...)
-    sync(should_sync, src, dst; kwargs...)
+    return sync(should_sync, src, dst; kwargs...)
 end
 
-function sync(f::Function, src::AbstractPath, dst::AbstractPath; delete=false, overwrite=true)
+function sync(
+    f::Function, src::AbstractPath, dst::AbstractPath; delete=false, overwrite=true
+)
     # Throw an error if the source path doesn't exist at all
     exists(src) || throw(ArgumentError("$src does not exist"))
 
@@ -655,7 +664,11 @@ function sync(f::Function, src::AbstractPath, dst::AbstractPath; delete=false, o
             index_pairs = collect(pairs(index))
             index_pairs = index_pairs[sortperm(last.(index_pairs))]
             for (seg, i) in index_pairs
-                cp(src_paths[i], Path(dst, segments=tuple(dst.segments..., seg...)); force=true)
+                cp(
+                    src_paths[i],
+                    Path(dst; segments=tuple(dst.segments..., seg...));
+                    force=true,
+                )
             end
         else
             cp(src, dst)
@@ -670,8 +683,8 @@ function should_sync(src::AbstractPath, dst::AbstractPath)
     if src_stat.size != dst_stat.size || src_stat.mtime > dst_stat.mtime
         @debug(
             "syncing: $src -> $dst, " *
-            "size: $(src_stat.size) -> $(dst_stat.size), " *
-            "modified_time: $(src_stat.mtime) -> $(dst_stat.mtime)"
+                "size: $(src_stat.size) -> $(dst_stat.size), " *
+                "modified_time: $(src_stat.mtime) -> $(dst_stat.mtime)"
         )
         return true
     else
@@ -687,7 +700,7 @@ Download a file from the remote `url` and save it to the `localfile` path.
 NOTE: Not downloading into a `localfile` directory matches the base Julia behaviour.
 https://github.com/rofinn/FilePathsBase.jl/issues/48
 """
-function Base.download(url::AbstractString, localfile::P) where P <: AbstractPath
+function Base.download(url::AbstractString, localfile::P) where {P<:AbstractPath}
     mktemp(P) do fp, io
         download(url, fp)
         cp(fp, localfile; force=false)
@@ -704,7 +717,7 @@ end
 """
     readpath(fp::P; join=true, sort=true) where {P <: AbstractPath} -> Vector{P}
 """
-function readpath(p::P; join=true, sort=true)::Vector{P} where P <: AbstractPath
+function readpath(p::P; join=true, sort=true)::Vector{P} where {P<:AbstractPath}
     @static if VERSION < v"1.4"
         results = readdir(p)
         sort && sort!(results)
@@ -719,8 +732,10 @@ end
 
 Performs a depth first search through the directory structure
 """
-function walkpath(fp::P; topdown=true, follow_symlinks=false, onerror=throw)  where P <: AbstractPath
-    return Channel(ctype=P) do chnl
+function walkpath(
+    fp::P; topdown=true, follow_symlinks=false, onerror=throw
+) where {P<:AbstractPath}
+    return Channel(; ctype=P) do chnl
         for p in readpath(fp)
             topdown && put!(chnl, p)
             if isdir(p) && (follow_symlinks || !islink(p))
@@ -764,7 +779,6 @@ function Base.open(fp::AbstractPath, mode)
         throw(ArgumentError("$mode is not support for $(typeof(fp))"))
     end
 end
-
 
 # Fallback read write methods
 Base.read(fp::AbstractPath, ::Type{T}) where {T} = open(io -> read(io, T), fp)
@@ -821,7 +835,7 @@ function Base.mktempdir(fn::Function, parent::AbstractPath)
     try
         fn(tmpdir)
     finally
-        rm(tmpdir, recursive=true)
+        rm(tmpdir; recursive=true)
     end
 end
 
@@ -833,14 +847,14 @@ mktmpdir(arg1, args...) = mktempdir(arg1, args...)
 
 Returns `true` if `fp` is within the directory tree of the `asc`.
 """
-isdescendant(fp::P, asc::P) where {P <: AbstractPath} = fp == asc || asc in parents(fp)
+isdescendant(fp::P, asc::P) where {P<:AbstractPath} = fp == asc || asc in parents(fp)
 
 """
 	isascendant(fp::P, desc::P) where {P <: AbstractPath} -> Bool
 
 Returns `true` if `fp` is a directory containing `desc`.
 """
-isascendant(fp::P, desc::P) where {P <: AbstractPath} = isdescendant(desc, fp)
+isascendant(fp::P, desc::P) where {P<:AbstractPath} = isdescendant(desc, fp)
 
 """
     diskusage(fp::AbstractPath)
@@ -859,10 +873,10 @@ Base.include(m::Module, path::AbstractPath) = Base.include(identity, m, path)
 function Base.include(mapexpr::Function, m::Module, path::AbstractPath)
     tmp_file = cwd() / string(uuid4(), "-", basename(path))
     try
-        cp(path, tmp_file; force = true)
+        cp(path, tmp_file; force=true)
         Base.include(mapexpr, m, string(tmp_file))
     finally
-        rm(tmp_file; force = true)
+        rm(tmp_file; force=true)
     end
 end
 

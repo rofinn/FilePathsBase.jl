@@ -24,7 +24,8 @@ include(p"testpkg.jl")
 
         @testset "`propertynames`" begin
             @test propertynames(ps.root) == (:drive, :root, :anchor, :separator)
-            @test propertynames(ps.root, true) == (:drive, :root, :anchor, :separator, :segments)
+            @test propertynames(ps.root, true) ==
+                (:drive, :root, :anchor, :separator, :segments)
         end
 
         @testset "$(typeof(ps.root))" begin

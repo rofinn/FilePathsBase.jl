@@ -85,7 +85,7 @@ using FilePathsBase: FileBuffer
                 p2 = p"README.md"
                 cp(p1, p2)
 
-                io = FileBuffer(p2; read=true,write=true)
+                io = FileBuffer(p2; read=true, write=true)
                 try
                     @test isopen(io)
                     @test isreadable(io)
@@ -111,7 +111,7 @@ using FilePathsBase: FileBuffer
 
                 rm(p2)
 
-                io = FileBuffer(p2; read=true,write=true)
+                io = FileBuffer(p2; read=true, write=true)
                 try
                     write(io, read(p1))
                     flush(io)
@@ -161,7 +161,6 @@ using FilePathsBase: FileBuffer
                         write(io, x)
                     end
                 end
-
 
                 open(p"hello_world.jlso") do io
                     data = UInt8[]

@@ -4,6 +4,7 @@
 [![codecov.io](https://codecov.io/github/rofinn/FilePathsBase.jl/coverage.svg?branch=master)](https://codecov.io/rofinn/FilePathsBase.jl?branch=master)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://rofinn.github.io/FilePathsBase.jl/stable)
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://rofinn.github.io/FilePathsBase.jl/dev)
+[![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/JuliaDiff/BlueStyle)
 
 FilePathsBase.jl provides a type based approach to working with filesystem paths in julia.
 

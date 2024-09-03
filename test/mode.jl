@@ -1,9 +1,5 @@
 @testset "Mode Tests" begin
-    m = Mode(
-        user=(READ + WRITE + EXEC),
-        group=(READ + EXEC),
-        other=EXEC
-    )
+    m = Mode(; user=(READ + WRITE + EXEC), group=(READ + EXEC), other=EXEC)
 
     x = executable(:ALL)
     r = readable(:USER, :GROUP)

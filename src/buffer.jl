@@ -56,14 +56,14 @@ function Base.read(buffer::FileBuffer)
     isreadable(buffer) || throw(ArgumentError("read failed, FileBuffer is not readable"))
     _read(buffer)
     seekstart(buffer)
-    read(buffer.io)
+    return read(buffer.io)
 end
 
 function Base.read(buffer::FileBuffer, ::Type{String})
     isreadable(buffer) || throw(ArgumentError("read failed, FileBuffer is not readable"))
     _read(buffer)
     seekstart(buffer)
-    read(buffer.io, String)
+    return read(buffer.io, String)
 end
 
 function Base.read(buffer::FileBuffer, ::Type{UInt8})
@@ -71,7 +71,7 @@ function Base.read(buffer::FileBuffer, ::Type{UInt8})
         write(buffer.io, read(buffer.path))
         seekstart(buffer)
     end
-    read(buffer.io, UInt8)
+    return read(buffer.io, UInt8)
 end
 
 #=
@@ -79,17 +79,17 @@ NOTE: We need to define multiple methods because of ambiguity error with base IO
 =#
 function Base.write(buffer::FileBuffer, x::Vector{UInt8})
     iswritable(buffer) || throw(ArgumentError("write failed, FileBuffer is not writeable"))
-    write(buffer.io, x)
+    return write(buffer.io, x)
 end
 
 function Base.write(buffer::FileBuffer, x::String)
     iswritable(buffer) || throw(ArgumentError("write failed, FileBuffer is not writeable"))
-    write(buffer.io, x)
+    return write(buffer.io, x)
 end
 
 function Base.write(buffer::FileBuffer, x::UInt8)
     iswritable(buffer) || throw(ArgumentError("write failed, FileBuffer is not writeable"))
-    write(buffer.io, x)
+    return write(buffer.io, x)
 end
 
 function Base.flush(buffer::FileBuffer)
@@ -101,5 +101,5 @@ end
 
 function Base.close(buffer::FileBuffer)
     flush(buffer)
-    close(buffer.io)
+    return close(buffer.io)
 end

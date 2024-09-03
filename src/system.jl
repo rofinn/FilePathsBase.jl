@@ -7,8 +7,9 @@ methods that wrap base functionality.
 abstract type SystemPath <: AbstractPath end
 
 Path() = @static Sys.isunix() ? PosixPath() : WindowsPath()
-Path(pieces::Tuple{Vararg{String}}) =
+function Path(pieces::Tuple{Vararg{String}})
     @static Sys.isunix() ? PosixPath(pieces) : WindowsPath(pieces)
+end
 
 """
     @__PATH__ -> SystemPath
@@ -113,8 +114,8 @@ function isexecutable(fp::SystemPath)
     return (
         isexecutable(s.mode, :ALL) ||
         isexecutable(s.mode, :OTHER) ||
-        ( usr.uid == s.user.uid && isexecutable(s.mode, :USER) ) ||
-        ( usr.gid == s.group.gid && isexecutable(s.mode, :GROUP) )
+        (usr.uid == s.user.uid && isexecutable(s.mode, :USER)) ||
+        (usr.gid == s.group.gid && isexecutable(s.mode, :GROUP))
     )
 end
 
@@ -130,8 +131,8 @@ function Base.iswritable(fp::SystemPath)
     return (
         iswritable(s.mode, :ALL) ||
         iswritable(s.mode, :OTHER) ||
-        ( usr.uid == s.user.uid && iswritable(s.mode, :USER) ) ||
-        ( usr.gid == s.group.gid && iswritable(s.mode, :GROUP) )
+        (usr.uid == s.user.uid && iswritable(s.mode, :USER)) ||
+        (usr.gid == s.group.gid && iswritable(s.mode, :GROUP))
     )
 end
 
@@ -147,8 +148,8 @@ function Base.isreadable(fp::SystemPath)
     return (
         isreadable(s.mode, :ALL) ||
         isreadable(s.mode, :OTHER) ||
-        ( usr.uid == s.user.uid && isreadable(s.mode, :USER) ) ||
-        ( usr.gid == s.group.gid && isreadable(s.mode, :GROUP) )
+        (usr.uid == s.user.uid && isreadable(s.mode, :USER)) ||
+        (usr.gid == s.group.gid && isreadable(s.mode, :GROUP))
     )
 end
 
@@ -162,7 +163,7 @@ function Base.ismount(fp::SystemPath)
     # directory must be a mount point
     (s1.device != s2.device) && return true
     (s1.inode == s2.inode) && return true
-    false
+    return false
 end
 
 #=
@@ -184,12 +185,14 @@ function Base.cd(fn::Function, dir::SystemPath)
     try
         cd(dir)
         fn()
-   finally
+    finally
         cd(old)
     end
 end
 
-function Base.mkdir(fp::T; mode=0o777, recursive=false, exist_ok=false) where T<:SystemPath
+function Base.mkdir(
+    fp::T; mode=0o777, recursive=false, exist_ok=false
+) where {T<:SystemPath}
     if exists(fp)
         if exist_ok
             return fp
@@ -198,24 +201,24 @@ function Base.mkdir(fp::T; mode=0o777, recursive=false, exist_ok=false) where T<
         end
     else
         if hasparent(fp) && !exists(parent(fp))
-			if recursive
-				mkdir(parent(fp); mode=mode, recursive=recursive, exist_ok=exist_ok)
-			else
-				error(
-					"The parent of $fp does not exist. " *
-					"Pass recursive=true to create it."
-				)
-			end
+            if recursive
+                mkdir(parent(fp); mode=mode, recursive=recursive, exist_ok=exist_ok)
+            else
+                error(
+                    "The parent of $fp does not exist. " *
+                    "Pass recursive=true to create it.",
+                )
+            end
         end
 
-		return parse(T, mkdir(string(fp), mode=mode))
+        return parse(T, mkdir(string(fp); mode=mode))
     end
 end
 
 function Base.symlink(src::SystemPath, dest::SystemPath; exist_ok=false, overwrite=false)
     if exists(src)
         if exists(dest) && exist_ok && overwrite
-            rm(dest, recursive=true)
+            rm(dest; recursive=true)
         end
 
         if !exists(dest)
@@ -229,22 +232,24 @@ function Base.symlink(src::SystemPath, dest::SystemPath; exist_ok=false, overwri
 end
 
 function Base.rm(fp::SystemPath; kwargs...)
-    rm(string(fp); kwargs...)
+    return rm(string(fp); kwargs...)
 end
 Base.touch(fp::T) where {T<:SystemPath} = parse(T, touch(string(fp)))
-function Base.mktemp(parent::T) where T<:SystemPath
+function Base.mktemp(parent::T) where {T<:SystemPath}
     fp, io = mktemp(string(parent))
     return parse(T, fp), io
 end
 
-Base.mktempdir(parent::T) where {T<:SystemPath}= parse(T, mktempdir(string(parent)))
+Base.mktempdir(parent::T) where {T<:SystemPath} = parse(T, mktempdir(string(parent)))
 
 """
     chown(fp::SystemPath, user::AbstractString, group::AbstractString; recursive=false)
 
 Change the `user` and `group` of the `fp`.
 """
-function Base.chown(fp::SystemPath, user::AbstractString, group::AbstractString; recursive=false)
+function Base.chown(
+    fp::SystemPath, user::AbstractString, group::AbstractString; recursive=false
+)
     @static if Sys.isunix()
         chown_cmd = String["chown"]
         if recursive
@@ -299,7 +304,7 @@ julia> mode(p"newfile")
 -rw-r--r--
 ```
 """
-function Base.chmod(fp::T, mode::Mode; recursive=false) where T<:SystemPath
+function Base.chmod(fp::T, mode::Mode; recursive=false) where {T<:SystemPath}
     chmod_path = string(fp)
     chmod_mode = raw(mode)
 
@@ -309,15 +314,17 @@ function Base.chmod(fp::T, mode::Mode; recursive=false) where T<:SystemPath
         end
     end
 
-    parse(T, chmod(chmod_path, chmod_mode))
+    return parse(T, chmod(chmod_path, chmod_mode))
 end
 
 function Base.chmod(fp::SystemPath, mode::Integer; recursive=false)
-    chmod(fp, Mode(mode); recursive=recursive)
+    return chmod(fp, Mode(mode); recursive=recursive)
 end
 
-function Base.chmod(fp::SystemPath; user::UInt8=0o0, group::UInt8=0o0, other::UInt8=0o0, recursive=false)
-    chmod(fp, Mode(user=user, group=group, other=other); recursive=recursive)
+function Base.chmod(
+    fp::SystemPath; user::UInt8=0o0, group::UInt8=0o0, other::UInt8=0o0, recursive=false
+)
+    return chmod(fp, Mode(; user=user, group=group, other=other); recursive=recursive)
 end
 
 function Base.chmod(fp::SystemPath, symbolic_mode::AbstractString; recursive=false)
@@ -373,11 +380,11 @@ end
 
 Base.open(fp::SystemPath, args...) = open(string(fp), args...)
 function Base.open(f::Function, fp::SystemPath, args...; kwargs...)
-    open(f, string(fp), args...; kwargs...)
+    return open(f, string(fp), args...; kwargs...)
 end
 
 Base.read(fp::SystemPath) = read(string(fp))
-function Base.write(fp::SystemPath, x::Union{String, Vector{UInt8}}, mode="w")
+function Base.write(fp::SystemPath, x::Union{String,Vector{UInt8}}, mode="w")
     open(fp, mode) do f
         write(f, x)
     end
@@ -386,15 +393,15 @@ end
 Base.readdir(fp::SystemPath; kwargs...) = readdir(string(fp); kwargs...)
 
 #TODO: Base.download is deprecated; use Downloads.download instead (FilePathsBase.jl#173)
-function Base.download(url::AbstractString, dest::T) where T<:SystemPath
+function Base.download(url::AbstractString, dest::T) where {T<:SystemPath}
     return parse(T, download(url, string(dest)))
 end
 
-function Base.readlink(fp::T) where T<:SystemPath
+function Base.readlink(fp::T) where {T<:SystemPath}
     return parse(T, readlink(string(fp)))
 end
 
-function canonicalize(fp::T) where T<:SystemPath
+function canonicalize(fp::T) where {T<:SystemPath}
     return parse(T, realpath(string(fp)))
 end
 

@@ -18,7 +18,7 @@ struct Status
 end
 
 function Status(s::StatStruct)
-    Status(
+    return Status(
         s.device,
         s.inode,
         Mode(s.mode),
@@ -30,12 +30,13 @@ function Status(s::StatStruct)
         s.blksize,
         s.blocks,
         unix2datetime(s.mtime),
-        unix2datetime(s.ctime)
+        unix2datetime(s.ctime),
     )
 end
 
 function Base.show(io::IO, s::Status)
-    output = "Status(\n" *
+    output =
+        "Status(\n" *
         "  device = $(s.device),\n" *
         "  inode = $(s.inode),\n" *
         "  mode = $(s.mode),\n" *
@@ -49,5 +50,5 @@ function Base.show(io::IO, s::Status)
         "  mtime = $(s.mtime),\n" *
         "  ctime = $(s.ctime),\n)"
 
-    print(io, output)
+    return print(io, output)
 end

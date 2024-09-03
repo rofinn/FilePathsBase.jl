@@ -38,7 +38,7 @@ function Base.Filesystem.contractuser(fp::PosixPath)
             return PosixPath("~")
         else
             n = length(h.segments)
-            return PosixPath(("~", fp.segments[n+1:end]...))
+            return PosixPath(("~", fp.segments[(n + 1):end]...))
         end
     end
 

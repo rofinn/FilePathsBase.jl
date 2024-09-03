@@ -13,7 +13,7 @@ end
 
 #https://github.com/JuliaLang/julia/pull/53699 makes isexecutable public. 
 #we overload that method if available.
-@static if isdefined(Base,:isexecutable)
+@static if isdefined(Base, :isexecutable)
     import Base: isexecutable
 end
 
@@ -76,14 +76,13 @@ export
     WRITE,
     EXEC
 
-
 export isexecutable
 
 const PATH_TYPES = Type[]
 
 function __init__()
     # Register the default fallback path type based on the os.
-    register(Sys.iswindows() ? WindowsPath : PosixPath)
+    return register(Sys.iswindows() ? WindowsPath : PosixPath)
 end
 
 """
@@ -120,7 +119,7 @@ function register(T::Type{<:AbstractPath})
     # We add the type to the beginning of our PATH_TYPES,
     # so that they can take precedence over the Posix and
     # Windows paths.
-    pushfirst!(PATH_TYPES, T)
+    return pushfirst!(PATH_TYPES, T)
 end
 
 """
@@ -144,7 +143,7 @@ include("windows.jl")
 include("test_stub.jl")
 include("deprecates.jl")
 
-if !isdefined(Base,:get_extension)
+if !isdefined(Base, :get_extension)
     include("../ext/FilePathsBaseMmapExt.jl")
     include("../ext/FilePathsBaseTestExt.jl")
 end
