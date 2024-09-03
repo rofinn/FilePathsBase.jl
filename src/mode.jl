@@ -19,10 +19,10 @@ julia> Mode("-rwxr-x--x")
 -rwxr-x--x
 ```
 """
-function Mode(;user::UInt8=0o0, group::UInt8=0o0, other::UInt8=0o0,)
+function Mode(; user::UInt8=0o0, group::UInt8=0o0, other::UInt8=0o0)
     @assert user <= 0o7 && group <= 0o7 && other <= 0o7
 
-    Mode(user * USER_COEFF | group * GROUP_COEFF | other * OTHER_COEFF)
+    return Mode(user * USER_COEFF | group * GROUP_COEFF | other * OTHER_COEFF)
 end
 
 function Mode(mode::UInt8, usr_grps::Symbol...)
@@ -39,14 +39,16 @@ function Mode(mode::UInt8, usr_grps::Symbol...)
         elseif usr_grp == :OTHER
             other = mode
         else
-            throw(ArgumentError(
-                "$usr_grp not a valid symbol only " *
-                ":ALL, :USER, :GROUP and :OTHER are accepted."
-            ))
+            throw(
+                ArgumentError(
+                    "$usr_grp not a valid symbol only " *
+                    ":ALL, :USER, :GROUP and :OTHER are accepted.",
+                ),
+            )
         end
     end
 
-    return Mode(user=user, group=group, other=other)
+    return Mode(; user=user, group=group, other=other)
 end
 
 Mode(s::AbstractString) = parse(Mode, s)
@@ -55,9 +57,11 @@ function Base.parse(::Type{Mode}, x::AbstractString)
     n = length(FILEMODE_TABLE)
 
     if length(x) != n
-        throw(ArgumentError(
-            "Expected a mode permission string with $n characters (e.g., '-rwxrwxrwx')"
-        ))
+        throw(
+            ArgumentError(
+                "Expected a mode permission string with $n characters (e.g., '-rwxrwxrwx')"
+            ),
+        )
     end
 
     m = zero(UInt64)
@@ -76,9 +80,11 @@ function Base.parse(::Type{Mode}, x::AbstractString)
         end
         if !found
             options = last.(table)
-            throw(ArgumentError(
-                "Unknown character '$c' at position $i, expected one of $options."
-            ))
+            throw(
+                ArgumentError(
+                    "Unknown character '$c' at position $i, expected one of $options."
+                ),
+            )
         end
     end
 
@@ -105,11 +111,11 @@ function Base.print(io::IO, mode::Mode)
         end
     end
 
-    print(io, String(perm))
+    return print(io, String(perm))
 end
 
 function Base.show(io::IO, mode::Mode)
-    get(io, :compact, false) ? print(io, mode) : print(io, "Mode(\"$mode\")")
+    return get(io, :compact, false) ? print(io, mode) : print(io, "Mode(\"$mode\")")
 end
 
 Base.:-(a::Mode, b::Mode) = Mode(a.m & ~b.m)

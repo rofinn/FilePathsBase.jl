@@ -62,7 +62,7 @@ ps = PathSet(; symlink=true)
                 test_iswritable,
                 test_chown,
                 test_chmod,
-            ]
+            ],
         )
     end
 
@@ -106,7 +106,8 @@ ps = PathSet(; symlink=true)
 
             @test exists(p)
             @test !isabsolute(p)
-            @test string(normalize(p"../src/../src/FilePathsBase.jl")) == normpath("../src/../src/FilePathsBase.jl")
+            @test string(normalize(p"../src/../src/FilePathsBase.jl")) ==
+                normpath("../src/../src/FilePathsBase.jl")
             @test string(absolute(p)) == abspath(string(p))
             @test sprint(show, p"../README.md") == "p\"../README.md\""
 
@@ -196,7 +197,8 @@ ps = PathSet(; symlink=true)
             end
 
             @testset "basename" begin
-                @test basename(p"../src/FilePathsBase.jl") == basename("../src/FilePathsBase.jl")
+                @test basename(p"../src/FilePathsBase.jl") ==
+                    basename("../src/FilePathsBase.jl")
             end
 
             @testset "splitext" begin

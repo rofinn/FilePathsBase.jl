@@ -18,8 +18,11 @@ struct WindowsPath <: SystemPath
 end
 
 function _win_splitdrive(fp::String)
-    m = match(r"^([^\\]+:|\\\\[^\\]+\\[^\\]+|\\\\\?\\UNC\\[^\\]+\\[^\\]+|\\\\\?\\[^\\]+:|)(.*)$", fp)
-    String(m.captures[1]), String(m.captures[2])
+    m = match(
+        r"^([^\\]+:|\\\\[^\\]+\\[^\\]+|\\\\\?\\UNC\\[^\\]+\\[^\\]+|\\\\\?\\[^\\]+:|)(.*)$",
+        fp,
+    )
+    return String(m.captures[1]), String(m.captures[2])
 end
 
 WindowsPath() = WindowsPath(tuple(), "", "")
@@ -70,8 +73,8 @@ end
 
 function Base.:(==)(a::WindowsPath, b::WindowsPath)
     return lowercase.(a.segments) == lowercase.(b.segments) &&
-        lowercase(a.root) == lowercase(b.root) &&
-        lowercase(a.drive) == lowercase(b.drive)
+           lowercase(a.root) == lowercase(b.root) &&
+           lowercase(a.drive) == lowercase(b.drive)
 end
 
 function Base.show(io::IO, fp::WindowsPath)
@@ -80,7 +83,7 @@ function Base.show(io::IO, fp::WindowsPath)
         print(io, replace(fp.anchor, "\\" => "/"))
     end
     print(io, join(fp.segments, "/"))
-    print(io, "\"")
+    return print(io, "\"")
 end
 
 isabsolute(fp::WindowsPath) = (!isempty(fp.drive) || !isempty(fp.root))

@@ -14,13 +14,13 @@
     end
 elseif Sys.islinux()
     struct Cpasswd
-       pw_name::Cstring
-       pw_passwd::Cstring
-       pw_uid::Cint
-       pw_gid::Cint
-       pw_gecos::Cstring
-       pw_dir::Cstring
-       pw_shell::Cstring
+        pw_name::Cstring
+        pw_passwd::Cstring
+        pw_uid::Cint
+        pw_gid::Cint
+        pw_gecos::Cstring
+        pw_dir::Cstring
+        pw_shell::Cstring
     end
 else
     struct Cpasswd
@@ -51,12 +51,12 @@ struct User
 end
 
 function User(ps::Cpasswd)
-    User(
+    return User(
         unsafe_string(ps.pw_name),
         UInt64(ps.pw_uid),
         UInt64(ps.pw_gid),
         unsafe_string(ps.pw_dir),
-        unsafe_string(ps.pw_shell)
+        unsafe_string(ps.pw_shell),
     )
 end
 

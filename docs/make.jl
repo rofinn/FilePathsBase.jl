@@ -1,6 +1,5 @@
 using Documenter, FilePathsBase, FilePathsBase.TestPaths
 
-
 const SETUP_CODE = quote
     using FilePathsBase
     using FilePathsBase: /, join
@@ -8,16 +7,11 @@ end
 
 DocMeta.setdocmeta!(FilePathsBase, :DocTestSetup, SETUP_CODE; recursive=true)
 
-makedocs(
+makedocs(;
     modules=[FilePathsBase],
-    format=Documenter.HTML(
-        prettyurls = get(ENV, "CI", nothing) == "true",
-    ),
+    format=Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true"),
     pages=[
-        "Home" => "index.md",
-        "Design" => "design.md",
-        "FAQ" => "faq.md",
-        "API" => "api.md",
+        "Home" => "index.md", "Design" => "design.md", "FAQ" => "faq.md", "API" => "api.md"
     ],
     repo="https://github.com/rofinn/FilePathsBase.jl/blob/{commit}{path}#L{line}",
     sitename="FilePathsBase.jl",
@@ -26,9 +20,9 @@ makedocs(
     # strict = true,
 )
 
-deploydocs(
-    repo = "github.com/rofinn/FilePathsBase.jl.git",
-    target = "build",
-    deps = nothing,
-    make = nothing,
+deploydocs(;
+    repo="github.com/rofinn/FilePathsBase.jl.git",
+    target="build",
+    deps=nothing,
+    make=nothing,
 )

@@ -2,6 +2,8 @@ module FilePathsBaseMmapExt
 using Mmap
 using FilePathsBase
 
-Mmap.mmap(fp::FilePathsBase.SystemPath, args...; kwargs...) = Mmap.mmap(string(fp), args...; kwargs...)
+function Mmap.mmap(fp::FilePathsBase.SystemPath, args...; kwargs...)
+    return Mmap.mmap(string(fp), args...; kwargs...)
+end
 
 end #module
