@@ -56,7 +56,7 @@ mv | mv
 download | download
 readdir | readdir
 N/A | readpath
-walkpath | walkpath
+walkdir | walkpath
 rm | rm
 touch | touch
 tempname() | tempname(::Type{<:AbstractPath}) (or tmpname)
