@@ -7,8 +7,8 @@ struct Status
     inode::UInt64
     mode::Mode
     nlink::Int64
-    user::User
-    group::Group
+    uid::UInt
+    gid::UInt
     rdev::UInt64
     size::Int64
     blksize::Int64
@@ -23,8 +23,8 @@ function Status(s::StatStruct)
         s.inode,
         Mode(s.mode),
         s.nlink,
-        User(s.uid),
-        Group(s.gid),
+        s.uid,
+        s.gid,
         s.rdev,
         s.size,
         s.blksize,
@@ -32,6 +32,16 @@ function Status(s::StatStruct)
         unix2datetime(s.mtime),
         unix2datetime(s.ctime),
     )
+end
+
+function Base.getproperty(s::Status, sym::Symbol)
+    if sym === :user
+        return User(getfield(s, :uid))
+    elseif sym === :group
+        return Group(getfield(s, :gid))
+    else
+        return getfield(s, sym)
+    end
 end
 
 function Base.show(io::IO, s::Status)
