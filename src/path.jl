@@ -512,8 +512,8 @@ julia> mode(p"src/FilePathsBase.jl")
 -rw-r--r--
 ```
 """
-mode(fp::AbstractPath) = Mode(stat(string(fp)).mode)
-Base.filesize(fp::AbstractPath) = stat(string(fp)).size
+mode(fp::AbstractPath) = stat(fp).mode
+Base.filesize(fp::AbstractPath) = stat(fp).size
 
 """
     modified(fp::AbstractPath) -> DateTime
@@ -526,7 +526,7 @@ julia> modified(p"src/FilePathsBase.jl")
 2017-06-20T04:01:09
 ```
 """
-modified(fp::AbstractPath) = unix2datetime(stat(string(fp)).mtime)
+modified(fp::AbstractPath) = stat(fp).mtime
 
 """
     created(fp::AbstractPath) -> DateTime
@@ -542,7 +542,7 @@ julia> created(p"src/FilePathsBase.jl")
 created(fp::AbstractPath) = stat(fp).ctime
 Base.isdir(fp::AbstractPath) = isdir(mode(fp))
 Base.isfile(fp::AbstractPath) = isfile(mode(fp))
-Base.islink(fp::AbstractPath) = islink(mode(fp))
+Base.islink(fp::AbstractPath) = islink(lstat(fp).mode)
 Base.issocket(fp::AbstractPath) = issocket(mode(fp))
 Base.isfifo(fp::AbstractPath) = issocket(mode(fp))
 Base.ischardev(fp::AbstractPath) = ischardev(mode(fp))
@@ -887,4 +887,3 @@ macro __INCLUDE__()
         m.include(mapexpr::Function, path::AbstractPath) = Base.include(mapexpr, m, path)
     end
 end
-

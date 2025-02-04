@@ -66,8 +66,8 @@ julia> mode(p"src/FilePathsBase.jl")
 -rw-r--r--
 ```
 """
-mode(fp::SystemPath) = stat(fp).mode
-Base.filesize(fp::SystemPath) = stat(fp).size
+mode(fp::SystemPath) = Mode(stat(string(fp)).mode)
+Base.filesize(fp::SystemPath) = stat(string(fp)).size
 
 """
     modified(fp::SystemPath) -> DateTime
@@ -80,7 +80,7 @@ julia> modified(p"src/FilePathsBase.jl")
 2017-06-20T04:01:09
 ```
 """
-modified(fp::SystemPath) = stat(fp).mtime
+modified(fp::SystemPath) = unix2datetime(stat(string(fp)).mtime)
 
 """
     created(fp::SystemPath) -> DateTime
@@ -93,7 +93,7 @@ julia> created(p"src/FilePathsBase.jl")
 2017-06-20T04:01:09
 ```
 """
-created(fp::SystemPath) = stat(fp).ctime
+created(fp::SystemPath) = unix2datetime(stat(string(fp)).ctime)
 Base.isdir(fp::SystemPath) = isdir(mode(fp))
 Base.isfile(fp::SystemPath) = isfile(mode(fp))
 Base.islink(fp::SystemPath) = islink(lstat(fp).mode)
@@ -108,14 +108,15 @@ Base.isblockdev(fp::SystemPath) = isblockdev(mode(fp))
 Returns whether the `path` is executable for the current user.
 """
 function isexecutable(fp::SystemPath)
-    s = stat(fp)
+    s = stat(string(fp))
+    mode = Mode(s.mode)
     usr = User()
 
     return (
-        isexecutable(s.mode, :ALL) ||
-        isexecutable(s.mode, :OTHER) ||
-        (usr.uid == s.user.uid && isexecutable(s.mode, :USER)) ||
-        (usr.gid == s.group.gid && isexecutable(s.mode, :GROUP))
+        isexecutable(mode, :ALL) ||
+        isexecutable(mode, :OTHER) ||
+        (usr.uid == s.uid && isexecutable(mode, :USER)) ||
+        (usr.gid == s.gid && isexecutable(mode, :GROUP))
     )
 end
 
@@ -125,14 +126,15 @@ end
 Returns whether the `path` is writable for the current user.
 """
 function Base.iswritable(fp::SystemPath)
-    s = stat(fp)
+    s = stat(string(fp))
+    mode = Mode(s.mode)
     usr = User()
 
     return (
-        iswritable(s.mode, :ALL) ||
-        iswritable(s.mode, :OTHER) ||
-        (usr.uid == s.user.uid && iswritable(s.mode, :USER)) ||
-        (usr.gid == s.group.gid && iswritable(s.mode, :GROUP))
+        iswritable(mode, :ALL) ||
+        iswritable(mode, :OTHER) ||
+        (usr.uid == s.uid && iswritable(mode, :USER)) ||
+        (usr.gid == s.gid && iswritable(mode, :GROUP))
     )
 end
 
@@ -142,23 +144,24 @@ end
 Returns whether the `path` is readable for the current user.
 """
 function Base.isreadable(fp::SystemPath)
-    s = stat(fp)
+    s = stat(string(fp))
+    mode = Mode(s.mode)
     usr = User()
 
     return (
-        isreadable(s.mode, :ALL) ||
-        isreadable(s.mode, :OTHER) ||
-        (usr.uid == s.user.uid && isreadable(s.mode, :USER)) ||
-        (usr.gid == s.group.gid && isreadable(s.mode, :GROUP))
+        isreadable(mode, :ALL) ||
+        isreadable(mode, :OTHER) ||
+        (usr.uid == s.uid && isreadable(mode, :USER)) ||
+        (usr.gid == s.gid && isreadable(mode, :GROUP))
     )
 end
 
 function Base.ismount(fp::SystemPath)
     isdir(fp) || return false
-    s1 = lstat(fp)
+    s1 = lstat(string(fp))
     # Symbolic links cannot be mount points
     islink(fp) && return false
-    s2 = lstat(parent(fp))
+    s2 = lstat(string(parent(fp)))
     # If a directory and its parent are on different devices,  then the
     # directory must be a mount point
     (s1.device != s2.device) && return true
