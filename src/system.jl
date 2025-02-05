@@ -98,7 +98,7 @@ Base.isdir(fp::SystemPath) = isdir(mode(fp))
 Base.isfile(fp::SystemPath) = isfile(mode(fp))
 Base.islink(fp::SystemPath) = islink(lstat(fp).mode)
 Base.issocket(fp::SystemPath) = issocket(mode(fp))
-Base.isfifo(fp::SystemPath) = issocket(mode(fp))
+Base.isfifo(fp::SystemPath) = isfifo(mode(fp))
 Base.ischardev(fp::SystemPath) = ischardev(mode(fp))
 Base.isblockdev(fp::SystemPath) = isblockdev(mode(fp))
 

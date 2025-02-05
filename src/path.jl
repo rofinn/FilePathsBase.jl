@@ -544,7 +544,7 @@ Base.isdir(fp::AbstractPath) = isdir(mode(fp))
 Base.isfile(fp::AbstractPath) = isfile(mode(fp))
 Base.islink(fp::AbstractPath) = islink(lstat(fp).mode)
 Base.issocket(fp::AbstractPath) = issocket(mode(fp))
-Base.isfifo(fp::AbstractPath) = issocket(mode(fp))
+Base.isfifo(fp::AbstractPath) = isfifo(mode(fp))
 Base.ischardev(fp::AbstractPath) = ischardev(mode(fp))
 Base.isblockdev(fp::AbstractPath) = isblockdev(mode(fp))
 
