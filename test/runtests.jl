@@ -17,6 +17,7 @@ include(p"testpkg.jl")
     include(p"mode.jl")
     include(p"buffer.jl")
     include(p"system.jl")
+    include(p"uris.jl")
 
     @static if Sys.isunix()
         # Test that our weird registered path works
