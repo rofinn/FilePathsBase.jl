@@ -109,6 +109,19 @@ Defines an abstract filesystem path.
 """
 abstract type AbstractPath end  # Define the AbstractPath here to avoid circular include dependencies
 
+# whether path is a key-value store or true file system
+abstract type DirectoriesType end
+struct DirectoriesExplicit <: DirectoriesType end
+struct DirectoriesImplicit <: DirectoriesType end
+
+# whether path supports permissions
+abstract type PermissionsType end
+struct HasPermissions <: PermissionsType end
+struct NoPermissions <: PermissionsType end
+
+directoriestype(::Type{<:AbstractPath}) = DirectoriesExplicit()
+permissionstype(::Type{<:AbstractPath}) = NoPermissions()
+
 """
     register(::Type{<:AbstractPath})
 
